@@ -16,11 +16,14 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -%>
+<%_
+const tsKeyType = getTypescriptKeyType(getPkTypeBasedOnDBAndAssociation(authenticationType, databaseType, relationships));
+_%>
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { <%_ if (pagination !== 'no') { _%>HttpHeaders, <% } %>HttpResponse } from '@angular/common/http';
 <%_ if (pagination === 'pagination') { _%>
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-<%_ } else if (searchEngine !== false) { _%>
+import { ActivatedRoute, Router } from '@angular/router';
+<%_ } else if (searchEngine === 'elasticsearch') { _%>
 import { ActivatedRoute } from '@angular/router';
 <%_ } _%>
 import { Subscription } from 'rxjs';
@@ -67,7 +70,7 @@ export class <%= entityAngularName %>Component implements OnInit, OnDestroy {
         return this.dataUtils.byteSize(base64String);
     }
 
-    openFile(contentType = '', base64String: string): void {
+    openFile(contentType: string, base64String: string): void {
         return this.dataUtils.openFile(contentType, base64String);
     }
     <%_ } _%>
@@ -106,14 +109,14 @@ export class <%= entityAngularName %>Component implements OnInit, OnDestroy {
     protected onSuccess(data: I<%= entityAngularName %>[] | null, headers: HttpHeaders, page: number): void {
         this.totalItems = Number(headers.get('X-Total-Count'));
         this.page = page;
-        <%_ if (searchEngine !== false) { _%>
+        <%_ if (searchEngine === 'elasticsearch') { _%>
         this.ngbPaginationPage = this.page;
         <%_ } _%>
         this.router.navigate(['/<%= entityUrl %>'], {
             queryParams: {
                 page: this.page,
                 size: this.itemsPerPage,
-                <%_ if (searchEngine !== false) { _%>
+                <%_ if (searchEngine === 'elasticsearch') { _%>
                 search: this.currentSearch,
                 <%_ } _%>
                 sort: this.predicate + ',' + (this.ascending ? 'asc' : 'desc')

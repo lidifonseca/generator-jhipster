@@ -41,19 +41,19 @@ module.exports = class extends BaseBlueprintGenerator {
         this.option('from-cli', {
             desc: 'Indicates the command is run from JHipster CLI',
             type: Boolean,
-            defaults: false,
+            defaults: false
         });
         // This adds support for a `--auth` flag
         this.option('auth', {
             desc: 'Provide authentication type for the application',
-            type: String,
+            type: String
         });
 
         // This adds support for a `--skip-commit-hook` flag
         this.option('skip-commit-hook', {
             desc: 'Skip adding husky commit hooks',
             type: Boolean,
-            defaults: false,
+            defaults: false
         });
 
         // This adds support for a `--experimental` flag which can be used to enable experimental features
@@ -61,7 +61,7 @@ module.exports = class extends BaseBlueprintGenerator {
             desc:
                 'Enable experimental features. Please note that these features may be unstable and may undergo breaking changes at any time',
             type: Boolean,
-            defaults: false,
+            defaults: false
         });
 
         this.setupClientOptions(this);
@@ -84,13 +84,7 @@ module.exports = class extends BaseBlueprintGenerator {
 
             setupClientconsts() {
                 // Make constants available in templates
-                this.LOGIN_REGEX = constants.LOGIN_REGEX_JS;
                 this.ANGULAR = constants.SUPPORTED_CLIENT_FRAMEWORKS.ANGULAR;
-                this.HUSKY_VERSION = constants.HUSKY_VERSION;
-                this.LINT_STAGED_VERSION = constants.LINT_STAGED_VERSION;
-                this.PRETTIER_VERSION = constants.PRETTIER_VERSION;
-                this.PRETTIER_JAVA_VERSION = constants.PRETTIER_JAVA_VERSION;
-                this.NODE_VERSION = constants.NODE_VERSION;
 
                 const configuration = this.getAllJhipsterConfig(this, true);
                 this.serverPort = configuration.get('serverPort') || this.configOptions.serverPort || 8080;
@@ -175,7 +169,7 @@ module.exports = class extends BaseBlueprintGenerator {
                         )} flag`
                     );
                 }
-            },
+            }
         };
     }
 
@@ -198,7 +192,7 @@ module.exports = class extends BaseBlueprintGenerator {
                 this.configOptions.clientFramework = this.clientFramework;
                 this.configOptions.clientTheme = this.clientTheme;
                 this.configOptions.clientThemeVariant = this.clientThemeVariant;
-            },
+            }
         };
     }
 
@@ -216,8 +210,8 @@ module.exports = class extends BaseBlueprintGenerator {
                         clientFramework: this.clientFramework,
                         enableTranslation: this.enableTranslation,
                         nativeLanguage: this.nativeLanguage,
-                        languages: this.languages,
-                    },
+                        languages: this.languages
+                    }
                 });
             },
 
@@ -248,7 +242,7 @@ module.exports = class extends BaseBlueprintGenerator {
                     useSass: true,
                     enableTranslation: this.enableTranslation,
                     skipCommitHook: this.skipCommitHook,
-                    clientPackageManager: this.clientPackageManager,
+                    clientPackageManager: this.clientPackageManager
                 };
                 if (this.skipClient) {
                     config.skipClient = true;
@@ -274,7 +268,7 @@ module.exports = class extends BaseBlueprintGenerator {
                     this.buildTool && (config.buildTool = this.buildTool);
                 }
                 this.config.set(config);
-            },
+            }
         };
     }
 
@@ -357,7 +351,7 @@ module.exports = class extends BaseBlueprintGenerator {
                 if (this.configOptions.skipI18nQuestion) return;
 
                 this.composeLanguagesSub(this, this.configOptions, 'client');
-            },
+            }
         };
     }
 
@@ -377,7 +371,7 @@ module.exports = class extends BaseBlueprintGenerator {
                     default:
                         return writeAngularFiles.call(this, useBlueprints);
                 }
-            },
+            }
         };
     }
 
@@ -396,7 +390,7 @@ module.exports = class extends BaseBlueprintGenerator {
                 const installConfig = {
                     bower: false,
                     npm: this.clientPackageManager !== 'yarn',
-                    yarn: this.clientPackageManager === 'yarn',
+                    yarn: this.clientPackageManager === 'yarn'
                 };
 
                 if (this.options['skip-install']) {
@@ -409,7 +403,7 @@ module.exports = class extends BaseBlueprintGenerator {
                         this.log(logMsg);
                     }
                 }
-            },
+            }
         };
     }
 
@@ -431,7 +425,7 @@ module.exports = class extends BaseBlueprintGenerator {
                 if (!this.options['skip-install']) {
                     this.spawnCommandSync(this.clientPackageManager, ['run', 'cleanup']);
                 }
-            },
+            }
         };
     }
 

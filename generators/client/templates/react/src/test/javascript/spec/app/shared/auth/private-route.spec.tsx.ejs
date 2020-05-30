@@ -25,8 +25,7 @@ describe('private-route component', () => {
   it('Should render an error message when the user has no authorities', () => {
     const route = shallow(<PrivateRouteComponent component={TestComp} isAuthenticated sessionHasBeenFetched isAuthorized={false} path="/" />);
     const renderedRoute = route.find(Route);
-    const props = renderedRoute.props() as any;
-    const renderFn: Function = props.render;
+    const renderFn: Function = renderedRoute.props().render;
     const comp = shallow(
       renderFn({
         location: '/'
@@ -48,10 +47,9 @@ describe('private-route component', () => {
     const route = shallow(<PrivateRouteComponent component={TestComp} isAuthenticated sessionHasBeenFetched isAuthorized path="/" />);
     const renderedRoute = route.find(Route);
     expect(renderedRoute.length).toEqual(1);
-    const props = renderedRoute.props() as any;
-    expect(props.path).toEqual('/');
-    expect(props.render).toBeDefined();
-    const renderFn: Function = props.render;
+    expect(renderedRoute.props().path).toEqual('/');
+    expect(renderedRoute.props().render).toBeDefined();
+    const renderFn: Function = renderedRoute.props().render;
     const comp = shallow(
       renderFn({
         location: '/'
@@ -65,8 +63,7 @@ describe('private-route component', () => {
     const route = shallow(<PrivateRouteComponent component={TestComp} isAuthenticated={false} sessionHasBeenFetched isAuthorized path="/" />);
     const renderedRoute = route.find(Route);
     expect(renderedRoute.length).toEqual(1);
-    const props = renderedRoute.props() as any;
-    const renderFn: Function = props.render;
+    const renderFn: Function = renderedRoute.props().render;
     // as rendering redirect outside router will throw error
     expect(() =>
       shallow(

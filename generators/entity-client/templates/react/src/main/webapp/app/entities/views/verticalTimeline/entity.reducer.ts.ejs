@@ -1,0 +1,526 @@
+<%_
+let hasRelationshipQuery = false;
+let otherEntityActions = new Set();
+let manyToManyOwners = new Set();
+let relFieldNames = new Set();
+let uniqueRealtionFields = new Set();
+
+
+Object.keys(differentRelationships).forEach(key => {
+
+  const hasAnyRelationshipQuery = differentRelationships[key].some(rel =>
+      (rel.relationshipType === 'one-to-one' && rel.ownerSide === true && rel.otherEntityName !== 'user')
+          || rel.relationshipType !== 'one-to-many'
+  );
+  if (hasAnyRelationshipQuery) {
+    hasRelationshipQuery = true;
+    differentRelationships[key].forEach(rel => {
+      if (rel.relationshipType === 'many-to-many' && rel.ownerSide === true) {
+        manyToManyOwners.add(rel);
+      } else {
+        relFieldNames.add(rel);
+      }
+    });
+  }
+  if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
+    const uniqueRel = differentRelationships[key][0];
+    uniqueRealtionFields.add({"namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName });
+    otherEntityActions.add({
+      action: `get${upperFirstCamelCase(uniqueRel.otherEntityNamePlural)}`,
+      instance: `${uniqueRel.otherEntityNamePlural}`,
+      entity: uniqueRel.otherEntityAngularName,
+      reducer: uniqueRel.otherEntityAngularName === 'User' ? 'userManagement' : uniqueRel.otherEntityName
+    });
+  }
+}); _%>
+
+
+
+/* eslint complexity: ["error", 100] */
+<%_
+    let entityActionName = entityInstance.toUpperCase();
+    let entityActionNamePlural = entityInstancePlural.toUpperCase();
+_%>
+import axios from 'axios';
+import {
+  <%_ if (searchEngine === 'elasticsearch') { _%>
+  ICrudSearchAction,
+  <%_ } _%>
+  <%_ if (pagination === 'infinite-scroll') { _%>
+  parseHeaderForLinks, loadMoreDataWhenScrolled,
+  <%_ } _%>
+  ICrudGetAction, ICrudPutAction, ICrudDeleteAction
+} from 'react-jhipster';
+
+import { IPayload } from 'react-jhipster/src/type/redux-action.type';
+
+import { cleanEntity } from 'app/shared/util/entity-utils';
+import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util';
+<%_ if (!(applicationType === 'gateway' && locals.microserviceName) && authenticationType !== 'uaa') { _%>
+
+<%_ } _%>
+<%_ if (fieldsContainDate) { _%>
+
+<%_ } _%>
+import { I<%= entityReactName %>, defaultValue } from 'app/shared/model/<%= entityModelFileName %>.model';
+
+export const ACTION_TYPES = {
+  <%_ if (searchEngine === 'elasticsearch') { _%>
+  SEARCH_<%= entityActionNamePlural %>: '<%= entityInstance %>/SEARCH_<%= entityActionNamePlural %>',
+  <%_ } _%>
+  FETCH_<%= entityActionName %>_LIST_EXPORT: '<%= entityInstance %>/FETCH_<%= entityActionName %>_LIST_EXPORT',
+  FETCH_<%= entityActionName %>_LIST: '<%= entityInstance %>/FETCH_<%= entityActionName %>_LIST',
+  FETCH_<%= entityActionName %>:  '<%= entityInstance %>/FETCH_<%= entityActionName %>',
+<%_ if (!readOnly) { _%>
+  CREATE_<%= entityActionName %>: '<%= entityInstance %>/CREATE_<%= entityActionName %>',
+  UPDATE_<%= entityActionName %>: '<%= entityInstance %>/UPDATE_<%= entityActionName %>',
+  DELETE_<%= entityActionName %>: '<%= entityInstance %>/DELETE_<%= entityActionName %>',
+  <%_ if (fieldsContainBlob) { _%>
+  SET_BLOB: '<%= entityInstance %>/SET_BLOB',
+  <%_ } _%>
+<%_ } _%>
+  RESET: '<%= entityInstance %>/RESET',
+  RESET_LIST: '<%= entityInstance %>/RESET_LIST',
+  SHOW_MODAL: '<%= entityInstance %>/SHOW_MODAL'
+};
+
+const initialState = {
+  loading: false,
+  openModal: {
+    list: false,
+    view: false,
+    detail: false,
+  },
+  errorMessage: null,
+  entities: [] as ReadonlyArray<I<%= entityReactName %>>,
+  entity: defaultValue,
+  <%_ if (pagination === 'infinite-scroll') { _%>
+  links: { next: 0 },
+  <%_ } _%>
+  updating: false,
+  <%_ if (pagination !== 'no') { _%>
+  totalItems: 0,
+  <%_ } _%>
+  updateSuccess: false
+};
+
+export type <%= entityReactName %>State =  Readonly<typeof initialState>;
+
+export interface I<%= entityReactName %>BaseState {
+  baseFilters: any;
+  <%_ for (idx in fields) { _%>
+    <%= fields[idx].fieldName %> : any;
+  <%_ } _%>
+  <%_ relationships.forEach(rel => { _%>
+    <%= rel.relationshipName %> : any;
+  <%_ }) _%>
+}
+
+
+export interface I<%= entityReactName %>UpdateState {
+  fieldsBase: I<%= entityReactName %>BaseState;
+
+  <% uniqueRealtionFields.forEach(rel => { %> <%= rel.name %>SelectValue: any; <% }) %>
+  <%_ if (formTabs.length > 0) { _%>activeTab: number;<%_ } _%>
+  isNew: boolean;
+  <%_ manyToManyOwners.forEach(val => { _%>
+  ids<%= val.relationshipName %>: any[];
+  <%_ }) _%>
+  <%_ relFieldNames.forEach(val => { _%>
+  <%= val.relationshipFieldName %>Id: string;
+  <%_ }) _%>
+  }
+
+// Reducer
+
+export default (state: <%= entityReactName %>State = initialState, action): <%= entityReactName %>State => {
+  switch (action.type) {
+    <%_ if (searchEngine === 'elasticsearch') { _%>
+    case REQUEST(ACTION_TYPES.SEARCH_<%= entityActionNamePlural %>):
+    <%_ } _%>
+    case REQUEST(ACTION_TYPES.FETCH_<%= entityActionName %>_LIST_EXPORT):
+    case REQUEST(ACTION_TYPES.FETCH_<%= entityActionName %>_LIST):
+    case REQUEST(ACTION_TYPES.FETCH_<%= entityActionName %>):
+      return {
+        ...state,
+        errorMessage: null,
+        updateSuccess: false,
+        loading: true
+      };
+    <%_ if (!readOnly) { _%>
+    case REQUEST(ACTION_TYPES.CREATE_<%= entityActionName %>):
+    case REQUEST(ACTION_TYPES.UPDATE_<%= entityActionName %>):
+    case REQUEST(ACTION_TYPES.DELETE_<%= entityActionName %>):
+      return {
+        ...state,
+        errorMessage: null,
+        updateSuccess: false,
+        updating: true
+      };
+    <%_ } _%>
+    <%_ if (searchEngine === 'elasticsearch') { _%>
+    case FAILURE(ACTION_TYPES.SEARCH_<%= entityActionNamePlural %>):
+    <%_ } _%>
+    case FAILURE(ACTION_TYPES.FETCH_<%= entityActionName %>_LIST_EXPORT):
+    case FAILURE(ACTION_TYPES.FETCH_<%= entityActionName %>_LIST):
+    case FAILURE(ACTION_TYPES.FETCH_<%= entityActionName %>):
+    <%_ if (!readOnly) { _%>
+    case FAILURE(ACTION_TYPES.CREATE_<%= entityActionName %>):
+    case FAILURE(ACTION_TYPES.UPDATE_<%= entityActionName %>):
+    case FAILURE(ACTION_TYPES.DELETE_<%= entityActionName %>):
+    <%_ } _%>
+      return {
+        ...state,
+        loading: false,
+        updating: false,
+        updateSuccess: false,
+        errorMessage: action.payload
+      };
+    <%_ if (searchEngine === 'elasticsearch') { _%>
+    case SUCCESS(ACTION_TYPES.SEARCH_<%= entityActionNamePlural %>):
+    <%_ } _%>
+    case SUCCESS(ACTION_TYPES.FETCH_<%= entityActionName %>_LIST):
+      <%_ if (pagination === 'infinite-scroll') { _%>
+      {
+      const links = parseHeaderForLinks(decodeURIComponent(action.payload.headers.link));
+      <%_ } _%>
+
+      return {
+        ...state,
+        loading: false,
+        <%_ if (pagination === 'infinite-scroll') { _%>
+          <%_ if (databaseType !== 'cassandra') { _%>
+        links,
+        entities: loadMoreDataWhenScrolled(state.entities, action.payload.data, links),
+          <%_ } _%>
+        <%_ } else { _%>
+        entities: action.payload.data,
+        <%_ } _%>
+        <%_ if (pagination !== 'no') { _%>
+          <%_ if (databaseType !== 'cassandra') { _%>
+        totalItems: parseInt(action.payload.headers['x-total-count'], 10)
+          <%_ } _%>
+        <%_ } _%>
+      };
+    <%_ if (pagination === 'infinite-scroll') { _%>
+    }
+    <%_ } _%>
+    case SUCCESS(ACTION_TYPES.FETCH_<%= entityActionName %>):
+    <%_ for (idx in fields) {  _%>
+      <%_ if (['byte[]', 'ByteBuffer'].includes(fields[idx].fieldType) && fields[idx].fieldTypeBlobContent === 'text') { _%>
+        action.payload.data.<%= fields[idx].fieldName %> = action.payload.data.<%= fields[idx].fieldName %> ? Buffer.from(action.payload.data.<%= fields[idx].fieldName %>).toString() : action.payload.data.<%= fields[idx].fieldName %>;
+      <%_ } _%>
+    <%_ } _%>
+      return {
+        ...state,
+        loading: false,
+        entity: action.payload.data
+      };
+    <%_ if (!readOnly) { _%>
+    case SUCCESS(ACTION_TYPES.CREATE_<%= entityActionName %>):
+    case SUCCESS(ACTION_TYPES.UPDATE_<%= entityActionName %>):
+      return {
+        ...state,
+        updating: false,
+        updateSuccess: true,
+        entity: action.payload.data
+      };
+    case SUCCESS(ACTION_TYPES.DELETE_<%= entityActionName %>):
+      return {
+        ...state,
+        updating: false,
+        updateSuccess: true,
+        entity: {}
+      };
+    <%_ if (fieldsContainBlob) { _%>
+    case ACTION_TYPES.SET_BLOB: {
+      const { name, data, contentType, fileName } = action.payload;
+      return {
+        ...state,
+        entity: {
+          ...state.entity,
+          [name + 'Base64']: data,
+          [name + 'ContentType']: contentType,
+          [name + 'FileName']: fileName
+        }
+      };
+    }
+    <%_ } _%>
+    <%_ } _%>
+    case ACTION_TYPES.RESET:
+      return {
+        ...state,
+        entity: defaultValue
+      };
+    case ACTION_TYPES.RESET_LIST:
+      return {
+        ...state,
+        entities: [],
+        updateSuccess: false
+      };
+    case ACTION_TYPES.SHOW_MODAL: 
+    {
+      const openModal = state.openModal;
+      openModal[action.payload.type] = action.payload.show;
+      return {
+        ...state,
+        openModal
+      };
+    }
+    default:
+      return state;
+  }
+};
+
+const apiUrl = '<% if (applicationType === 'gateway' && locals.microserviceName) { %>services/<%= microserviceName.toLowerCase() %>/<% } %>api/<%= entityApiUrl %>';
+<%_ if (searchEngine === 'elasticsearch') { _%>
+const apiSearchUrl = '<% if (applicationType === 'gateway' && locals.microserviceName) { %>services/<%= microserviceName.toLowerCase() %>/<% } %>api/_search/<%= entityApiUrl %>';
+<%_ } _%>
+
+// Actions
+
+<%_ if (searchEngine === 'elasticsearch') { _%>
+export const getSearchEntities: ICrudSearchAction<I<%= entityReactName %>> = (query, page, size, sort) => ({
+  type: ACTION_TYPES.SEARCH_<%= entityActionNamePlural %>,
+<%_ if (pagination !== 'no') { _%>
+  payload: axios.get<I<%= entityReactName %>>(`${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`)
+<%_ } else { _%>
+  payload: axios.get<I<%= entityReactName %>>(`${apiSearchUrl}?query=${query}`)
+<%_ } _%>
+});
+
+<%_ } _%>
+
+
+
+// Actions
+export type ICrudGetAllAction<%= entityReactName %><T> = (
+  <%_ for (idx in fields) { _%>
+    <%= fields[idx].fieldName %>?: any,
+  <%_ } _%>
+  <%_ relationships.forEach(rel => { _%>
+    <%= rel.relationshipName %>?: any,
+  <%_ }) _%>
+  page?: number,
+  size?: number,
+  sort?: string,
+) => IPayload<T> | ((dispatch: any) => IPayload<T>);
+
+export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityReactName %>> = (
+    <%_ if (listFilterLayout.length > 0) {  _%>
+      <%_ for (idx in listFilterLayout) { _%>
+        <%= listFilterLayout[idx].name %>,
+      <%_ } _%>
+    <%_ } else {  _%>
+      <%_ for (idx in fields) { _%><%= fields[idx].fieldName %>, <%_ } _%>
+      <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>, <%_ }) _%>
+    <%_ } _%>
+  page, size, sort
+  ) =>
+  {
+    <%_ if (listFilterLayout.length > 0) {  _%>
+      <%_ for (idx in listFilterLayout) { _%>
+        <%_ if(listFilterLayout[idx].type == 'field'){  _%>
+          <%_ const field = listFilterLayout[idx].entity _%>
+          <%_ if (field.fieldType === 'LocalDate') { _%>
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.equals=${<%= field.fieldName %>}&` : ''; 
+          <%_ } else { _%>
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.contains=${<%= field.fieldName %>}&` : '';
+          <%_ } _%>
+        <%_ } else {  _%>
+          <%_ const rel = listFilterLayout[idx].entity _%>
+          const <%= rel.relationshipName %>Request = <%= rel.relationshipName %> ? `<%= rel.relationshipName %>.equals=${<%= rel.relationshipName %>}&` : '';
+        <%_ } _%>
+      <%_ } _%>
+    <%_ } else {  _%>
+      <%_ for (idx in fields) { _%>
+        <%_ if (fields[idx].fieldType === 'LocalDate') { _%>
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&` : ''; 
+        <%_ } else { _%>
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&` : '';
+        <%_ } _%>
+      <%_ } _%>
+      <%_ relationships.forEach(rel => { _%>
+        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %> ? `<%= rel.relationshipName %>.equals=${<%= rel.relationshipName %>}&` : '';
+      <%_ }) _%>
+    <%_ } _%>
+
+    
+    <%_ if (pagination !== 'no') { _%>
+      const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}`;
+      return {
+        type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%_ if (listFilterLayout.length > 0) {  _%><%_ for (idx in listFilterLayout) { _%>${<%= listFilterLayout[idx].name %>Request}<%_ } _%><%_ } else {  _%><%_ for (idx in fields) { _%>${<%= fields[idx].fieldName %>Request}<%_ } _%><%_ relationships.forEach(rel => { _%>${<%= rel.relationshipName %>Request}<%_ }) _%><%_ } _%>cacheBuster=${new Date().getTime()}`)
+      }
+    <%_ } else { _%>
+      const requestUrl = `${apiUrl}?`;
+      return {
+        type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%_ if (listFilterLayout.length > 0) {  _%><%_ for (idx in listFilterLayout) {  _%>${<%= listFilterLayout[idx].name %>Request}<%_ } _%><%_ } else {  _%><%_ for (idx in fields) { _%>${<%= fields[idx].fieldName %>Request}<%_ } _%><%_ relationships.forEach(rel => { _%>${<%= rel.relationshipName %>Request}<%_ }) _%><%_ } _%>cacheBuster=${new Date().getTime()}`)
+      }
+    <%_ } _%>
+}
+export const getEntity: ICrudGetAction<I<%= entityReactName %>> = id => {
+  const requestUrl = `${apiUrl}/${id}`;
+  return {
+    type: ACTION_TYPES.FETCH_<%= entityActionName %>,
+    payload: axios.get<I<%= entityReactName %>>(requestUrl)
+  };
+};
+
+
+export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= entityReactName %>> = (
+    <%_ if (listFilterLayout.length > 0) {  _%>
+      <%_ for (idx in listFilterLayout) { _%>
+        <%= listFilterLayout[idx].name %>,
+      <%_ } _%>
+    <%_ } else {  _%>
+      <%_ for (idx in fields) { _%><%= fields[idx].fieldName %>, <%_ } _%>
+      <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>, <%_ }) _%>
+    <%_ } _%>
+  page, size, sort
+  ) =>
+  {
+
+  <%_ if (listFilterLayout.length > 0) {  _%>
+    <%_ for (idx in listFilterLayout) { _%>
+      <%_ if(listFilterLayout[idx].type == 'field'){  _%>
+        <%_ const field = listFilterLayout[idx].entity _%>
+        <%_ if (field.fieldType === 'LocalDate') { _%>
+          const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.equals=${<%= field.fieldName %>}&` : ''; 
+        <%_ } else { _%>
+          const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.contains=${<%= field.fieldName %>}&` : '';
+        <%_ } _%>
+      <%_ } else {  _%>
+        <%_ const rel = listFilterLayout[idx].entity _%>
+        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %> ? `<%= rel.relationshipName %>.equals=${<%= rel.relationshipName %>}&` : '';
+      <%_ } _%>
+    <%_ } _%>
+  <%_ } else {  _%>
+    <%_ for (idx in fields) { _%>
+      <%_ if (fields[idx].fieldType === 'LocalDate') { _%>
+        const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&` : ''; 
+      <%_ } else { _%>
+        const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&` : '';
+      <%_ } _%>
+    <%_ } _%>
+    <%_ relationships.forEach(rel => { _%>
+      const <%= rel.relationshipName %>Request = <%= rel.relationshipName %> ? `<%= rel.relationshipName %>.equals=${<%= rel.relationshipName %>}&` : '';
+    <%_ }) _%>
+  <%_ } _%>
+
+    
+    <%_ if (pagination !== 'no') { _%>
+      const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}`;
+      return {
+        type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%_ if (listFilterLayout.length > 0) {  _%><%_ for (idx in listFilterLayout) { _%>${<%= listFilterLayout[idx].name %>Request}<%_ } _%><%_ } else {  _%><%_ for (idx in fields) { _%>${<%= fields[idx].fieldName %>Request}<%_ } _%><%_ relationships.forEach(rel => { _%>${<%= rel.relationshipName %>Request}<%_ }) _%><%_ } _%>cacheBuster=${new Date().getTime()}`)
+      }
+    <%_ } else { _%>
+      const requestUrl = `${apiUrl}?`;
+      return {
+        type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%_ if (listFilterLayout.length > 0) {  _%><%_ for (idx in listFilterLayout) { _%>${<%= listFilterLayout[idx].name %>Request}<%_ } _%><%_ } else {  _%><%_ for (idx in fields) { _%>${<%= fields[idx].fieldName %>Request}<%_ } _%><%_ relationships.forEach(rel => { _%>${<%= rel.relationshipName %>Request}<%_ }) _%><%_ } _%>cacheBuster=${new Date().getTime()}`)
+      }
+    <%_ } _%>
+}
+
+<%_ if (!readOnly) { _%>
+export const createEntity: ICrudPutAction<I<%= entityReactName %>> = entity => async dispatch => {
+    entity = {
+      ...entity, 
+      <%_ relFieldNames.forEach(val => { _%>
+        <%= val.relationshipFieldName %>: entity.<%= val.relationshipFieldName %> === "null" ? null : entity.<%= val.relationshipFieldName %>, 
+      <%_ }) _%> 
+    };
+  const result = await dispatch({
+    type: ACTION_TYPES.CREATE_<%= entityActionName %>,
+    payload: axios.post(apiUrl, cleanEntity(entity))
+  });
+  <%_ if (pagination !== 'infinite-scroll') { _%>
+  dispatch(getEntities());
+  <%_ } _%>
+  return result;
+};
+
+export const updateEntity: ICrudPutAction<I<%= entityReactName %>> = entity => async dispatch => {
+    entity = {...entity, <%_ relFieldNames.forEach(val => { _%>
+      <%= val.relationshipFieldName %>: entity.<%= val.relationshipFieldName %> === "null" ? null : entity.<%= val.relationshipFieldName %>, 
+    <%_ }) _%> };
+  const result = await dispatch({
+    type: ACTION_TYPES.UPDATE_<%= entityActionName %>,
+    payload: axios.put(apiUrl, cleanEntity(entity))
+  });
+  <%_ if (pagination !== 'infinite-scroll') { _%>
+  dispatch(getEntities());
+  <%_ } _%>
+  return result;
+};
+
+export const deleteEntity: ICrudDeleteAction<I<%= entityReactName %>> = id => async dispatch => {
+  const requestUrl = `${apiUrl}/${id}`;
+  const result = await dispatch({
+    type: ACTION_TYPES.DELETE_<%= entityActionName %>,
+    payload: axios.delete(requestUrl)
+  });
+  <%_ if (pagination !== 'infinite-scroll') { _%>
+  dispatch(getEntities());
+  <%_ } _%>
+  return result;
+};
+
+<%_ if (fieldsContainBlob) { _%>
+export const setBlob = (name, data, contentType?, fileName?) => ({
+  type: ACTION_TYPES.SET_BLOB,
+  payload: {
+    name,
+    data,
+    contentType, 
+    fileName
+  }
+});
+<%_ } _%>
+<%_ } _%>
+
+export const reset = () => ({
+  type: ACTION_TYPES.RESET
+});
+
+export const resetList = () => ({
+  type: ACTION_TYPES.RESET_LIST
+});
+
+
+export const showModal = (view) => ({
+  payload: { type: view, show: true },
+  type: ACTION_TYPES.SHOW_MODAL
+});
+
+export const hideModal = (view) => ({
+  payload: { type: view, show: false },
+  type: ACTION_TYPES.SHOW_MODAL
+});
+
+
+
+export const get<%= entityReactName %>State = (location): I<%= entityReactName %>BaseState => {
+  const url = new URL(`http://localhost${location.search}`); // using a dummy url for parsing
+  const baseFilters = url.searchParams.get('baseFilters') || '';
+  <%_ for (idx in fields) { _%>
+    const <%= fields[idx].fieldName %> = url.searchParams.get('<%= fields[idx].fieldName %>') || '';
+  <%_ } _%>
+
+  <%_ relationships.forEach(rel => { _%>
+    const <%= rel.relationshipName %> = url.searchParams.get('<%= rel.relationshipName %>') || '';
+  <%_ }) _%>
+
+  return {
+    baseFilters,
+    <%_ for (idx in fields) { _%>
+      <%= fields[idx].fieldName %>,
+    <%_ } _%>
+    <%_ relationships.forEach(rel => { _%>
+      <%= rel.relationshipName %>,
+    <%_ }) _%>
+  };
+};

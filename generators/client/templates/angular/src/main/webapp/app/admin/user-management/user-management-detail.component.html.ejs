@@ -28,7 +28,7 @@
                 <dd>
                     <span>{{ user.login }}</span>
                     <jhi-boolean
-                        [value]="user.activated ? true : false"
+                        [value]="user.activated"
                     <%_ if (enableTranslation) { _%>
                         [textTrue]="'userManagement.activated' | translate"
                         [textFalse]="'userManagement.deactivated' | translate">

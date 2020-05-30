@@ -19,8 +19,8 @@
 {
     "<%= angularAppName %>": {
         "<%= enumName %>" : {
-            "null": ""<% enumValues.forEach(enumValue => { %>,
-            "<%= enumValue.name %>": "<%= enumValue.value %>"<% }); %>
+            "null": ""<% for (enumId in enums) { %>,
+            "<%= enums[enumId] %>": "<%= enums[enumId] %>"<% } %>
         }
     }
 }

@@ -20,10 +20,30 @@ let helpBlocks = 0; %>
 {
     "<%= angularAppName %>": {
         "<%= entityTranslationKey %>" : {
+            "listButtons": {
+                <% for (idx in listButtons) { %>
+                    "<%= listButtons[idx].name %>": "<%= listButtons[idx].attributes && listButtons[idx].attributes.text ? listButtons[idx].attributes.text : listButtons[idx].name  
+                %>",<% } %>
+            },
+            "viewButtons": {
+                <% for (idx in viewButtons) { %>
+                    "<%= viewButtons[idx].name %>": "<%= viewButtons[idx].attributes && viewButtons[idx].attributes.text ? viewButtons[idx].attributes.text : viewButtons[idx].name  
+                %>",<% } %>
+            },
+            <%_ for (let i in listTableLayout) { %>
+                <%_ if (listTableLayout[i].type == "sub-relationship" ) { %>
+                    "<%= listTableLayout[idx].entity.relationshipName %>": "<%= listTableLayout[idx].attributes && listTableLayout[idx].attributes.text ? listTableLayout[idx].attributes.text : listTableLayout[idx].entity.relationshipNameHumanized  
+                    %>",
+                <%_ } %>
+            <%_ } %>
+            "dropdown_btn": "Ações",
             "home": {
                 "title": "<%= entityClassPluralHumanized %>",
+                "btn_filter": "Filter",
+                "btn_filter_clean": "Clean Filters",
+                "btn_filter_open": "Filters",
                 "createLabel": "Create a new <%= entityClassHumanized %>",
-                "createOrEditLabel": "Create or edit a <%= entityClassHumanized %>"<% if (searchEngine !== false) { %>,
+                "createOrEditLabel": "Create or edit a <%= entityClassHumanized %>"<% if (searchEngine === 'elasticsearch') { %>,
                 "search": "Search for <%= entityClassHumanized %>"<% } %>,
                 "notFound": "No <%= entityClassPluralHumanized %> found"<% %>
             },<% if (!microserviceAppName) { %>
@@ -38,6 +58,7 @@ let helpBlocks = 0; %>
             }<% for (idx in fields) {
             if (typeof fields[idx].javadoc !== 'undefined') ++helpBlocks; %>,
             "<%= fields[idx].fieldName %>": "<%= fields[idx].fieldNameHumanized %>"<% } %><% for (idx in relationships) { %>,
+            "<%= relationships[idx].relationshipName %>_empty": "Without <%= relationships[idx].relationshipNameHumanized %>",
             "<%= relationships[idx].relationshipName %>": "<%= relationships[idx].relationshipNameHumanized %>"<% } if (helpBlocks > 0) { %>,
             "help": {<% for (idx in fields) {
                 if (fields[idx].javadoc) {

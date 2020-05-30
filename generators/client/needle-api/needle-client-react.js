@@ -18,6 +18,7 @@
  */
 const chalk = require('chalk');
 const _ = require('lodash');
+const pluralize = require('pluralize');
 
 const needleClientBase = require('./needle-client');
 
@@ -49,19 +50,21 @@ module.exports = class extends needleClientBase {
                 `not added to ${path}.\n`
             )}`;
 
-        const indexAddRouteImportRewriteFileModel = this.generateFileModel(
-            indexModulePath,
-            'jhipster-needle-add-route-import',
-            this.generator.stripMargin(`|import ${entityName} from './${entityFolderName}';`)
-        );
-        this.addBlockContentToFile(indexAddRouteImportRewriteFileModel, errorMessage(indexModulePath));
+        if(!this.generator.baseFiltersAttributes || this.generator.baseFiltersAttributes['window'] !== "modal") {
+            const indexAddRouteImportRewriteFileModel = this.generateFileModel(
+                indexModulePath,
+                'jhipster-needle-add-route-import',
+                this.generator.stripMargin(`|import ${entityName} from './${entityFolderName}';`)
+            );
+            this.addBlockContentToFile(indexAddRouteImportRewriteFileModel, errorMessage(indexModulePath));
 
-        const indexAddRoutePathRewriteFileModel = this.generateFileModel(
-            indexModulePath,
-            'jhipster-needle-add-route-path',
-            this.generator.stripMargin(`|<ErrorBoundaryRoute path={\`\${match.url}${entityFileName}\`} component={${entityName}} />`)
-        );
-        this.addBlockContentToFile(indexAddRoutePathRewriteFileModel, errorMessage(indexModulePath));
+            const indexAddRoutePathRewriteFileModel = this.generateFileModel(
+                indexModulePath,
+                'jhipster-needle-add-route-path',
+                this.generator.stripMargin(`|<ErrorBoundaryRoute path={\`\${match.url}${entityFileName}\`} component={${entityName}} />`)
+            );
+            this.addBlockContentToFile(indexAddRoutePathRewriteFileModel, errorMessage(indexModulePath));
+        }
 
         const reducerAddImportRewriteFileModel = this.generateFileModel(
             indexReducerPath,

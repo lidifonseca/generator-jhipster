@@ -24,7 +24,7 @@ const utils = require('../utils');
  */
 
 module.exports = {
-    writeFiles,
+    writeFiles
 };
 
 function writeFiles() {
@@ -32,11 +32,7 @@ function writeFiles() {
         writeEnumFiles() {
             this.fields.forEach(field => {
                 if (field.fieldIsEnum === true) {
-                    const enumInfo = {
-                        ...utils.getEnumInfo(field, this.clientRootFolder),
-                        angularAppName: this.angularAppName,
-                        packageName: this.packageName,
-                    };
+                    const enumInfo = utils.buildEnumInfo(field, this.angularAppName, this.packageName, this.clientRootFolder);
 
                     // Copy for each
                     if (!this.skipClient && this.enableTranslation) {
@@ -52,6 +48,7 @@ function writeFiles() {
         writeClientFiles() {
             if (this.skipClient) return;
 
+            generator = utils.analizeJavadoc(this);
             // Copy for each
             if (this.enableTranslation) {
                 const languages = this.languages || this.getAllInstalledLanguages();
@@ -59,6 +56,6 @@ function writeFiles() {
                     this.copyI18n(language, this.fetchFromInstalledJHipster('entity-i18n/templates'));
                 });
             }
-        },
+        }
     };
 }
