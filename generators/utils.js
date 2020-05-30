@@ -71,6 +71,7 @@ module.exports = {
     normalizeBlueprintName,
     packageNameToNamespace,
     stringHashCode,
+    analizeJavadoc,
     RandexpWithFaker,
     gitExec,
     isGitInstalled,
@@ -474,6 +475,309 @@ function getEnumInfo(field, clientRootFolder) {
     };
 }
 
+
+function analizeJavadoc(generator) {
+
+    generator.addSubRelation = [];
+    generator.openModalRoutes = [];
+    generator.formTabs = [];
+    generator.viewTabs = [];
+    generator.toStringFields = [];
+    generator.listButtons = [];
+    generator.listButtonsInDropdown = false;
+    generator.viewButtons = [];
+    generator.viewButtonsInDropdown = false;
+    generator.listTableLayout = [];
+    generator.listFilterLayout = [];
+    generator.formLayout = [];
+    generator.viewLayout = [];
+
+    let generatorJavadoc = generator.javadoc; 
+
+    if(generatorJavadoc) {
+        while(generatorJavadoc.indexOf('@') > -1 ) {
+            let parameter =  generatorJavadoc.substring(generatorJavadoc.indexOf('@')+1, generatorJavadoc.indexOf('@@'))
+                                    .split(" ").join("_*JOIN*_").split("\\n").join("_*JOIN*_").split("_*JOIN*_");
+            if(parameter.length > 1) {
+                if(parameter[0] === "addSubRelation") {
+                    let value = parameter[1].trim();
+                    if(generator.addSubRelation.indexOf(value) === -1) {
+                        generator.addSubRelation.push(value);
+                    }
+                }else if(parameter[0] === "openModalRoutes") {
+                    let value = parameter[1].trim();
+                    if(generator.openModalRoutes.indexOf(value) === -1) {
+                        generator.openModalRoutes.push(value);
+                    }
+                }else if(parameter[0] === "baseFilters") {
+                    const values = parameter[1].trim().split("}")[0].split("{");
+                    generator["baseFilters"] = values[0].trim();
+                    if(values.length > 1){
+                        let filtersAttributes = {};
+                        values[1].trim().split("}")[0].split("{")[0].split(",").map(function (v) {
+                            filtersAttributes[v.split(':')[0]] = v.split(':').length > 1 ? v.split(':')[1] : 'true'; 
+                        });
+                        generator["baseFiltersAttributes"] = filtersAttributes;
+
+                    }
+
+
+                }
+                else if(parameter[0] === "formTab") {
+                    let value = parameter[1].trim().split(">")[0].split("<");
+                    let fields = value[1].split(",");
+                    if(generator.formTabs.indexOf(value[0]) === -1) {
+                        generator.formTabs.push(value[0]);
+                    }
+                    for (idx in generator.fields) { 
+                        if(fields.indexOf(generator.fields[idx].fieldName) !== -1 ){
+                            generator.fields[idx].formTab = value[0];
+                        }
+                    }
+                    for (idx in generator.relationships) { 
+                        if(fields.indexOf(generator.relationships[idx].relationshipName) !== -1 ){
+                            generator.relationships[idx].formTab = value[0];
+                        }
+                    }
+                }
+                else if(parameter[0] === "viewTab") {
+                    let value = parameter[1].trim().split(">")[0].split("<");
+                    let fields = value[1].split(",");
+                    if(generator.viewTabs.indexOf(value[0]) === -1) {
+                        generator.viewTabs.push(value[0]);
+                    }
+                    for (idx in generator.fields) { 
+                        if(fields.indexOf(generator.fields[idx].fieldName) !== -1 ){
+                            generator.fields[idx].viewTab = value[0];
+                        }
+                    }
+                    for (idx in generator.relationships) { 
+                        if(fields.indexOf(generator.relationships[idx].relationshipName) !== -1 ){
+                            generator.relationships[idx].viewTab = value[0];
+                        }
+                    }
+                }
+                else if((["listButtons","viewButtons"]).indexOf(parameter[0]) !== -1) {
+                    
+                    for (const key in parameter) {
+                        if (key > 0) {
+                            const ele = parameter[key];
+                            let button = {
+                                name: ele.trim().substring(0,ele.indexOf("{")),
+                                attributes: {}
+                            };
+                            if(button.name){
+                                let attributes = ele.trim().substring(ele.indexOf("{")+1,ele.length-1).split(",");
+                                for (const i in attributes) {
+                                    button['attributes'][attributes[i].split(":")[0]] = attributes[i].split(":")[1];
+                                    if(attributes[i].split(":")[0] === "inDropdown" && attributes[i].split(":")[1] === "true" ){
+                                        generator[parameter[0]+'InDropdown'] = true;
+                                    }
+                                }
+                                generator[parameter[0]].push(button);
+                            }
+                        }
+                    }
+                }
+                else if((["listTableLayout","listFilterLayout", "formLayout", "viewLayout", "toStringFields"]).indexOf(parameter[0]) !== -1) {
+                    for (const key in parameter) {
+                        if (key > 0) {
+                            const element = parameter[key];
+                            const value = element.trim().split("}")[0].split("{");
+                            for (idx in generator.fields) { 
+                                if(generator.fields[idx].fieldName === value[0] ){
+                                    generator[parameter[0]].push({
+                                        name: generator.fields[idx].fieldName,
+                                        type: 'field',
+                                        entity: generator.fields[idx]
+                                    });
+                                    if(value.length > 1){
+                                        const fields = value[1].split(",");
+                                        for (const i in fields) {
+                                            const element = fields[i].split(":");
+                                            generator.fields[idx][parameter[0]+element[0]] = element[1];
+                                        }
+                                    } else {
+                                        generator.fields[idx][parameter[0]] = true;
+                                    }
+                                }
+                            }
+                            for (idx in generator.addSubRelation) { 
+                                if(generator.addSubRelation[idx] === value[0]){
+                                    generator[parameter[0]].push({
+                                        name: value[0],
+                                        type: 'sub-relationship',
+                                        relationshipName: "id",
+                                        relationship: value[0],
+                                        entity: {
+                                            relationshipType: 'many-to-one',
+                                            otherEntityName: 'otherEntityName',
+                                            otherEntityRelationshipName: 'otherEntityRelationshipName',
+                                            relationshipName: value[0].split('.').join('_'),
+                                            otherEntityField: 'id',
+                                            otherEntityRelationshipNamePlural: 'otherEntityRelationshipNamePlural',
+                                            otherEntityRelationshipNameCapitalized: 'otherEntityRelationshipNameCapitalized',
+                                            otherEntityRelationshipNameCapitalizedPlural: 'otherEntityRelationshipNameCapitalizedPlural',
+                                            relationshipNameCapitalized: 'relationshipNameCapitalized',
+                                            relationshipNameCapitalizedPlural: 'relationshipNameCapitalizedPlural',
+                                            relationshipNameHumanized: _.startCase(value[0].split('.').slice(1, -1).join('.')),
+                                            relationshipNamePlural: 'relationshipNamePlural',
+                                            relationshipFieldName: value[0],
+                                            relationshipFieldNamePlural: value[0]+'s',
+                                            otherEntityTableName: 'otherEntityTableName',
+                                            otherEntityNamePlural: 'otherEntityNamePlural',
+                                            otherEntityNameCapitalized: 'otherEntityNameCapitalized',
+                                            otherEntityAngularName: 'otherEntityAngularName',
+                                            otherEntityNameCapitalizedPlural: 'otherEntityNameCapitalizedPlural',
+                                            otherEntityFieldCapitalized: 'otherEntityFieldCapitalized',
+                                            otherEntityStateName: value[0].split('.').slice(0, -1).join('.'),
+                                            otherEntityModuleName: 'otherEntityModuleName',
+                                            otherEntityFileName: 'otherEntityFileName',
+                                            otherEntityFolderName: 'otherEntityFolderName',
+                                            otherEntityClientRootFolder: 'otherEntityClientRootFolder',
+                                            otherEntityModulePath: 'otherEntityModulePath',
+                                            otherEntityModelName: 'otherEntityModelName',
+                                            otherEntityPath: 'otherEntityPath',
+                                            jpaMetamodelFiltering: true
+                                        }
+                                    });
+                                } else if(generator.addSubRelation[idx] === value[0].split('.').slice(0, -1).join('.') ){
+                                    generator[parameter[0]].push({
+                                        name: generator.addSubRelation[idx],
+                                        type: 'sub-relationship',
+                                        relationshipName: (/(?:\.([^.]+))?$/).exec(value[0])[1],
+                                        relationship: value[0].split('.').slice(0, -1).join('.'),
+                                        entity:{
+                                            relationshipType: 'many-to-one',
+                                            otherEntityName: 'otherEntityName',
+                                            otherEntityRelationshipName: 'otherEntityRelationshipName',
+                                            relationshipName: value[0].split('.').join('_'),
+                                            otherEntityField: (/(?:\.([^.]+))?$/).exec(value[0])[1],
+                                            otherEntityRelationshipNamePlural: 'otherEntityRelationshipNamePlural',
+                                            otherEntityRelationshipNameCapitalized: 'otherEntityRelationshipNameCapitalized',
+                                            otherEntityRelationshipNameCapitalizedPlural: 'otherEntityRelationshipNameCapitalizedPlural',
+                                            relationshipNameCapitalized: 'relationshipNameCapitalized',
+                                            relationshipNameCapitalizedPlural: 'relationshipNameCapitalizedPlural',
+                                            relationshipNameHumanized: _.startCase(value[0].split('.').slice(1, -1).join('.')),
+                                            relationshipNamePlural: 'relationshipNamePlural',
+                                            relationshipFieldName: value[0].split('.').slice(0, -1).join('.'),
+                                            relationshipFieldNamePlural: value[0].split('.').slice(0, -1).join('.')+'s',
+                                            otherEntityTableName: 'otherEntityTableName',
+                                            otherEntityNamePlural: 'otherEntityNamePlural',
+                                            otherEntityNameCapitalized: 'otherEntityNameCapitalized',
+                                            otherEntityAngularName: 'otherEntityAngularName',
+                                            otherEntityNameCapitalizedPlural: 'otherEntityNameCapitalizedPlural',
+                                            otherEntityFieldCapitalized: 'otherEntityFieldCapitalized',
+                                            otherEntityStateName: value[0].split('.').slice(1, -1).join('.'),
+                                            otherEntityModuleName: 'otherEntityModuleName',
+                                            otherEntityFileName: 'otherEntityFileName',
+                                            otherEntityFolderName: 'otherEntityFolderName',
+                                            otherEntityClientRootFolder: 'otherEntityClientRootFolder',
+                                            otherEntityModulePath: 'otherEntityModulePath',
+                                            otherEntityModelName: 'otherEntityModelName',
+                                            otherEntityPath: 'otherEntityPath',
+                                            jpaMetamodelFiltering: true
+                                        },
+                                    });
+                                }
+                                
+                            }
+                            for (idx in generator.relationships) { 
+                                if(generator.relationships[idx].relationshipName === value[0] ){
+                                    generator[parameter[0]].push({
+                                        name: generator.relationships[idx].relationshipName,
+                                        type: 'relationship',
+                                        entity: generator.relationships[idx]
+                                    });
+                                    if(value.length > 1){
+                                        const fields = value[1].split(",");
+                                        for (const i in fields) {
+                                            const element = fields[i].split(":");
+                                            generator.relationships[idx][parameter[0]+element[0]] = element[1];
+                                        }
+                                    } else {
+                                        generator.relationships[idx][parameter[0]] = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    generator[parameter[0].trim()] = parameter[1].trim();
+                }
+            }
+            generatorJavadoc = generatorJavadoc.substring(0,generatorJavadoc.indexOf('@')) + generatorJavadoc.substring(generatorJavadoc.indexOf('@@')+2).trim();
+        }
+    }
+    generator['clean_javadoc'] = generatorJavadoc
+    for (idx in generator.fields) { 
+        let javadoc = generator.fields[idx].javadoc; 
+        generator.fields[idx]['clean_javadoc'] = undefined;
+        if(javadoc) {
+            while(javadoc.indexOf('@') > -1 ) {
+                let parameter =  javadoc.substring(javadoc.indexOf('@')+1, javadoc.indexOf('@@')).split(" ");
+                if(parameter.length > 1) {
+                    generator.fields[idx][parameter[0]] = parameter[1].trim();
+                    if(parameter[0] === "formTab" && generator.formTabs.indexOf(parameter[1].trim()) === -1) {
+                        generator.formTabs.push(parameter[1].trim());
+                    }
+                    if(parameter[0] === "viewTab" && generator.viewTabs.indexOf(parameter[1].trim()) === -1) {
+                        generator.viewTabs.push(parameter[1].trim());
+                    }
+                }
+                javadoc = javadoc.substring(0,javadoc.indexOf('@')) + javadoc.substring(javadoc.indexOf('@@')+2).trim();
+            }
+            generator.fields[idx]['clean_javadoc'] = javadoc;
+        }
+    }
+    for (idx in generator.relationships) { 
+        let javadoc = generator.relationships[idx].javadoc; 
+        if(javadoc) {
+            while(javadoc.indexOf('@') > -1 ) {
+                let parameter =  javadoc.substring(javadoc.indexOf('@')+1, javadoc.indexOf('@@')).split(" ");
+                generator.relationships[idx][parameter[0].trim()] = parameter[1].trim();
+                javadoc = javadoc.substring(0,javadoc.indexOf('@')) + javadoc.substring(javadoc.indexOf('@@')+2).trim();
+            }
+        }
+        generator.relationships[idx]['clean_javadoc'] = javadoc;
+       
+    } 
+
+    if(generator.formTabs.length > 0){
+        generator.defaultFormTab = false;
+        for (idx in generator.fields) { 
+            if(generator.formTabs.indexOf(generator.fields[idx].formTab) === -1 ){
+                generator.defaultFormTab = true;
+            }
+        }
+        for (idx in generator.relationships) { 
+            if(generator.formTabs.indexOf(generator.relationships[idx].formTab) === -1 ){
+                generator.defaultFormTab = true;
+            }
+        }
+    } else {
+        generator.defaultFormTab = true;
+    }
+
+    if(generator.viewTabs.length > 0){
+        generator.defaultViewTab = false;
+        for (idx in generator.fields) { 
+            if(generator.viewTabs.indexOf(generator.fields[idx].viewTab) === -1 ){
+                generator.defaultViewTab = true;
+            }
+        }
+        for (idx in generator.relationships) { 
+            if(generator.viewTabs.indexOf(generator.relationships[idx].viewTab) === -1 ){
+                generator.defaultViewTab = true;
+            }
+        }
+    } else {
+        generator.defaultViewTab = true;
+    }
+
+    return generator;
+}
+
 /**
  * @Deprecated
  * Build an enum object, deprecated use getEnumInfoInstead
@@ -555,6 +859,9 @@ function getEnums(enums, customValuesState) {
     });
 }
 
+function doesTheEnumValueHaveACustomValue(enumValue) {
+    return enumValue.includes('(');
+}
 function doesTheEnumValueHaveACustomValue(enumValue) {
     return enumValue.includes('(');
 }
