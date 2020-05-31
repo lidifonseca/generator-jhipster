@@ -1211,10 +1211,10 @@ module.exports = class extends Generator {
                         fieldName = `${relationshipFieldName}${otherEntityFieldCapitalized}`;
                         variablesWithTypes.push(`${fieldName}?: ${fieldType}`);
                     }
-                    fieldType = tsKeyType; // review: added for mongodb-with-relations
+                    fieldType = 'any'; // review: added for mongodb-with-relations
                     fieldName = `${relationshipFieldName}`;
                 } else {
-                    fieldType = tsKeyType;
+                    fieldType = 'any';
                     fieldName = `${relationship.relationshipFieldName}`;
                 }
             }
