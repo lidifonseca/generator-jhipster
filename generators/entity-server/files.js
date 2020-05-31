@@ -341,8 +341,10 @@ function writeFiles() {
         writeServerFiles() {
             if (this.skipServer) return;
 
+            generator = utils.analizeJavadoc(this);
+            
             // write server side files
-            this.writeFilesToDisk(serverFiles, this, false, this.fetchFromInstalledJHipster('entity-server/templates'));
+            this.writeFilesToDisk(serverFiles, generator, false, this.fetchFromInstalledJHipster('entity-server/templates'));
 
             if (this.databaseType === 'sql') {
                 if (!this.skipDbChangelog) {

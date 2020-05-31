@@ -126,7 +126,7 @@ export interface I<%= entityReactName %>UpdateState {
   ids<%= val.relationshipName %>: any[];
   <%_ }) _%>
   <%_ relFieldNames.forEach(val => { _%>
-  <%= val.relationshipFieldName %>Id: string;
+  <%= val.relationshipFieldName %>: any;
   <%_ }) _%>
   }
 

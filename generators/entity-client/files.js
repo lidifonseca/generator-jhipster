@@ -117,55 +117,55 @@ const angularFiles = {
         }
     ],
     test: [
-        {
-            condition: generator => !generator.embedded,
-            path: CLIENT_TEST_SRC_DIR,
-            templates: [
-                {
-                    file: 'spec/app/entities/entity-management-detail.component.spec.ts',
-                    renameTo: generator =>
-                        `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}-detail.component.spec.ts`
-                },
-                {
-                    file: 'spec/app/entities/entity-management.component.spec.ts',
-                    renameTo: generator => `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}.component.spec.ts`
-                },
-                {
-                    file: 'spec/app/entities/entity-management.service.spec.ts',
-                    renameTo: generator => `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}.service.spec.ts`
-                }
-            ]
-        },
-        {
-            condition: generator => !generator.readOnly && !generator.embedded,
-            path: CLIENT_TEST_SRC_DIR,
-            templates: [
-                {
-                    file: 'spec/app/entities/entity-management-update.component.spec.ts',
-                    renameTo: generator =>
-                        `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}-update.component.spec.ts`
-                },
-                {
-                    file: 'spec/app/entities/entity-management-delete-dialog.component.spec.ts',
-                    renameTo: generator =>
-                        `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}-delete-dialog.component.spec.ts`
-                }
-            ]
-        },
-        {
-            condition: generator => generator.protractorTests && !generator.embedded,
-            path: CLIENT_TEST_SRC_DIR,
-            templates: [
-                {
-                    file: 'e2e/entities/entity-page-object.ts',
-                    renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}.page-object.ts`
-                },
-                {
-                    file: 'e2e/entities/entity.spec.ts',
-                    renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}.spec.ts`
-                }
-            ]
-        }
+        // {
+        //     condition: generator => !generator.embedded,
+        //     path: CLIENT_TEST_SRC_DIR,
+        //     templates: [
+        //         {
+        //             file: 'spec/app/entities/entity-management-detail.component.spec.ts',
+        //             renameTo: generator =>
+        //                 `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}-detail.component.spec.ts`
+        //         },
+        //         {
+        //             file: 'spec/app/entities/entity-management.component.spec.ts',
+        //             renameTo: generator => `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}.component.spec.ts`
+        //         },
+        //         {
+        //             file: 'spec/app/entities/entity-management.service.spec.ts',
+        //             renameTo: generator => `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}.service.spec.ts`
+        //         }
+        //     ]
+        // },
+        // {
+        //     condition: generator => !generator.readOnly && !generator.embedded,
+        //     path: CLIENT_TEST_SRC_DIR,
+        //     templates: [
+        //         {
+        //             file: 'spec/app/entities/entity-management-update.component.spec.ts',
+        //             renameTo: generator =>
+        //                 `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}-update.component.spec.ts`
+        //         },
+        //         {
+        //             file: 'spec/app/entities/entity-management-delete-dialog.component.spec.ts',
+        //             renameTo: generator =>
+        //                 `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}-delete-dialog.component.spec.ts`
+        //         }
+        //     ]
+        // },
+        // {
+        //     condition: generator => generator.protractorTests && !generator.embedded,
+        //     path: CLIENT_TEST_SRC_DIR,
+        //     templates: [
+        //         {
+        //             file: 'e2e/entities/entity-page-object.ts',
+        //             renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}.page-object.ts`
+        //         },
+        //         {
+        //             file: 'e2e/entities/entity.spec.ts',
+        //             renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}.spec.ts`
+        //         }
+        //     ]
+        // }
     ]
 };
 
@@ -258,40 +258,40 @@ const reactFiles = {
         }
     ],
     test: [
-        {
-            condition: generator => !generator.embedded,
-            path: CLIENT_TEST_SRC_DIR,
-            templates: [
-                {
-                    file: 'spec/app/entities/entity-reducer.spec.ts',
-                    renameTo: generator => `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}-reducer.spec.ts`
-                }
-            ]
-        },
-        {
-            condition: generator => generator.protractorTests && !generator.embedded,
-            path: CLIENT_TEST_SRC_DIR,
-            templates: [
-                {
-                    file: 'e2e/entities/entity-page-object.ts',
-                    renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}.page-object.ts`
-                },
-                {
-                    file: 'e2e/entities/entity.spec.ts',
-                    renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}.spec.ts`
-                }
-            ]
-        },
-        {
-            condition: generator => generator.protractorTests && !generator.readOnly && !generator.embedded,
-            path: CLIENT_TEST_SRC_DIR,
-            templates: [
-                {
-                    file: 'e2e/entities/entity-update-page-object.ts',
-                    renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}-update.page-object.ts`
-                }
-            ]
-        }
+        // {
+        //     condition: generator => !generator.embedded,
+        //     path: CLIENT_TEST_SRC_DIR,
+        //     templates: [
+        //         {
+        //             file: 'spec/app/entities/entity-reducer.spec.ts',
+        //             renameTo: generator => `spec/app/entities/${generator.entityFolderName}/${generator.entityFileName}-reducer.spec.ts`
+        //         }
+        //     ]
+        // },
+        // {
+        //     condition: generator => generator.protractorTests && !generator.embedded,
+        //     path: CLIENT_TEST_SRC_DIR,
+        //     templates: [
+        //         {
+        //             file: 'e2e/entities/entity-page-object.ts',
+        //             renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}.page-object.ts`
+        //         },
+        //         // {
+        //         //     file: 'e2e/entities/entity.spec.ts',
+        //         //     renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}.spec.ts`
+        //         // }
+        //     ]
+        // },
+        // {
+        //     condition: generator => generator.protractorTests && !generator.readOnly && !generator.embedded,
+        //     path: CLIENT_TEST_SRC_DIR,
+        //     templates: [
+        //         {
+        //             file: 'e2e/entities/entity-update-page-object.ts',
+        //             renameTo: generator => `e2e/entities/${generator.entityFolderName}/${generator.entityFileName}-update.page-object.ts`
+        //         }
+        //     ]
+        // }
     ]
 };
 

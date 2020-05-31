@@ -177,7 +177,7 @@
               <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="datetime-local" className="form-control"
                 name="<%= fieldName %>" placeholder={"YYYY-MM-DD HH:mm"} value={!this.props.<%= entityInstance %>Entity || !this.props.<%= entityInstance %>Entity.<%= fieldName %> ? null :
                 convertDateTimeFromServer(this.props.<%= entityInstance %>Entity.<%= fieldName %>)}
-                <%- include react_validators %> />
+                 />
             </Col>
           <%_ } else if (fieldType === 'LocalDate') { _%>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
@@ -189,7 +189,7 @@
             </Col>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
               <AvField id="<%= entityFileName %>-<%= fieldName %>" type="date" className="form-control" name="<%= fieldName %>"
-                <%- include react_validators %> />
+                 />
             </Col>
           <%_
         } else if ( field.fieldIsEnum) {
@@ -274,7 +274,7 @@
                       ) : null}
                       <input id="file_<%= fieldName %>" type="file" ref={this.<%= fields[idx].fieldName %>FileInput} onChange={this.onBlobChange(<%= isAnImage %>, '<%= fieldName %>', this.<%= fields[idx].fieldName %>FileInput
                         )} <% if (isAnImage) { %>accept="image/*" <% } %> />
-                      <AvInput type="hidden"  name="<%= fieldName %>" value={<%= fieldName %>} <%- include react_validators %> />
+                      <AvInput type="hidden"  name="<%= fieldName %>" value={<%= fieldName %>}  />
                     </Col>
                   </Row>
                 </AvGroup>  
@@ -288,7 +288,7 @@
             </Label>
           </Col>
           <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-            <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="textarea" name="<%= fieldName %>" <%- include react_validators %> />
+            <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="textarea" name="<%= fieldName %>"  />
           </Col>
         <%_ } _%>
       <%_ } else { _%>
