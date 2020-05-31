@@ -774,7 +774,7 @@ function analizeJavadoc(generator) {
     } else {
         generator.defaultViewTab = true;
     }
-    generator.clean_javadoc = generator.clean_javadoc.split("\\n").join(""); 
+    generator.clean_javadoc = generator.clean_javadoc ? generator.clean_javadoc.split("\\n").join("") : ""; 
     generator.javadoc = generator.clean_javadoc; 
     return generator;
 }
