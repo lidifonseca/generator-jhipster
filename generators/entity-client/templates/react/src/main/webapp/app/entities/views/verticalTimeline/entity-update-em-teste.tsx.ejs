@@ -486,7 +486,7 @@ export interface I<%= entityReactName %>UpdateProps extends StateProps, Dispatch
       <% uniqueRealtionFields.forEach(rel => { %> 
         if (nextProps.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && nextProps.<%= entityInstance %>Entity.<%= rel.name %> && nextProps.<%= entityInstance %>Entity.<%= rel.name %>.id) {
           this.setState({<%= rel.name %>SelectValue: 
-            nextProps.<%= rel.namePlural %>.map((p)=>(nextProps.<%= entityInstance %>Entity.<%= rel.name %>.id === p.id ? {value: p.id , label: p.<%=rel.otherEntityField%>} : null))
+            nextProps.<%= rel.namePlural %>.map((p)=>(nextProps.<%= entityInstance %>Entity.<%= rel.name %>.id === p.id ? {value: p.id , label: p.<%=rel.otherEntityField ? rel.otherEntityField : 'id' %>} : null))
           })
         }
       <% }) %>
