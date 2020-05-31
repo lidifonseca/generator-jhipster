@@ -103,7 +103,8 @@
               name={"<%= relationshipFieldName %>"} 
             />
             <%_ } _%>
-          </Col> <br />
+          </Col> 
+        </Row><br />
         </AvGroup>
       <%_ } else if (relationshipType === 'many-to-many' && rel.ownerSide === true) { _%>
         <AvGroup>
@@ -842,54 +843,7 @@ export interface I<%= entityReactName %>UpdateProps extends StateProps, Dispatch
         </AvForm>
       </div>
       );
-      }
-      }
 
-      const mapStateToProps = (storeState: IRootState) => ({
-      <%_ otherEntityActions.forEach(val => { _%>
-      <%= val.instance %>: storeState.<%= val.reducer %>.<%= val.entity === 'User' ? val.instance : 'entities' %>,
-      <%_ }) _%>
-      <%= entityInstance %>Entity: storeState.<%= entityInstance %>.entity,
-      loading: storeState.<%= entityInstance %>.loading,
-      updating: storeState.<%= entityInstance %>.updating,
-      updateSuccess: storeState.<%= entityInstance %>.updateSuccess,
-      });
-
-      const mapDispatchToProps = {
-      <%_ otherEntityActions.forEach(val => { _%>
-      <%= val.action %>,
-      <%_ }) _%>
-      getEntity,
-      updateEntity,
-      <%_ if (fieldsContainBlob) { _%>
-      setBlob,
-      <%_ } _%>
-      createEntity,
-      reset
-      };
-
-      type StateProps = ReturnType<typeof mapStateToProps>;
-        type DispatchProps = typeof mapDispatchToProps;
-
-
-
-
-<%_ if (formLayout.length > 0) {  _%>
-  <%_ for (idx in formLayout) { 
-      if(formLayout[idx].type == 'field'){ %>
-        const <%= upperFirstCamelCase(formLayout[idx].name) %>ComponentUpdate = ({baseFilters, fieldsBase}) => <%_ printFields(formLayout[idx].entity);
-      } else { %>
-        const <%= upperFirstCamelCase(formLayout[idx].name) %>ComponentUpdate = ({baseFilters. fieldsBase, <%= formLayout[idx].entity.otherEntityNamePlural %>, <%= formLayout[idx].name %>SelectValue}) => <%_ printRelationships(formLayout[idx].entity);
-      }
-  } _%>
-<%_ } else { _%>
-  <%_ for (idx in fields) { %>
-    const <%= upperFirstCamelCase(fields[idx].fieldName) %>ComponentUpdate = ({baseFilters, fieldsBase}) => <%_ printFields(fields[idx]);
-    } _%>
-  <%_ uniqueRealtionFields.forEach(rel => { %>
-    const <%= upperFirstCamelCase(rel.relationshipFieldName) %>ComponentUpdate = ({baseFilters, fieldsBase, <%= rel.otherEntityNamePlural %>, <%= rel.name %>SelectValue}) => <%_ printRelationships(rel);
-  }) _%>
-<%_ } _%>
   
   
 
