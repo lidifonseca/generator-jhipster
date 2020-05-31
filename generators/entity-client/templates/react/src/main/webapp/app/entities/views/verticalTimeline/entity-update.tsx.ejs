@@ -468,7 +468,7 @@
         ids<%= val.relationshipName %>: [],
         <%_ }) _%>
         <%_ relFieldNames.forEach(val => { _%>
-        <%= val.relationshipFieldName %>Id: '0',
+          <%= val.relationshipFieldName %>: null,
         <%_ }) _%>
         isNew: !this.props.match.params || !this.props.match.params.id,
         };
