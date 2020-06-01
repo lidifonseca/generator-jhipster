@@ -103,6 +103,7 @@
   const relationshipNameHumanized = rel.relationshipNameHumanized;
   const otherEntityName = rel.otherEntityName;
   const otherEntityStateName = rel.otherEntityStateName;
+  const otherEntityFieldCapitalized = rel.otherEntityFieldCapitalized;
   const otherEntityField = rel.otherEntityField;
   if (relationshipType === 'many-to-one'
   || (relationshipType === 'one-to-one' && ownerSide === true)
@@ -129,9 +130,9 @@
             ) : null
             }                  <%_ } else { _%>
                       <%_ if (dto === 'no') { _%>
-              {(<%= entityInstance + "Entity." + relationshipFieldName %>) ? <%= entityInstance + "Entity." + relationshipFieldName + "." + otherEntityField %> : ''}
+              {(<%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %>) ? <%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
                           <%_ } else { _%>
-              {<%= entityInstance + "Entity." + relationshipFieldName %> ? <%= entityInstance + "Entity." + relationshipFieldName + ".id" %> : ''}
+              {<%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> ? <%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
                       <%_ } _%>
                   <%_ } _%>
               <%_ } else { _%>
@@ -145,9 +146,9 @@
             }
                   <%_ } else { _%>
                       <%_ if (dto === 'no') { _%>
-              {(<%= entityInstance + "Entity." + relationshipFieldName %>) ? <%= entityInstance + "Entity." + relationshipFieldName + "." + otherEntityField %> : ''}
+              {(<%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %>) ? <%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
                       <%_ } else { _%>
-              {<%= entityInstance + "Entity." + relationshipFieldName %> ? <%= entityInstance + "Entity." + relationshipFieldName + ".id" %> : ''}
+              {<%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> ? <%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
                       <%_ } _%>
                   <%_ } _%>
               <%_ } _%>

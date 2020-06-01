@@ -15,7 +15,7 @@ Object.keys(differentRelationships).forEach(key => {
   if (hasAnyRelationshipQuery) {
     hasRelationshipQuery = true;
     differentRelationships[key].forEach(rel => {
-      if (rel.relationshipType === 'many-to-many' && rel.ownerSide === true) {
+      if (rel.relationshipType === 'many-to-many') {
         manyToManyOwners.add(rel);
       } else {
         relFieldNames.add(rel);
@@ -111,7 +111,7 @@ export interface I<%= entityReactName %>BaseState {
     <%= fields[idx].fieldName %> : any;
   <%_ } _%>
   <%_ relationships.forEach(rel => { _%>
-    <%= rel.relationshipName %> : any;
+    <%= rel.relationshipName + rel.otherEntityFieldCapitalized %> : any;
   <%_ }) _%>
 }
 
@@ -126,7 +126,7 @@ export interface I<%= entityReactName %>UpdateState {
   ids<%= val.relationshipName %>: any[];
   <%_ }) _%>
   <%_ relFieldNames.forEach(val => { _%>
-  <%= val.relationshipFieldName %>: any;
+  <%= val.relationshipFieldName + val.otherEntityFieldCapitalized %>: any;
   <%_ }) _%>
   }
 
@@ -287,12 +287,18 @@ export const getSearchEntities: ICrudSearchAction<I<%= entityReactName %>> = (qu
 
 // Actions
 export type ICrudGetAllAction<%= entityReactName %><T> = (
-  <%_ for (idx in fields) { _%>
-    <%= fields[idx].fieldName %>?: any,
-  <%_ } _%>
-  <%_ relationships.forEach(rel => { _%>
-    <%= rel.relationshipName %>?: any,
-  <%_ }) _%>
+    <%_ if (listFilterLayout.length > 0) {  _%>
+      <%_ for (idx in listFilterLayout) { _%>
+        <%= listFilterLayout[idx].name %>?: any,
+      <%_ } _%>
+    <%_ } else {  _%>
+      <%_ for (idx in fields) { _%>
+        <%= fields[idx].fieldName %>?: any,
+      <%_ } _%>
+      <%_ relationships.forEach(rel => { _%>
+        <%= rel.relationshipName %>?: any,
+      <%_ }) _%>
+    <%_ } _%>
   page?: number,
   size?: number,
   sort?: string,
@@ -419,12 +425,6 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
 
 <%_ if (!readOnly) { _%>
 export const createEntity: ICrudPutAction<I<%= entityReactName %>> = entity => async dispatch => {
-    entity = {
-      ...entity, 
-      <%_ relFieldNames.forEach(val => { _%>
-        <%= val.relationshipFieldName %>: entity.<%= val.relationshipFieldName %> === "null" ? null : entity.<%= val.relationshipFieldName %>, 
-      <%_ }) _%> 
-    };
   const result = await dispatch({
     type: ACTION_TYPES.CREATE_<%= entityActionName %>,
     payload: axios.post(apiUrl, cleanEntity(entity))
@@ -436,9 +436,6 @@ export const createEntity: ICrudPutAction<I<%= entityReactName %>> = entity => a
 };
 
 export const updateEntity: ICrudPutAction<I<%= entityReactName %>> = entity => async dispatch => {
-    entity = {...entity, <%_ relFieldNames.forEach(val => { _%>
-      <%= val.relationshipFieldName %>: entity.<%= val.relationshipFieldName %> === "null" ? null : entity.<%= val.relationshipFieldName %>, 
-    <%_ }) _%> };
   const result = await dispatch({
     type: ACTION_TYPES.UPDATE_<%= entityActionName %>,
     payload: axios.put(apiUrl, cleanEntity(entity))
@@ -499,7 +496,7 @@ export const get<%= entityReactName %>State = (location): I<%= entityReactName %
   <%_ } _%>
 
   <%_ relationships.forEach(rel => { _%>
-    const <%= rel.relationshipName %> = url.searchParams.get('<%= rel.relationshipName %>') || '';
+    const <%= rel.relationshipName + rel.otherEntityFieldCapitalized %> = url.searchParams.get('<%= rel.relationshipName %>') || '';
   <%_ }) _%>
 
   return {
@@ -508,7 +505,7 @@ export const get<%= entityReactName %>State = (location): I<%= entityReactName %
       <%= fields[idx].fieldName %>,
     <%_ } _%>
     <%_ relationships.forEach(rel => { _%>
-      <%= rel.relationshipName %>,
+      <%= rel.relationshipName + rel.otherEntityFieldCapitalized %>,
     <%_ }) _%>
   };
 };

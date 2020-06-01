@@ -27,17 +27,17 @@
             <%_ if (!relationshipRequired) { _%>
           <Select 
             id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-            value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>.split(",").indexOf(p.id) !== -1 ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
+            value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName + otherEntityFieldCapitalized %>.split(",").includes(p.id) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
             options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-            onChange={(options: any) => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+            onChange={(options: any) => this.setState({ <%= relationshipName  + otherEntityFieldCapitalized %>: options.map((option)=>(option['value'])).join(",") }) }
             name={"<%= relationshipFieldName %>"} 
           />
         <%_ } else { _%>
           <Select 
             id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-            value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>.split(",").indexOf(p.id) !== -1 ? {value: p.id , label: p.<%= otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
+            value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName + otherEntityFieldCapitalized %>.split(",").includes(p.id) ? {value: p.id , label: p.<%= otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
             options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-            onChange={(options: any) => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+            onChange={(options: any) => this.setState({ <%= relationshipName  + otherEntityFieldCapitalized %>: options.map((option)=>(option['value'])).join(",") }) }
             name={"<%= relationshipFieldName %>"} 
           />
         <%_ } _%>
@@ -45,17 +45,17 @@
           <%_ if (!relationshipRequired) { _%>
             <Select 
               id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>.split(",").indexOf(p.id) !== -1 ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
+              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName + otherEntityFieldCapitalized %>.split(",").includes(p.id) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
               options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+              onChange={(options: any) => this.setState({ <%= relationshipName  + otherEntityFieldCapitalized %>: options.map((option)=>(option['value'])).join(",") }) }
               name={"<%= relationshipFieldName %>"} 
             />
           <%_ } else { _%>
             <Select 
               id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>.split(",").indexOf(p.id) !== -1 ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
+              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName + otherEntityFieldCapitalized %>.split(",").includes(p.id) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
               options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+              onChange={(options: any) => this.setState({ <%= relationshipName  + otherEntityFieldCapitalized %>: options.map((option)=>(option['value'])).join(",") }) }
               name={"<%= relationshipFieldName %>"} 
             />
           <%_ } _%>
@@ -69,17 +69,17 @@
           <%_ if (dto === 'no') { _%>
             <Select 
               id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>.split(",").indexOf(p.id) !== -1 ? {value: p.id , label: p.<%=otherEntityField%>} : null)) : null} 
+              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName + otherEntityFieldCapitalized %>.split(",").includes(p.id) ? {value: p.id , label: p.<%=otherEntityField%>} : null)) : null} 
               options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+              onChange={(options: any) => this.setState({ <%= relationshipName  + otherEntityFieldCapitalized %>: options.map((option)=>(option['value'])).join(",") }) }
               name={"<%= relationshipFieldName %>"} 
             />
           <%_ } else { _%>
             <Select 
               id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>.split(",").indexOf(p.id) !== -1 ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
+              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName + otherEntityFieldCapitalized %>.split(",").includes(p.id) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
               options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+              onChange={(options: any) => this.setState({ <%= relationshipName  + otherEntityFieldCapitalized %>: options.map((option)=>(option['value'])).join(",") }) }
               name={"<%= relationshipFieldName %>"} 
             />
           <%_ } _%>
@@ -89,9 +89,9 @@
         <Label for="<%= entityFileName %>-<%= relationshipName %>"><Translate contentKey="<%= translationKey %>"><%= relationshipNameHumanized %></Translate></Label>
         <Select 
           id="<%= entityFileName %>-<%= relationshipName %>" isMulti  className={"css-select-control"}
-          value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>.split(",").indexOf(p.id) !== -1 ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
+          value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName + otherEntityFieldCapitalized %>.split(",").includes(p.id) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
           options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-          onChange={(options: any) => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+          onChange={(options: any) => this.setState({ <%= relationshipName  + otherEntityFieldCapitalized %>: options.map((option)=>(option['value'])).join(",") }) }
           name={"<%= relationshipFieldName %>"} 
         />
         </div>
@@ -285,9 +285,9 @@ _%>
                 }
             <%_ } else { _%>
                   <%_ if (dto === 'no') { _%>
-                  {<%= entityInstance + "." + relationshipFieldName %> ? <%= entityInstance + "." + relationshipFieldName + "." + otherEntityField %> : ''}
-                      <%_ } else { _%>
                   {<%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %> ? <%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
+                      <%_ } else { _%>
+                  {<%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized%> ? <%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
                     <%_ } _%>
             <%_ } _%>
           <%_ } else { _%>
@@ -301,14 +301,14 @@ _%>
                   }
             <%_ } else { _%>
                   <%_ if (dto === 'no') { _%>
-            {<%= entityInstance + "." + relationshipFieldName %> ?
-            <Link to={`<%= otherEntityStateName %>/${<%= entityInstance + "." + relationshipFieldName + ".id}" %>`}>
-              {<%= entityInstance + "." + relationshipFieldName + "." + otherEntityField %>}
+            {<%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %> ?
+            <Link to={`<%= otherEntityStateName + otherEntityFieldCapitalized %>/${<%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %>}`}>
+              {<%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %>}
             </Link> : ''}
                   <%_ } else { _%>
-            {<%= entityInstance + "." + relationshipFieldName %> ?
-            <Link to={`<%= otherEntityStateName %>/${<%= entityInstance + "." + relationshipFieldName + ".id}" %>`}>
-              {<%= entityInstance + "." + relationshipFieldName + "." + (otherEntityField ? otherEntityField : 'id') %>}
+            {<%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %> ?
+            <Link to={`<%= otherEntityStateName + otherEntityFieldCapitalized %>/${<%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %>}`}>
+              {<%= entityInstance + "." + relationshipFieldName + otherEntityFieldCapitalized %>}
             </Link> : ''}
                   <%_ } _%>
               <%_ } _%>
@@ -498,19 +498,23 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
     <%_ }) _%>
   }
 
-  cancelCourse = () => {
+  cancelFilters = () => {
     this.setState(
       {
         <%_ if (listFilterLayout.length > 0) {  _%>
           <%_ for (idx in listFilterLayout) { _%>
-            <%= listFilterLayout[idx].name %>: '',
+            <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
+              <%= listFilterLayout[idx].entity.relationshipName + listFilterLayout[idx].entity.otherEntityFieldCapitalized %>: '',
+            <%_ } else { _%>
+              <%= listFilterLayout[idx].name %>: '',
+            <%_ } _%>
           <%_ } _%>
         <%_ } else {  _%>
           <%_ for (idx in fields) { _%>
             <%= fields[idx].fieldName %>: '',
           <%_ } _%>
           <%_ relationships.forEach(rel => { _%>
-            <%= rel.relationshipName %>: '',
+            <%= rel.relationshipName + rel.otherEntityFieldCapitalized %>: '',
           <%_ }) _%>
         <%_ } _%>
       },
@@ -603,14 +607,18 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
     'sort=' + this.state.sort + ',' + this.state.order + '&' +
     <%_ if (listFilterLayout.length > 0) {  _%>
       <%_ for (idx in listFilterLayout) { _%>
-        '<%= listFilterLayout[idx].name %>=' + this.state.<%= listFilterLayout[idx].name %> + '&' +
+        <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
+          '<%= listFilterLayout[idx].name %>=' + this.state.<%= listFilterLayout[idx].entity.relationshipName + listFilterLayout[idx].entity.otherEntityFieldCapitalized %> + '&' +
+        <%_ } else { _%>
+          '<%= listFilterLayout[idx].name %>=' + this.state.<%= listFilterLayout[idx].name %> + '&' +
+        <%_ } _%>
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
         '<%= fields[idx].fieldName %>=' + this.state.<%= fields[idx].fieldName %> + '&' +
       <%_ } _%>
       <%_ relationships.forEach(rel => { _%>
-        '<%= rel.relationshipName %>=' + this.state.<%= rel.relationshipName %> + '&' +
+        '<%= rel.relationshipName %>=' + this.state.<%= rel.relationshipName + rel.otherEntityFieldCapitalized %> + '&' +
       <%_ }) _%>
     <%_ } _%>
     ''
@@ -632,22 +640,30 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
     const {
       <%_ if (listFilterLayout.length > 0) {  _%>
         <%_ for (idx in listFilterLayout) { _%>
-          <%= listFilterLayout[idx].name %>,
+          <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
+            <%= listFilterLayout[idx].entity.relationshipName + listFilterLayout[idx].entity.otherEntityFieldCapitalized %>,
+          <%_ } else { _%>
+            <%= listFilterLayout[idx].name %>,
+          <%_ } _%>
         <%_ } _%>
       <%_ } else {  _%>
         <%_ for (idx in fields) { _%><%= fields[idx].fieldName %>, <%_ } _%>
-        <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>, <%_ }) _%>
+        <%_ relationships.forEach(rel => { _%><%= rel.relationshipName + rel.otherEntityFieldCapitalized %>, <%_ }) _%>
       <%_ } _%>
       activePage, itemsPerPage, sort, order 
     } = this.state;
     this.props.getEntities(
       <%_ if (listFilterLayout.length > 0) {  _%>
         <%_ for (idx in listFilterLayout) { _%>
-          <%= listFilterLayout[idx].name %>,
+          <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
+            <%= listFilterLayout[idx].entity.relationshipName + listFilterLayout[idx].entity.otherEntityFieldCapitalized %>,
+          <%_ } else { _%>
+            <%= listFilterLayout[idx].name %>,
+          <%_ } _%>
         <%_ } _%>
       <%_ } else {  _%>
         <%_ for (idx in fields) { _%><%= fields[idx].fieldName %>, <%_ } _%>
-        <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>, <%_ }) _%>
+        <%_ relationships.forEach(rel => { _%><%= rel.relationshipName + rel.otherEntityFieldCapitalized %>, <%_ }) _%>
       <%_ } _%>
       activePage - 1, itemsPerPage, `${sort},${order}`);
     <%_ } _%>
@@ -764,7 +780,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
                               <Translate contentKey="<%= i18nKeyPrefix %>.home.btn_filter">Filter</Translate>
                             </Button>
                             &nbsp;
-                            <div className="btn btn-secondary hand" onClick={this.cancelCourse}>
+                            <div className="btn btn-secondary hand" onClick={this.cancelFilters}>
                               <FontAwesomeIcon icon="trash-alt" />
                               &nbsp;
                               <Translate contentKey="<%= i18nKeyPrefix %>.home.btn_filter_clean">Clean</Translate>

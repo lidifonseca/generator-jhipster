@@ -118,9 +118,9 @@
   
               <Select 
                 id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-                value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(<%= entityInstance %>Entity.<%= relationshipName %> === p.id ? {value: p.id , label: p.id} : null)) : null} 
+                value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(<%= entityInstance %>Entity.<%= relationshipName %>s.map(f=>f.id).includes(p.id) ? {value: p.id , label: p.id} : null)) : null} 
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                onChange={options => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+                onChange={options => this.setState({ ids<%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
                 name={"<%= relationshipFieldName %>"} 
               />
               <AvInput id="<%= entityFileName %>-<%= relationshipName %>" type="select" multiple className="form-control"
@@ -350,16 +350,16 @@
   <% if (haveFieldWithJavadoc) { %>, UncontrolledTooltip<% } %> } from 'reactstrap';
   import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, AvField <% } %> } from
   'availity-reactstrap-validation';
+  import { translate }  from 'react-jhipster';
   import {
   Translate,
-  translate,
   ICrudGetAction,
   ICrudGetAllAction,
   <%_ if (fieldsContainBlob) { _%>
-  setFileData,
-  <% if (fieldsContainBlobOrImage) { %> openFile,<% } %>
-  <%_ } _%>
-  ICrudPutAction
+    setFileData,
+    <% if (fieldsContainBlobOrImage) { %> openFile,<% } %>
+    <%_ } _%>
+  ICrudPutAction,
   } from 'react-jhipster';
   import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
   import { IRootState } from 'app/shared/reducers';
@@ -386,7 +386,7 @@
     if (hasAnyRelationshipQuery) {
       hasRelationshipQuery = true;
       differentRelationships[key].forEach(rel => {
-        if (rel.relationshipType === 'many-to-many' && rel.ownerSide === true) {
+        if (rel.relationshipType === 'many-to-many') {
           manyToManyOwners.add(rel);
         } else {
           relFieldNames.add(rel);
@@ -395,7 +395,7 @@
     }
     if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
       const uniqueRel = differentRelationships[key][0];
-      uniqueRealtionFields.add({"namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName, "otherEntityField": uniqueRel.otherEntityField });
+      uniqueRealtionFields.add({"otherEntityFieldCapitalized": uniqueRel.otherEntityFieldCapitalized, "relationshipFieldName": uniqueRel.relationshipFieldName, "namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName, "otherEntityField": uniqueRel.otherEntityField });
       otherEntityActions.add({
         action: `get${upperFirstCamelCase(uniqueRel.otherEntityNamePlural)}`,
         instance: `${uniqueRel.otherEntityNamePlural}`,
@@ -471,7 +471,7 @@
         ids<%= val.relationshipName %>: [],
         <%_ }) _%>
         <%_ relFieldNames.forEach(val => { _%>
-          <%= val.relationshipFieldName %>: null,
+          <%= val.relationshipFieldName + val.otherEntityFieldCapitalized %>: null,
         <%_ }) _%>
         isNew: !this.props.match.params || !this.props.match.params.id,
         };
@@ -490,9 +490,9 @@
           this.handleClose();
         }
         <% uniqueRealtionFields.forEach(rel => { %> 
-          if (nextProps.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && nextProps.<%= entityInstance %>Entity.<%= rel.name %> && nextProps.<%= entityInstance %>Entity.<%= rel.name %>.id) {
+          if (nextProps.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && nextProps.<%= entityInstance %>Entity.<%= rel.relationshipFieldName + rel.otherEntityFieldCapitalized %>) {
             this.setState({<%= rel.name %>SelectValue: 
-              nextProps.<%= rel.namePlural %>.map((p)=>(nextProps.<%= entityInstance %>Entity.<%= rel.name %>.id === p.id ? {value: p.id , label: p.<%=rel.otherEntityField ? rel.otherEntityField : 'id' %>} : null))
+              nextProps.<%= rel.namePlural %>.map((p)=>(nextProps.<%= entityInstance %>Entity.<%= rel.relationshipFieldName + rel.otherEntityFieldCapitalized %> === p.id ? {value: p.id , label: p.<%=rel.otherEntityField ? rel.otherEntityField : 'id' %>} : null))
             })
           }
         <% }) %>
@@ -548,7 +548,7 @@
         const { <%= entityInstance %>Entity } = this.props;
         const entity = {
         ...<%= entityInstance %>Entity,
-        <% uniqueRealtionFields.forEach(rel => { %> <%= rel.name %>:  (this.state.<%= rel.name %>SelectValue ? this.state.<%= rel.name %>SelectValue['value'] : null), <% }) %>
+        <% uniqueRealtionFields.forEach(rel => { %> <%= rel.relationshipFieldName + rel.otherEntityFieldCapitalized %>:  (this.state.<%= rel.name %>SelectValue ? this.state.<%= rel.name %>SelectValue['value'] : null), <% }) %>
         ...values
         <%_ manyToManyOwners.forEach(rel => { _%>
         , <%= rel.relationshipFieldNamePlural %>: mapIdList(values.<%= rel.relationshipFieldNamePlural %>)
@@ -599,9 +599,6 @@
               <AvForm model={isNew ? {} : {
                 ...<%= entityInstance %>Entity, 
                 <%_ if (formTabs.length > 0) { _%>activeTab: 0,<%_ } _%>
-                <%_ relFieldNames.forEach(val => { _%>
-                  <%= val.relationshipFieldName %>:<%= entityInstance %>Entity.<%= val.relationshipFieldName %> ? <%= entityInstance %>Entity.<%= val.relationshipFieldName %>.id: null,
-                <%_ }) _%>
               } } onSubmit={this.saveEntity}>
           <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
           <PanelHeader>

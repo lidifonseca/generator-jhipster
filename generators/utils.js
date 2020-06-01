@@ -742,7 +742,6 @@ function analizeJavadoc(generator) {
         generator.relationships[idx]['clean_javadoc'] = javadoc;
        
     } 
-
     if(generator.formTabs.length > 0){
         generator.defaultFormTab = false;
         for (idx in generator.fields) { 
@@ -776,6 +775,8 @@ function analizeJavadoc(generator) {
     }
     generator.clean_javadoc = generator.clean_javadoc ? generator.clean_javadoc.split("\\n").join("") : ""; 
     generator.javadoc = generator.clean_javadoc; 
+
+    console.info(generator);
     return generator;
 }
 
