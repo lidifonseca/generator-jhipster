@@ -111,7 +111,7 @@ export interface I<%= entityReactName %>BaseState {
     <%= fields[idx].fieldName %> : any;
   <%_ } _%>
   <%_ relationships.forEach(rel => { _%>
-    <%= rel.relationshipName + rel.otherEntityFieldCapitalized %> : any;
+    <%= rel.relationshipName %>Id : any;
   <%_ }) _%>
 }
 
@@ -296,7 +296,7 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
         <%= fields[idx].fieldName %>?: any,
       <%_ } _%>
       <%_ relationships.forEach(rel => { _%>
-        <%= rel.relationshipName %>?: any,
+        <%= rel.relationshipName %>Id?: any,
       <%_ }) _%>
     <%_ } _%>
   page?: number,
@@ -311,7 +311,7 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%><%= fields[idx].fieldName %>, <%_ } _%>
-      <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>, <%_ }) _%>
+      <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
     <%_ } _%>
   page, size, sort
   ) =>
@@ -327,7 +327,7 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
           <%_ } _%>
         <%_ } else {  _%>
           <%_ const rel = listFilterLayout[idx].entity _%>
-          const <%= rel.relationshipName %>Request = <%= rel.relationshipName %> ? `<%= rel.relationshipName %>.equals=${<%= rel.relationshipName %>}&` : '';
+          const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>Id.in=${<%= rel.relationshipName %>Id}&` : '';
         <%_ } _%>
       <%_ } _%>
     <%_ } else {  _%>
@@ -339,7 +339,7 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
         <%_ } _%>
       <%_ } _%>
       <%_ relationships.forEach(rel => { _%>
-        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %> ? `<%= rel.relationshipName %>.equals=${<%= rel.relationshipName %>}&` : '';
+        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>Id.in=${<%= rel.relationshipName %>Id}&` : '';
       <%_ }) _%>
     <%_ } _%>
 
@@ -374,7 +374,7 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%><%= fields[idx].fieldName %>, <%_ } _%>
-      <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>, <%_ }) _%>
+      <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
     <%_ } _%>
   page, size, sort
   ) =>
@@ -391,7 +391,7 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
         <%_ } _%>
       <%_ } else {  _%>
         <%_ const rel = listFilterLayout[idx].entity _%>
-        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %> ? `<%= rel.relationshipName %>.equals=${<%= rel.relationshipName %>}&` : '';
+        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>Id.equals=${<%= rel.relationshipName %>Id}&` : '';
       <%_ } _%>
     <%_ } _%>
   <%_ } else {  _%>
@@ -403,7 +403,7 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
       <%_ } _%>
     <%_ } _%>
     <%_ relationships.forEach(rel => { _%>
-      const <%= rel.relationshipName %>Request = <%= rel.relationshipName %> ? `<%= rel.relationshipName %>.equals=${<%= rel.relationshipName %>}&` : '';
+      const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>Id.equals=${<%= rel.relationshipName %>Id}&` : '';
     <%_ }) _%>
   <%_ } _%>
 
@@ -496,7 +496,7 @@ export const get<%= entityReactName %>State = (location): I<%= entityReactName %
   <%_ } _%>
 
   <%_ relationships.forEach(rel => { _%>
-    const <%= rel.relationshipName + rel.otherEntityFieldCapitalized %> = url.searchParams.get('<%= rel.relationshipName %>') || '';
+    const <%= rel.relationshipName %>Id = url.searchParams.get('<%= rel.relationshipName %>Id') || '';
   <%_ }) _%>
 
   return {
@@ -505,7 +505,32 @@ export const get<%= entityReactName %>State = (location): I<%= entityReactName %
       <%= fields[idx].fieldName %>,
     <%_ } _%>
     <%_ relationships.forEach(rel => { _%>
-      <%= rel.relationshipName + rel.otherEntityFieldCapitalized %>,
+      <%= rel.relationshipName %>Id,
     <%_ }) _%>
   };
+};
+
+
+export const get<%= entityReactName %>FiltersURL = (state, offset = null) => {
+  return 'baseFilters=' + state.baseFilters + '&page=' + state.activePage + '&' +
+  'size=' + state.itemsPerPage + '&' +
+  (offset !== null ? ('offset=' + offset) + '&' : '') +
+  'sort=' + state.sort + ',' + state.order + '&' +
+  <%_ if (listFilterLayout.length > 0) {  _%>
+    <%_ for (idx in listFilterLayout) { _%>
+      <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
+        '<%= listFilterLayout[idx].name %>=' + state.<%= listFilterLayout[idx].entity.relationshipName %>Id + '&' +
+      <%_ } else { _%>
+        '<%= listFilterLayout[idx].name %>=' + state.<%= listFilterLayout[idx].name %> + '&' +
+      <%_ } _%>
+    <%_ } _%>
+  <%_ } else {  _%>
+    <%_ for (idx in fields) { _%>
+      '<%= fields[idx].fieldName %>=' + state.<%= fields[idx].fieldName %> + '&' +
+    <%_ } _%>
+    <%_ relationships.forEach(rel => { _%>
+      '<%= rel.relationshipName %>Id=' + state.<%= rel.relationshipName %>Id + '&' +
+    <%_ }) _%>
+  <%_ } _%>
+  ''
 };

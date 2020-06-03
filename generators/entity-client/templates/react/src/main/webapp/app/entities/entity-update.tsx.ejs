@@ -30,9 +30,9 @@
   
                     <Select 
                       id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                      value={this.state.<%= otherEntityName %>SelectValue} 
+                      value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                       options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                      onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
+                      onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
                       name={"<%= relationshipFieldName %>"} 
                     />
                   <%_ } else { _%>
@@ -53,18 +53,18 @@
   
                     <Select 
                       id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                      value={this.state.<%= otherEntityName %>SelectValue} 
+                      value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                       options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                      onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
+                      onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
                       name={"<%= relationshipFieldName %>"} 
                     />
                   <%_ } else { _%>
   
                     <Select 
                     id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                    value={this.state.<%= otherEntityName %>SelectValue} 
+                    value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                     options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                    onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
+                    onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
                     name={"<%= relationshipFieldName %>"} 
                   />
                     <AvFeedback>
@@ -88,18 +88,18 @@
   
                 <Select 
                 id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                value={this.state.<%= otherEntityName %>SelectValue} 
+                value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === (p.id) ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
+                onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
                 name={"<%= relationshipFieldName %>"} 
               />
               <%_ } else { _%>
   
                 <Select 
                 id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                value={this.state.<%= otherEntityName %>SelectValue} 
+                value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null }  
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
+                onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
                 name={"<%= relationshipFieldName %>"} 
               />
               <%_ } _%>
@@ -118,24 +118,11 @@
   
               <Select 
                 id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-                value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(<%= entityInstance %>Entity.<%= relationshipName %>s.map(f=>f.id).includes(p.id) ? {value: p.id , label: p.id} : null)) : null} 
+                value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue.split(',').includes(p.id+"") ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                onChange={options => this.setState({ ids<%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+                onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options.map((option)=>(option['value'])).join(",") }) }
                 name={"<%= relationshipFieldName %>"} 
               />
-              <AvInput id="<%= entityFileName %>-<%= relationshipName %>" type="select" multiple className="form-control"
-                name="<%= relationshipFieldNamePlural %>" value={<%= entityInstance %>Entity.<%= relationshipFieldNamePlural %>
-                && <%= entityInstance %>Entity.<%= relationshipFieldNamePlural %>.map(e=> e.id)}
-                >
-                <option value="null" key="0">{translate("<%= translationKey %>_empty")}</option>
-                {
-                (<%= otherEntityNamePlural %>) ? <%= otherEntityNamePlural %>.map(otherEntity =>
-                <option value={otherEntity.id} key={otherEntity.id}>
-                  {otherEntity.<%=otherEntityField%>}
-                </option>
-                ) : null
-                }
-              </AvInput>
               </Col>
             </Row>
           </AvGroup> 
@@ -151,7 +138,7 @@
   <% const fieldName =  field.fieldName; _%>
   <% const fieldNameHumanized =  field.fieldNameHumanized; _%>
   { baseFilters !== '<%= fieldName %>' ?
-    <Col md="<%= fieldName %>">
+    <Col md="<%= formLayoutSize %>">
         <AvGroup>
           <Row>
             <%_ if (fieldType === 'Boolean') { _%>
@@ -485,16 +472,34 @@
         }
         }
         <%_ } _%>
-        componentDidUpdate (nextProps, nextState) {
-        if (nextProps.updateSuccess !== this.props.updateSuccess && nextProps.updateSuccess) {
+        componentDidUpdate (prevProps, nextState) {
+        if (prevProps.updateSuccess !== this.props.updateSuccess && prevProps.updateSuccess) {
           this.handleClose();
         }
         <% uniqueRealtionFields.forEach(rel => { %> 
-          if (nextProps.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && nextProps.<%= entityInstance %>Entity.<%= rel.relationshipFieldName + rel.otherEntityFieldCapitalized %>) {
-            this.setState({<%= rel.name %>SelectValue: 
-              nextProps.<%= rel.namePlural %>.map((p)=>(nextProps.<%= entityInstance %>Entity.<%= rel.relationshipFieldName + rel.otherEntityFieldCapitalized %> === p.id ? {value: p.id , label: p.<%=rel.otherEntityField ? rel.otherEntityField : 'id' %>} : null))
+        <% if(rel.relationshipType === "many-to-many") { %> 
+          if ( 
+             ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
+             ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.namePlural %>) 
+           ) {
+            this.setState({
+              <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
+                f => this.props.<%= entityInstance %>Entity.<%= rel.namePlural %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null 
+              ).join(',') : null,
             })
           }
+        <% } else { %>
+          if ( 
+            ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
+            ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.name %>Id) 
+          ) {
+           this.setState({
+             <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
+               f => this.props.<%= entityInstance %>Entity.<%= rel.name %>Id === f.id ? f.id : null 
+             ) : null,
+           })
+          }
+          <% } %>
         <% }) %>
         }
   
@@ -548,11 +553,8 @@
         const { <%= entityInstance %>Entity } = this.props;
         const entity = {
         ...<%= entityInstance %>Entity,
-        <% uniqueRealtionFields.forEach(rel => { %> <%= rel.relationshipFieldName + rel.otherEntityFieldCapitalized %>:  (this.state.<%= rel.name %>SelectValue ? this.state.<%= rel.name %>SelectValue['value'] : null), <% }) %>
+        <% uniqueRealtionFields.forEach(rel => { %><%= rel.name %>Id:  this.state.<%= rel.name %>SelectValue,  <% }) %>
         ...values
-        <%_ manyToManyOwners.forEach(rel => { _%>
-        , <%= rel.relationshipFieldNamePlural %>: mapIdList(values.<%= rel.relationshipFieldNamePlural %>)
-        <%_ }) _%>
         }
   
         if (this.state.isNew) {

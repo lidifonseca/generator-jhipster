@@ -776,7 +776,7 @@ function analizeJavadoc(generator) {
     generator.clean_javadoc = generator.clean_javadoc ? generator.clean_javadoc.split("\\n").join("") : ""; 
     generator.javadoc = generator.clean_javadoc; 
 
-    console.info(generator);
+    // console.info(generator);
     return generator;
 }
 
