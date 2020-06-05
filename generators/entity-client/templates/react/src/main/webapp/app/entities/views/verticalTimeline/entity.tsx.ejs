@@ -240,10 +240,13 @@ _%>
           {<%= entityInstance %>.<%= fieldName %> ? (
             <div>
               <a rel="noopener noreferrer" target={"_blank"} href={`${<%= entityInstance %>.<%= fieldName %>}`}>
-                { (<%= entityInstance %>.<%= fieldName %>ContentType && <%= entityInstance %>.<%= fieldName %>ContentType.includes("image/")) ? 
+                { 
+                  (<%= entityInstance %>.<%= fieldName %>ContentType && <%= entityInstance %>.<%= fieldName %>ContentType.includes("image/")) ? 
                   <img src={`${<%= entityInstance %>.<%= fieldName %>}`} style={{ maxHeight: '30px' }} />
                   :
-                  <Translate contentKey="entity.action.open">Open</Translate>
+                  <Translate contentKey="entity.action.open">
+                    Open2
+                  </Translate>
                 } 
               </a>
             </div>

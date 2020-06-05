@@ -182,7 +182,7 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
     case SUCCESS(ACTION_TYPES.FETCH_<%= entityActionName %>_LIST):
       <%_ if (pagination === 'infinite-scroll') { _%>
       {
-      const links = parseHeaderForLinks(decodeURIComponent(action.payload.headers.link));
+      const links = parseHeaderForLinks((action.payload.headers.link));
       <%_ } _%>
 
       return {

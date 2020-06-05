@@ -1,0 +1,170 @@
+<%_ const formLayoutLabel =  field.formLayoutLabel ?  field.formLayoutLabel : 'left' ; _%>
+<%_ const formLayoutSize =  field.formLayoutSize ?  field.formLayoutSize : 12; _%>
+<% const fieldType =  field.fieldType; _%>
+<% const fieldName =  field.fieldName; _%>
+<% const fieldNameHumanized =  field.fieldNameHumanized; _%>
+{ baseFilters !== '<%= fieldName %>' ?
+  <Col md="<%= formLayoutSize %>">
+      <AvGroup>
+        <Row>
+          <%_ if (fieldType === 'Boolean') { _%>
+            <Col md="12">
+              <Label className="mt-2" id="<%= fieldName %>Label" check>
+                <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="checkbox" className="form-control"
+                  name="<%= fieldName %>" />
+                <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                  <%= fieldNameHumanized %>
+                </Translate>
+              </Label>
+            </Col>
+          <%_ } else if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+              <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+                <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                  <%= fieldNameHumanized %>
+                </Translate>
+              </Label>
+            </Col>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+              <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="datetime-local" className="form-control"
+                name="<%= fieldName %>" placeholder={"YYYY-MM-DD HH:mm"} value={isNew ? null :
+                convertDateTimeFromServer(this.props.<%= entityInstance %>Entity.<%= fieldName %>)}
+                 />
+            </Col>
+          <%_ } else if (fieldType === 'LocalDate') { _%>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+              <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+                <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                  <%= fieldNameHumanized %>
+                </Translate>
+              </Label>
+            </Col>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+              <AvField id="<%= entityFileName %>-<%= fieldName %>" type="date" className="form-control" name="<%= fieldName %>"
+                 />
+            </Col>
+          <%_
+        } else if ( field.fieldIsEnum) {
+          const values =  field.fieldValues.replace(/\s/g, '').split(',');
+      _%>
+          <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+            <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+              <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                <%= fieldNameHumanized %>
+              </Translate>
+            </Label>
+          </Col>
+          <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+          <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="select" className="form-control"
+            name="<%= fieldName %>" value={(!isNew && <%= entityInstance %>Entity.<%= fieldName%>) || '<%= values[0] %>' }>
+            <%_
+            const enumPrefix = angularAppName + '.'+ fieldType;
+            for (key in values) {
+                const value = values[key];
+          _%>
+            <option value="<%= value %>">
+              <%_ if (enableTranslation) { _%>
+              {translate("<%= enumPrefix %>.<%= value %>")}
+              <%_ } else { _%>
+              <%= value %>
+              <%_ } _%>
+            </option>
+            <%_ } _%>
+          </AvInput>
+          </Col>
+          <%_ } else if (['Integer', 'Long', 'Float', 'Double'].includes(fieldType)) { _%>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+              <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+                <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                  <%= fieldNameHumanized %>
+                </Translate>
+              </Label>
+            </Col>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+                <AvField id="<%= entityFileName %>-<%= fieldName %>" type="string" className="form-control" name="<%= fieldName %>" /> 
+            </Col>
+          <%_ } else if (['byte[]', 'ByteBuffer'].includes(fieldType)) {
+
+              const fieldBlobType =  field.fieldTypeBlobContent;
+              if (fieldBlobType !== 'text') {
+                const isAnImage = fieldBlobType === 'image';
+                const capitalizedFirstLetter =  _.upperFirst(fieldName);
+
+          _%>
+              <Col md="<%= formLayoutSize %>">
+                <AvGroup>
+                  <Row>
+                    <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+                      <Label className="mt-2" id="<%= fieldName %>Label" for="<%= fieldName %>">
+                        <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                          <%= fieldNameHumanized %>
+                        </Translate>
+                      </Label>
+                    </Col>
+                    <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+                      <br />
+                      {(<%= fieldName %> || <%= fieldName %>Base64)  ? (
+                      <div>
+                        <Row>
+                          <Col md="11">
+                          </Col>
+                          <Col md="1">
+                          <Button color="danger" onClick={this.clearBlob('<%= fieldName %>')}>
+                            <FontAwesomeIcon icon="times-circle" /></Button>
+                          </Col>
+                        </Row>
+                        <a rel="noopener noreferrer" target={"_blank"} href={`${<%= fieldName %>}`}>
+                          <%_ if (isAnImage) { _%>
+                          <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+arquivoBase64) : <%= fieldName %>}`}
+                            style={{ maxHeight: '100px' }} />
+                          <%_ } else { _%>
+                          <Translate contentKey="entity.action.open">Open</Translate>
+                          <%_ } _%>
+                        </a>
+                        <br />
+                      </div>
+                      ) : null}
+                      <input id="file_<%= fieldName %>" type="file" ref={this.<%= fields[idx].fieldName %>FileInput} onChange={this.onBlobChange(<%= isAnImage %>, '<%= fieldName %>', this.<%= fields[idx].fieldName %>FileInput
+                        )} <% if (isAnImage) { %>accept="image/*" <% } %> />
+                      <AvInput type="hidden"  name="<%= fieldName %>" value={<%= fieldName %>}  />
+                    </Col>
+                  </Row>
+                </AvGroup>  
+              </Col>
+        <%_ } else { _%>
+          <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+            <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+              <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                <%= fieldNameHumanized %>
+              </Translate>
+            </Label>
+          </Col>
+          <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+            <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="textarea" name="<%= fieldName %>"  />
+          </Col>
+        <%_ } _%>
+      <%_ } else { _%>
+        <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+          <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+            <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+              <%= fieldNameHumanized %>
+            </Translate>
+          </Label>
+        </Col>
+        <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+          <AvField id="<%= entityFileName %>-<%= fieldName %>" type="text" name="<%= fieldName %>"  />
+        </Col>
+      <%_ } _%>
+      <%_ if ( field.javadoc) { _%>
+        <UncontrolledTooltip target="<%= fieldName %>Label">
+          <%_ if (enableTranslation) { _%>
+            <Translate contentKey="<%= i18nKeyPrefix %>.help.<%= fieldName %>" />
+          <%_ } else { _%>
+            <%=  field.javadoc %>
+          <%_ } _%>
+        </UncontrolledTooltip>
+      <%_ } _%>
+    </Row>
+      </AvGroup>
+    </Col> : 
+    <AvInput type="hidden" name="<%= fieldName %>" value={this.state.fieldsBase[baseFilters]} /> }

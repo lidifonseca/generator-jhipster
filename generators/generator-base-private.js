@@ -1179,6 +1179,7 @@
                  tsType = 'any';
                  if (['byte[]', 'ByteBuffer'].includes(fieldType) && field.fieldTypeBlobContent !== 'text') {
                      variablesWithTypes.push(`${fieldName}ContentType?: string`);
+                     variablesWithTypes.push(`${fieldName}Base64?: string`);
                  }
              }
              variablesWithTypes.push(`${fieldName}?: ${tsType}`);
@@ -1212,10 +1213,10 @@
                          variablesWithTypes.push(`${fieldName}?: ${fieldType}`);
                      }
                      fieldType = `any`;
-                     fieldName = `${relationshipFieldName}Id`;
+                     fieldName = `${relationshipFieldName}`;
                  } else {
                      fieldType = `any`;
-                     fieldName = `${relationship.relationshipFieldName}Id`;
+                     fieldName = `${relationship.relationshipFieldName}`;
                  }
              }
              variablesWithTypes.push(`${fieldName}?: ${fieldType}`);

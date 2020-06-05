@@ -1,0 +1,111 @@
+
+<%_ 
+  const listFilterLayoutLabel = field.listFilterLayoutLabel ? field.listFilterLayoutLabel : 'left' ; 
+  const listFilterLayoutSize = field.listFilterLayoutSize ? field.listFilterLayoutSize : 3; 
+  const fieldType = field.fieldType;
+  const fieldName = field.fieldName;
+  const fieldNameHumanized = field.fieldNameHumanized;
+_%>
+      
+  { this.state.baseFilters !== '<%= fieldName %>' ? 
+    <Col md="<%= listFilterLayoutSize %>">
+      <Row className="mr-1 mt-1">
+        <%_ if (fieldType === 'Boolean') { _%>
+        <Label id="<%= fieldName %>Label" check>
+          <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="checkbox" className="form-control" name="<%= fieldName %>" />
+          <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+            <%= fieldNameHumanized %>
+          </Translate>
+        </Label>
+        <%_ } else if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+        <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+          <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+            <%= fieldNameHumanized %>
+          </Translate>
+        </Label>
+        <AvInput
+          id="<%= entityFileName %>-<%= fieldName %>"
+          type="datetime-local"
+          className="form-control"
+          name="<%= fieldName %>"
+          placeholder={"YYYY-MM-DD HH:mm"}
+          value={this.state.<%= fieldName %> ? convertDateTimeFromServer(this.state.<%= fieldName %>) : null }
+        />
+        <%_ } else if (fieldType === 'LocalDate') { _%>
+        <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+          <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+            <%= fieldNameHumanized %>
+          </Translate>
+        </Label>
+        <AvInput type="date" name="<%= fieldName %>" id="<%= entityFileName %>-<%= fieldName %>"  value={this.state.<%= fieldName %>}   />
+        <%_
+        } else if (field.fieldIsEnum) {
+          const values = field.fieldValues.replace(/\s/g, '').split(',');
+        _%>
+        <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+          <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+            <%= fieldNameHumanized %>
+          </Translate>
+        </Label>
+        <AvInput
+          id="<%= entityFileName %>-<%= fieldName %>"
+          type="select"
+          className="form-control"
+          name="<%= fieldName %>"
+          value={this.state.<%= fieldName %> ? (this.state.<%= fieldName %>) : null }
+        >
+        <%_
+          const enumPrefix = angularAppName + '.'+ fieldType;
+          for (key in values) {
+              const value = values[key];
+        _%>
+          <option value="<%= value %>">
+          <%_ if (enableTranslation) { _%>
+            {translate("<%= enumPrefix %>.<%= value %>")}
+          <%_ } else { _%>
+            <%= value %>
+          <%_ } _%>
+          </option>
+        <%_ } _%>
+        </AvInput>
+        <%_ } else if (['Integer', 'Long', 'Float', 'Double'].includes(fieldType)) { _%>
+        <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+          <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+            <%= fieldNameHumanized %>
+          </Translate>
+        </Label>
+        <AvInput type="string" name="<%= fieldName %>" id="<%= entityFileName %>-<%= fieldName %>"  value={this.state.<%= fieldName %>}   />
+        <%_ } else if (['byte[]', 'ByteBuffer', 'Blob', 'TextBlob'].includes(fieldType)) { _%>
+          <%_ const fieldBlobType = field.fieldTypeBlobContent; _%>
+          <%_ if (fieldBlobType !== 'text') {  _%>
+              <%_ const isAnImage = fieldBlobType === 'image'; _%>
+              <%_ const capitalizedFirstLetter =  _.upperFirst(fieldName); _%>
+          <%_ } else { _%>
+              <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+                <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                  <%= fieldNameHumanized %>
+                </Translate>
+              </Label>
+              <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="textarea" name="<%= fieldName %>" />
+          <%_ } _%>
+        <%_ } else { _%>
+        <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+        <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+          <%= fieldNameHumanized %>
+        </Translate>
+        </Label>
+
+        <AvInput type="text" name="<%= fieldName %>" id="<%= entityFileName %>-<%= fieldName %>"  value={this.state.<%= fieldName %>}   />
+        <%_ } _%>
+        <%_ if (field.clean_javadoc) { _%>
+        <UncontrolledTooltip target="<%= fieldName %>Label">
+        <%_ if (enableTranslation) { _%>
+        <Translate contentKey="<%= i18nKeyPrefix %>.help.<%= fieldName %>"/>
+        <%_ } else { _%>
+        <%= field.clean_javadoc %>
+        <%_ } _%>
+        </UncontrolledTooltip>
+        <%_ } _%>
+      </Row>
+    </Col>
+  : null }

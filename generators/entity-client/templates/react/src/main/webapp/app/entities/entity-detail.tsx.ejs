@@ -130,9 +130,9 @@
             ) : null
             }                  <%_ } else { _%>
                       <%_ if (dto === 'no') { _%>
-              {(<%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %>) ? <%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
+              {(<%= entityInstance + "Entity." + relationshipFieldName %>.id) ? <%= entityInstance + "Entity." + relationshipFieldName %>.id : ''}
                           <%_ } else { _%>
-              {<%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> ? <%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
+              {<%= entityInstance + "Entity." + relationshipFieldName %>.id ? <%= entityInstance + "Entity." + relationshipFieldName %>.id : ''}
                       <%_ } _%>
                   <%_ } _%>
               <%_ } else { _%>
@@ -146,9 +146,9 @@
             }
                   <%_ } else { _%>
                       <%_ if (dto === 'no') { _%>
-              {(<%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %>) ? <%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
+              {(<%= entityInstance + "Entity." + relationshipFieldName %>.id) ? <%= entityInstance + "Entity." + relationshipFieldName %>.id : ''}
                       <%_ } else { _%>
-              {<%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> ? <%= entityInstance + "Entity." + relationshipFieldName + otherEntityFieldCapitalized %> : ''}
+              {<%= entityInstance + "Entity." + relationshipFieldName %>.id ? <%= entityInstance + "Entity." + relationshipFieldName %>.id : ''}
                       <%_ } _%>
                   <%_ } _%>
               <%_ } _%>
