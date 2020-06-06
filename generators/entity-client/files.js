@@ -19,6 +19,7 @@
 const _ = require('lodash');
 const faker = require('faker');
 const utils = require('../utils');
+const fs = require('fs');
 const constants = require('../generator-constants');
 
 /* Use customized randexp */
@@ -237,6 +238,28 @@ const reactFiles = {
                 {
                     file: 'entities/entity.model.ts',
                     renameTo: generator => `shared/model/${generator.entityModelFileName}.model.ts`
+                }
+            ]
+        },
+        { 
+            condition: generator => (typeof generator['addComponenteAfterListTable'] != "undefined" &&  generator['addComponenteAfterListTable'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/components/${generator.entityFileName}-after-component.tsx`),
+            path: REACT_DIR,
+            templates: [
+                {
+                    file: 'entities/components/entityAfterComponent.tsx',
+                    method: 'processJsx',
+                    renameTo: generator => `entities/${generator.entityFolderName}/components/${generator.entityFileName}-after-component.tsx`
+                }
+            ]
+        },
+        { 
+            condition: generator => (typeof generator['addComponenteBeforeListTable'] != "undefined" &&  generator['addComponenteBeforeListTable'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/components/${generator.entityFileName}-before-component.tsx`),
+            path: REACT_DIR,
+            templates: [
+                {
+                    file: 'entities/components/entityBeforeComponent.tsx',
+                    method: 'processJsx',
+                    renameTo: generator => `entities/${generator.entityFolderName}/components/${generator.entityFileName}-before-component.tsx`
                 }
             ]
         },

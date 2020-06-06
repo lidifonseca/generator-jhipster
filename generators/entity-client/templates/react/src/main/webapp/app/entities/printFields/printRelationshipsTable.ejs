@@ -7,13 +7,11 @@
   <%_ const otherEntityStateName = rel.otherEntityStateName; _%>
   <%_ const otherEntityField = rel.otherEntityField; _%>
   <%_ const otherEntityFieldCapitalized = rel.otherEntityFieldCapitalized; _%>
-  <%_ console.info(rel) _%>
-  <%_ console.info(typeof rel.listTableLayoutLink == "undefined" ||  rel.listTableLayoutLink == "true") _%>
   <%_ if (relationshipType === 'many-to-one'
   || (relationshipType === 'one-to-one')
   || (relationshipType === 'many-to-many')) { _%>
       { this.state.baseFilters !== '<%= relationshipFieldName %>' ? 
-        <td>
+        <td id="<%=relationshipFieldName%>-cell">
             <b className="visible-xs"> <%=rel.relationshipNameHumanized %> </b>
           <%_ if (otherEntityName === 'user') { _%>
             <%_ if (relationshipType === 'many-to-many') { _%>

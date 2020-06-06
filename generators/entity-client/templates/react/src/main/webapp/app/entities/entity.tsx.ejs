@@ -39,11 +39,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 
 
-<%_ if (typeof addComponenteBeforeListTable == "undefined" ||  addComponenteBeforeListTable == "false"){ _%>
-  import <%= entityReactName %>BeforeComponent from './components/<%= entityFileName %>BeforeComponent';
+<%_ if (typeof addComponenteBeforeListTable != "undefined" &&  addComponenteBeforeListTable != "false"){ _%>
+  import <%= entityReactName %>BeforeComponent from './components/<%= entityFileName %>-before-component';
 <%_ } _%>
-<%_ if (typeof addComponenteAfterListTable == "undefined" ||  addComponenteAfterListTable == "false"){ _%>
-  import <%= entityReactName %>AfterComponent from './components/<%= entityFileName %>AfterComponent';
+<%_ if (typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false"){ _%>
+  import <%= entityReactName %>AfterComponent from './components/<%= entityFileName %>-after-component';
 <%_ } _%>
 
 import { IRootState } from 'app/shared/reducers';
@@ -63,6 +63,14 @@ import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileNam
 <%_ if (pagination !== 'no') { _%>
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 <%_ } _%>
+
+
+
+<%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
+  <%_ const getEntityListTablePathName = (getEntityListTable.charAt(0).toLowerCase() + getEntityListTable.slice(1)).replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^_/, ""); _%>
+  import {getEntity as getEntity<%= getEntityListTable %>, updateEntity as update<%= getEntityListTable %>} from '../<%= getEntityListTablePathName %>/<%= getEntityListTablePathName %>.reducer';
+<%_ } _%>
+
 
 
 
@@ -410,7 +418,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
             <%_ } _%>
 
 
-            <%_ if (typeof addComponenteBeforeListTable == "undefined" ||  addComponenteBeforeListTable == "false"){ _%>
+            <%_ if (typeof addComponenteBeforeListTable != "undefined" &&  addComponenteBeforeListTable != "false"){ _%>
               <<%= entityReactName %>BeforeComponent {...this.props}  />
             <%_ } _%>
 
@@ -628,8 +636,9 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
               <%_ } _%>
             </div>
 
-
-            <%_ if (typeof addComponenteAfterListTable == "undefined" ||  addComponenteAfterListTable == "false"){ _%>
+            <%_ console.info(typeof addComponenteAfterListTable != "undefined") _%>
+            <%_ console.info(typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false") _%>
+            <%_ if (typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false"){ _%>
               <<%= entityReactName %>AfterComponent {...this.props}  />
             <%_ } _%>
 
@@ -665,6 +674,9 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
 }
 
 const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) => ({
+  <%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
+    entity<%= getEntityListTable %>: storeState.<%= (getEntityListTable.charAt(0).toLowerCase() + getEntityListTable.slice(1)) %>.entity,
+  <%_ } _%>
   <%_ otherEntityActions.forEach(val => { _%>
     <%= val.instance %>: storeState.<%= val.reducer %>.<%= val.entity === 'User' ? val.instance : 'entities' %>,
   <%_ }) _%>
@@ -673,6 +685,7 @@ const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) 
   totalItems: <%= entityInstance %>.totalItems,
   <%_ } _%>
   <%_ if (pagination === 'infinite-scroll') { _%>
+  accountInfo: storeState.accountInfo.links,
   links: <%= entityInstance %>.links,
   entity: <%= entityInstance %>.entity,
   updateSuccess: <%= entityInstance %>.updateSuccess,
@@ -687,6 +700,11 @@ const mapDispatchToProps = {
  getSearchEntities,
  <%_ } _%>
  getEntities,
+ <%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
+getEntity<%= getEntityListTable %>,
+update<%= getEntityListTable %>,
+<%_ } _%>
+
  updateEntity,
  <%_ if (pagination === 'infinite-scroll') { _%>
  reset

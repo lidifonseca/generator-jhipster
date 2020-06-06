@@ -1,10 +1,9 @@
-  <%_ console.info(field) _%>
   <%_ const fieldType = field.fieldType; _%>
   <%_ const fieldName = field.fieldName; _%>
   <%_ const fieldIsEnum = field.fieldIsEnum; _%>
   { this.state.baseFilters !== '<%= fieldName %>' ? 
   <%_ if (typeof field.listTableLayoutAllowEdit == "undefined" ||  field.listTableLayoutAllowEdit == "false"){ _%>
-    <td>
+    <td id="<%=fieldName%>-cell">
       <b className="visible-xs"> <%= field.fieldNameHumanized %> </b>
       <%_ if (fieldType === 'Boolean') { _%>
         {<%= entityInstance %>.<%=field.fieldName%> ? 'true' : 'false'}
@@ -39,7 +38,7 @@
       <%_ } _%>
     </td>
   <%_ } else { _%>
-    <td> 
+    <td id="<%=fieldName%>-cell"> 
         <b className="visible-xs"> <%= field.fieldNameHumanized %> </b>
         <%_ if (fieldType === 'Boolean') { _%>
             <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="checkbox" className="form-control" name="<%= fieldName %>" />
@@ -66,7 +65,6 @@
             if (fieldBlobType !== 'text') {
               const isAnImage = fieldBlobType === 'image';
               const capitalizedFirstLetter =  _.upperFirst(fieldName);
-
         _%>
       
                     {(<%= fieldName %> || <%= fieldName %>Base64)  ? (
@@ -94,11 +92,11 @@
                       )} <% if (isAnImage) { %>accept="image/*" <% } %> />
                     <AvInput type="hidden"  name="<%= fieldName %>" value={<%= fieldName %>}  />
       <%_ } else { _%>
-        <textarea defaultValue={<%= entityFileName %>.<%= fieldName %>}  onBlur={ v=> this.props.updateEntity({...<%= entityFileName %>, <%= fieldName %>:v.target.value }) }  />
+        <textarea className="form-control" defaultValue={<%= entityFileName %>.<%= fieldName %>}  onBlur={ v=> this.props.updateEntity({...<%= entityFileName %>, <%= fieldName %>:v.target.value }) }  />
       <%_ } _%>
     <%_ } else { _%>
       
-          <input type="text" defaultValue={<%= entityFileName %>.<%= fieldName %>}  onBlur={ v=> this.props.updateEntity({...<%= entityFileName %>, <%= fieldName %>:v.target.value }) }  />
+          <input className="form-control" type="text" defaultValue={<%= entityFileName %>.<%= fieldName %>}  onBlur={ v=> this.props.updateEntity({...<%= entityFileName %>, <%= fieldName %>:v.target.value }) }  />
     <%_ } _%>
     <%_ if ( field.javadoc) { _%>
       <UncontrolledTooltip target="<%= fieldName %>Label">
