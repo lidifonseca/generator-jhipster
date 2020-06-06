@@ -77,7 +77,7 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
     }
     if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
       const uniqueRel = differentRelationships[key][0];
-      uniqueRealtionFields.add({"otherEntityFieldCapitalized": uniqueRel.otherEntityFieldCapitalized, "relationshipFieldName": uniqueRel.relationshipFieldName, "namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName, "otherEntityField": uniqueRel.otherEntityField });
+      uniqueRealtionFields.add({...uniqueRel, "otherEntityFieldCapitalized": uniqueRel.otherEntityFieldCapitalized, "relationshipFieldName": uniqueRel.relationshipFieldName, "namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName, "otherEntityField": uniqueRel.otherEntityField });
       otherEntityActions.add({
         action: `get${upperFirstCamelCase(uniqueRel.otherEntityNamePlural)}`,
         instance: `${uniqueRel.otherEntityNamePlural}`,
@@ -172,21 +172,23 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
           this.handleClose();
         }
         <% uniqueRealtionFields.forEach(rel => { %> 
-        <% if(rel.relationshipType === "many-to-many") { %> 
+          <% if(rel.relationshipType === "many-to-many") { %> 
+            // data-type-rel -> tipo-1 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
           if ( 
              ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
-             ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.namePlural %>) 
+             ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>) 
            ) {
             this.setState({
               <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
-                f => this.props.<%= entityInstance %>Entity.<%= rel.namePlural %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null 
+                f => this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null 
               ).join(',') : null,
             })
           }
         <% } else { %>
+          // data-type-rel -> tipo-2 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
           if ( 
             ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
-            ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id) 
+            ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null  && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id) 
           ) {
            this.setState({
              <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(

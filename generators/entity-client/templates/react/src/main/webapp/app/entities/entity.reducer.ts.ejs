@@ -307,7 +307,11 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
 export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityReactName %>> = (
     <%_ if (listFilterLayout.length > 0) {  _%>
       <%_ for (idx in listFilterLayout) { _%>
-        <%= listFilterLayout[idx].name %>,
+        <%_ if(listFilterLayout[idx].type == 'field'){  _%>
+          <%= listFilterLayout[idx].name %>,
+        <%_ } else {  _%>
+          <%= listFilterLayout[idx].name %>Id,
+        <%_ } _%>
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%><%= fields[idx].fieldName %>, <%_ } _%>
@@ -370,7 +374,11 @@ export const getEntity: ICrudGetAction<I<%= entityReactName %>> = id => {
 export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= entityReactName %>> = (
     <%_ if (listFilterLayout.length > 0) {  _%>
       <%_ for (idx in listFilterLayout) { _%>
-        <%= listFilterLayout[idx].name %>,
+        <%_ if(listFilterLayout[idx].type == 'field'){  _%>
+          <%= listFilterLayout[idx].name %>,
+        <%_ } else {  _%>
+          <%= listFilterLayout[idx].name %>Id,
+        <%_ } _%>
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%><%= fields[idx].fieldName %>, <%_ } _%>

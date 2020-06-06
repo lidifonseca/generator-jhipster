@@ -40,7 +40,7 @@
                       id="<%= entityFileName %>-<%= relationshipName %>"  className={"css-select-control"}
                       value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(<%= entityInstance %>Entity.<%= relationshipName %> === p.id ? {value: p.id , label: p.id} : null)) : null} 
                       options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                      onChange={options => this.setState({ <%= relationshipName %>: options.map((option)=>(option['value'])).join(",") }) }
+                      onChange={options => this.setState({ <%= relationshipName %>Id: options.map((option)=>(option['value'])).join(",") }) }
                       name={"<%= relationshipFieldName %>"} 
                     />
                     <AvFeedback>
@@ -59,7 +59,7 @@
                     />
                   <%_ } else { _%>
   
-                    <Select 
+                  <Select 
                     id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
                     value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                     options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
@@ -85,7 +85,7 @@
               <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
               <%_ if (dto === 'no') { _%>
   
-                <Select 
+              <Select 
                 id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
                 value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === (p.id) ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 

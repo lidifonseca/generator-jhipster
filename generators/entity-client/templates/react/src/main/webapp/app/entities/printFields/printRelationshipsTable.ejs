@@ -34,7 +34,7 @@
                   {
                     (<%= entityInstance %>.<%= relationshipFieldNamePlural %>) ?
                         (<%= entityInstance %>.<%= relationshipFieldNamePlural %>.map((val, j) =>
-                            <span key={j}><Link to={`<%= otherEntityStateName %>/${val.id}`}>{val.<%= otherEntityField %>}</Link>{(j === <%= entityInstance %>.<%= relationshipFieldNamePlural %>.length - 1) ? '' : ', '}</span>
+                            <span key={j}><Link to={`<%= otherEntityStateName %>/${val.id}`} data-type-rel="1-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>" >{val.<%= otherEntityField ? otherEntityField : 'id'  %>}</Link>{(j === <%= entityInstance %>.<%= relationshipFieldNamePlural %>.length - 1) ? '' : ', '}</span>
                         )
                     ) : null
                   }
@@ -42,21 +42,21 @@
                   <%_ if (dto === 'no') { _%>
             {<%= entityInstance + "." + relationshipFieldName  %> ?
                     <%_ if (typeof rel.listTableLayoutLink == "undefined" ||  rel.listTableLayoutLink == "true"){ _%>
-                        <Link to={`<%= otherEntityStateName  %>/${<%= entityInstance + "." + relationshipFieldName  %>.id}`}>
-                          {<%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField %>}
+                        <Link to={`<%= otherEntityStateName  %>/${<%= entityInstance + "." + relationshipFieldName  %>.id}`} data-type-rel="2-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>">
+                          {<%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField   ?  otherEntityField : 'id' %>}
                         </Link>
                     <%_ } else { _%>
-                      <%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField %>
+                      <%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField  ?  otherEntityField : 'id' %>
                     <%_ } _%> 
             : ''} 
                   <%_ } else { _%>
             {<%= entityInstance + "." + relationshipFieldName  %> ?
                     <%_ if (typeof rel.listTableLayoutLink == "undefined" ||  rel.listTableLayoutLink == "true"){ _%>
-                          <Link to={`<%= otherEntityStateName  %>/${<%= entityInstance + "." + relationshipFieldName  %>.id}`}>
-                            {<%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField %>} 
+                          <Link to={`<%= otherEntityStateName  %>/${<%= entityInstance + "." + relationshipFieldName  %>.id}`}  data-type-rel="3-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>">
+                            {<%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField   ?  otherEntityField : 'id' %>} 
                           </Link> 
                     <%_ } else { _%>
-                      <%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField %>
+                      <%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField  ?  otherEntityField : 'id'  %>
                     <%_ } _%>
             : ''}
                   <%_ } _%>

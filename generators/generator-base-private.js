@@ -1203,7 +1203,7 @@
                  const otherEntityFieldCapitalized = relationship.otherEntityFieldCapitalized;
                  const ownerSide = relationship.ownerSide;
  
-                 if (relationshipType === 'many-to-many' && ownerSide === true) {
+                 if (relationshipType === 'many-to-many') {
                      fieldType = `I${otherEntityFieldCapitalized}[]`;
                      fieldName = relationshipFieldNamePlural;
                  } else if (relationshipType === 'many-to-one' || (relationshipType === 'one-to-one' && ownerSide === true)) {
