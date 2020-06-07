@@ -46,6 +46,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
   import <%= entityReactName %>AfterComponent from './components/<%= entityFileName %>-after-component';
 <%_ } _%>
 
+<%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
+  <%_ const getEntityListTablePathName = (getEntityListTable.charAt(0).toLowerCase() + getEntityListTable.slice(1)).replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^_/, ""); _%>
+  import {getEntity as getEntity<%= getEntityListTable %>, updateEntity as update<%= getEntityListTable %>} from '../<%= getEntityListTablePathName %>/<%= getEntityListTablePathName %>.reducer';
+<%_ } _%>
+
+
 import { IRootState } from 'app/shared/reducers';
 import {
   updateEntity,
@@ -64,12 +70,6 @@ import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileNam
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 <%_ } _%>
 
-
-
-<%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
-  <%_ const getEntityListTablePathName = (getEntityListTable.charAt(0).toLowerCase() + getEntityListTable.slice(1)).replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^_/, ""); _%>
-  import {getEntity as getEntity<%= getEntityListTable %>, updateEntity as update<%= getEntityListTable %>} from '../<%= getEntityListTablePathName %>/<%= getEntityListTablePathName %>.reducer';
-<%_ } _%>
 
 
 
@@ -636,8 +636,6 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
               <%_ } _%>
             </div>
 
-            <%_ console.info(typeof addComponenteAfterListTable != "undefined") _%>
-            <%_ console.info(typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false") _%>
             <%_ if (typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false"){ _%>
               <<%= entityReactName %>AfterComponent {...this.props}  />
             <%_ } _%>

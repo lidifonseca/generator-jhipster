@@ -352,6 +352,19 @@ import {
 } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+
+<%_ if (typeof addComponenteBeforeListTable != "undefined" &&  addComponenteBeforeListTable != "false"){ _%>
+  import <%= entityReactName %>BeforeComponent from './components/<%= entityFileName %>-before-component';
+<%_ } _%>
+<%_ if (typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false"){ _%>
+  import <%= entityReactName %>AfterComponent from './components/<%= entityFileName %>-after-component';
+<%_ } _%>
+
+<%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
+  <%_ const getEntityListTablePathName = (getEntityListTable.charAt(0).toLowerCase() + getEntityListTable.slice(1)).replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^_/, ""); _%>
+  import {getEntity as getEntity<%= getEntityListTable %>, updateEntity as update<%= getEntityListTable %>} from '../<%= getEntityListTablePathName %>/<%= getEntityListTablePathName %>.reducer';
+<%_ } _%>
+
 <%_ let baseFiltersModal = false; _%>
 
 import { IRootState } from 'app/shared/reducers';
@@ -708,6 +721,9 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
               </Col>
             </Row>
             <%_ } _%>
+            <%_ if (typeof addComponenteBeforeListTable != "undefined" &&  addComponenteBeforeListTable != "false"){ _%>
+              <<%= entityReactName %>BeforeComponent {...this.props}  />
+            <%_ } _%>
             <div className="table-responsive">
 
               <%_ if (typeof notListFilterLayout === 'undefined') {  _%>
@@ -847,6 +863,10 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
                   </div>
                 )
               }
+
+            <%_ if (typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false"){ _%>
+              <<%= entityReactName %>AfterComponent {...this.props}  />
+            <%_ } _%>
             </div>
             <%_ if (databaseType !== 'cassandra') { _%>
               <%_ if (pagination === 'pagination' || pagination === 'pager') { _%>
@@ -877,6 +897,9 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
 }
 
 const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) => ({
+  <%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
+    entity<%= getEntityListTable %>: storeState.<%= (getEntityListTable.charAt(0).toLowerCase() + getEntityListTable.slice(1)) %>.entity,
+  <%_ } _%>
   <%_ otherEntityActions.forEach(val => { _%>
     <%= val.instance %>: storeState.<%= val.reducer %>.<%= val.entity === 'User' ? val.instance : 'entities' %>,
   <%_ }) _%>
@@ -892,6 +915,11 @@ const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) 
 });
 
 const mapDispatchToProps = {
+
+ <%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
+  getEntity<%= getEntityListTable %>,
+  update<%= getEntityListTable %>,
+  <%_ } _%>
   <%_ otherEntityActions.forEach(val => { _%>
     <%= val.action %>,
   <%_ }) _%>
