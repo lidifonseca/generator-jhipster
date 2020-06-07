@@ -28,7 +28,7 @@
                   <%_ if (!relationshipRequired) { _%>
   
                     <Select 
-                      id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
+                      id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="1-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
                       value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                       options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                       onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
@@ -37,10 +37,10 @@
                   <%_ } else { _%>
   
                     <Select 
-                      id="<%= entityFileName %>-<%= relationshipName %>"  className={"css-select-control"}
-                      value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(<%= entityInstance %>Entity.<%= relationshipName %> === p.id ? {value: p.id , label: p.id} : null)) : null} 
+                      id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="1-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
+                      value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                       options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                      onChange={options => this.setState({ <%= relationshipName %>Id: options.map((option)=>(option['value'])).join(",") }) }
+                      onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
                       name={"<%= relationshipFieldName %>"} 
                     />
                     <AvFeedback>
@@ -51,7 +51,7 @@
                   <%_ if (!relationshipRequired) { _%>
   
                     <Select 
-                      id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
+                      id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="3-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
                       value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                       options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                       onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
@@ -60,7 +60,7 @@
                   <%_ } else { _%>
   
                   <Select 
-                    id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
+                    id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="4-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
                     value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                     options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                     onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
@@ -84,9 +84,10 @@
               </Col>
               <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
               <%_ if (dto === 'no') { _%>
-  
+              
+             
               <Select 
-                id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
+                id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="5-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
                 value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === (p.id) ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                 onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
@@ -95,7 +96,7 @@
               <%_ } else { _%>
   
                 <Select 
-                id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
+                id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="6-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
                 value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null }  
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                 onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
@@ -116,7 +117,7 @@
               <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
   
               <Select 
-                id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
+                id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"} data-type-rel="7-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
                 value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue.split(',').includes(p.id+"") ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                 onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options.map((option)=>(option['value'])).join(",") }) }

@@ -1,0 +1,65 @@
+<%_ const viewLayoutLabel = rel.viewLayoutLabel ? rel.viewLayoutLabel : 'left' ; _%>
+<%_ const viewLayoutSize = rel.viewLayoutSize ? rel.viewLayoutSize : 12; _%>
+<%_ const relationshipType = rel.relationshipType;
+const ownerSide = rel.ownerSide;
+const relationshipName = rel.relationshipName;
+const relationshipFieldName = rel.relationshipFieldName;
+const relationshipFieldNamePlural = rel.relationshipFieldNamePlural;
+const relationshipNameHumanized = rel.relationshipNameHumanized;
+const otherEntityName = rel.otherEntityName;
+const otherEntityStateName = rel.otherEntityStateName;
+const otherEntityFieldCapitalized = rel.otherEntityFieldCapitalized;
+const otherEntityField = rel.otherEntityField;
+if (relationshipType === 'many-to-one'
+|| (relationshipType === 'one-to-one' && ownerSide === true)
+|| (relationshipType === 'many-to-many' && ownerSide === true)) { _%>
+
+    <Col md="<%= viewLayoutSize %>">
+      <Row>
+        <Col md="<%= viewLayoutLabel == 'top' ? 12 : 3  %>">
+          <dt>
+          <Translate contentKey="<%= i18nKeyPrefix %>.<%= relationshipName %>">
+            <%= relationshipNameHumanized %>
+          </Translate>
+          </dt>
+        </Col>
+        <Col md="<%= viewLayoutLabel == 'top' ? 12 : 9  %>">
+          <dd>
+            <%_ if (otherEntityName === 'user') { _%>
+                <%_ if (relationshipType === 'many-to-many') { _%>
+          {
+          (<%= entityInstance %>Entity.<%= relationshipFieldNamePlural %>) ?
+          (<%= entityInstance %>Entity.<%= relationshipFieldNamePlural %>.map((val, i) =>
+          <span key={val.id}><a>{val.<%= otherEntityField %>}</a>{(i === <%= entityInstance %>Entity.<%= relationshipFieldNamePlural %>.length - 1) ? '' : ', '}</span>
+          )
+          ) : null
+          }                  <%_ } else { _%>
+                    <%_ if (dto === 'no') { _%>
+            {(<%= entityInstance + "Entity." + relationshipFieldName %>) ? <%= entityInstance + "Entity." + relationshipFieldName %>.id : ''}
+                        <%_ } else { _%>
+            {<%= entityInstance + "Entity." + relationshipFieldName %> ? <%= entityInstance + "Entity." + relationshipFieldName %>.id : ''}
+                    <%_ } _%>
+                <%_ } _%>
+            <%_ } else { _%>
+                <%_ if (relationshipType === 'many-to-many') { _%>
+          {
+          (<%= entityInstance %>Entity.<%= relationshipFieldNamePlural %>) ?
+          (<%= entityInstance %>Entity.<%= relationshipFieldNamePlural %>.map((val, i) =>
+            <span key={val.id}><a>{val.<%= otherEntityField %>}</a>{(i === <%= entityInstance %>Entity.<%= relationshipFieldNamePlural %>.length - 1) ? '' : ', '}</span>
+          )
+          ) : null
+          }
+                <%_ } else { _%>
+                    <%_ if (dto === 'no') { _%>
+            {(<%= entityInstance + "Entity." + relationshipFieldName %>) ? <%= entityInstance + "Entity." + relationshipFieldName %>.id : ''}
+                    <%_ } else { _%>
+            {<%= entityInstance + "Entity." + relationshipFieldName %> ? <%= entityInstance + "Entity." + relationshipFieldName %>.id : ''}
+                    <%_ } _%>
+                <%_ } _%>
+            <%_ } _%>
+          </dd>
+        </Col>
+      </Row>
+    </Col>
+      
+  <%_ } _%>

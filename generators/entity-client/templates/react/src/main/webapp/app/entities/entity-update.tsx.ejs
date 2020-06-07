@@ -192,7 +192,7 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
           ) {
            this.setState({
              <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
-               f => this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id === f.id ? f.id : null 
+               f => this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> &&  this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id === f.id ? f.id : null 
              ) : null,
            })
           }
@@ -245,12 +245,17 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
         values.<%=fieldName%> = convertDateTimeToServer(values.<%= fieldName %>);
         <%_ } _%>
         <%_ } _%>
+
+        <% uniqueRealtionFields.forEach(rel => { %>
+          let <%= rel.relationshipFieldName %> = null; 
+          this.props.<%= rel.otherEntityNamePlural %>.forEach(e => { if(e.id === this.state.<%= rel.name %>SelectValue) { <%= rel.relationshipFieldName %> = e}});
+        <% }) %>
   
         if (errors.length === 0) {
         const { <%= entityInstance %>Entity } = this.props;
         const entity = {
         ...<%= entityInstance %>Entity,
-        <% uniqueRealtionFields.forEach(rel => { %><%= rel.relationshipFieldName %>Id:  this.state.<%= rel.name %>SelectValue,  <% }) %>
+        <% uniqueRealtionFields.forEach(rel => { %><%= rel.relationshipFieldName %>, <% }) %>
         ...values
         }
   
