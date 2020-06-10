@@ -1,0 +1,141 @@
+<Table id="<%= entityFileName %>-table-list" responsive aria-describedby="<%= entityFileName %>-heading"  className={'table-hover table-striped mt-4 table-responsive-css'}>
+    <thead className={"thead-light"}>
+      <tr>
+        <%_ if (typeof listTableHideId == "undefined" ||  listTableHideId == "false"){ _%>
+          <th<% if (pagination !== 'no') { %> className="hand" onClick={sortFunction('id')} <%_ } _%>>
+            <Translate contentKey="global.field.id">ID</Translate>
+            <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
+          </th>
+        <%_ } _%>
+        <%_ if (listTableLayout.length > 0) {  _%>
+          <%_ for (idx in listTableLayout) { _%>
+            <%_ if(listTableLayout[idx].type == 'field'){  _%>
+              { state.baseFilters !== '<%= listTableLayout[idx].name %>' ?
+              <th<% if (pagination !== 'no') { %> className="hand" onClick={sortFunction('<%=listTableLayout[idx].entity.fieldName%>')} <%_ } _%>>
+                <Translate contentKey="<%= `${i18nKeyPrefix}.${listTableLayout[idx].entity.fieldName}` %>">
+                  <%= listTableLayout[idx].entity.fieldNameHumanized %>
+                </Translate>
+                <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
+              </th> : null }
+            <%_ } else { _%>
+              { state.baseFilters !== '<%= listTableLayout[idx].name %>' ?
+              <th<% if (pagination !== 'no') { %> <% } %>>
+                  <Translate contentKey="<%= `${i18nKeyPrefix}.${listTableLayout[idx].entity.relationshipName}` %>">
+                    <%= listTableLayout[idx].entity.relationshipNameHumanized %></Translate>
+                    <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
+              </th> : null }
+            <%_ } _%>
+          <%_ } _%>
+        <%_ } else {  _%>
+            <%_ for (idx in fields) { _%>
+              { state.baseFilters !== '<%= fields[idx].fieldName %>' ?
+              <th<% if (pagination !== 'no') { %> className="hand" onClick={sortFunction('<%=fields[idx].fieldName%>')} <%_ } _%>>
+                <Translate contentKey="<%= `${i18nKeyPrefix}.${fields[idx].fieldName}` %>"><%= fields[idx].fieldNameHumanized %></Translate>
+                <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
+              </th> : null }
+            <%_ } _%>
+            <%_ for (idx in relationships) { _%>
+                <%_ if (relationships[idx].relationshipType === 'many-to-one'
+                || (relationships[idx].relationshipType === 'one-to-one')
+                || (relationships[idx].relationshipType === 'many-to-many')) {
+                const fieldName = dto === 'no' ? "." + relationships[idx].otherEntityField : relationships[idx].otherEntityFieldCapitalized;_%>
+
+                { state.baseFilters !== '<%= relationships[idx].relationshipName %>' ?
+                <th<% if (pagination !== 'no') { %> <% } %>>
+                    <Translate contentKey="<%= `${i18nKeyPrefix}.${relationships[idx].relationshipName}` %>">
+                      <%= relationships[idx].relationshipNameHumanized %></Translate>
+                      <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
+                </th> : null }
+              <%_ } _%>
+            <%_ } _%>
+        <%_ } _%>
+
+        
+        <th />
+      </tr>
+    </thead>
+    <tbody>
+      <tr></tr>
+      {
+        <%= entityInstance %>List.map((<%=entityInstance %>, i) => (
+        <tr key={`entity-${i}`}>
+          <%_ if (typeof listTableHideId == "undefined" ||  listTableHideId == "false"){ _%>
+            <td>
+              <b><Translate contentKey="global.field.id">ID</Translate></b>
+              <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}`} color="link" size="sm">
+                {<%= entityInstance %>.id}
+              </Button>
+            </td>
+          <%_ } _%>
+          <%_ if (listTableLayout.length > 0) {  _%>
+            <%_ for (idx in listTableLayout) { _%>
+              <%_ if(listTableLayout[idx].type == 'field'){  _%>
+                <%- include('printFieldsTable', {field: listTableLayout[idx].entity}); -%>
+              <%_ } else {  _%>
+                <%- include('printRelationshipsTable', {rel: listTableLayout[idx].entity}); -%>
+              <%_ } _%>
+            <%_ } _%>
+          <%_ } else {  _%>
+            <%_ for (idx in fields) { _%> 
+               <%- include('printFieldsTable', {field: fields[idx]}); -%>  
+            <%_ } _%>
+            <%_ relationships.forEach(rel => { _%> 
+               <%- include('printRelationshipsTable', {rel: rel}); -%>  
+            <%_ }) _%>
+          <%_ } _%>
+
+
+         
+          <td className="text-right">
+            <%_  if (listButtonsInDropdown !== true) { _%>
+              <div className="btn-group flex-btn-group-container">
+              <%_ if (listButtons.length === 0) { _%>
+                  <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}?${get<%= entityReactName %>FiltersURL(state)}`} color="info" size="sm">
+                    <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline" ><Translate contentKey="entity.action.view">View</Translate></span>
+                  </Button>
+                  <%_ if (!readOnly) { _%>
+                    <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/edit?${get<%= entityReactName %>FiltersURL(state)}`} color="primary" size="sm">
+                      <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="entity.action.edit">Edit</Translate></span>
+                    </Button>
+                    <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/delete?${get<%= entityReactName %>FiltersURL(state)}`} color="danger" size="sm">
+                      <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline"><Translate contentKey="entity.action.delete">Delete</Translate></span>
+                    </Button>
+                  <%_ } _%>
+                <%_ } else { _%>
+                  <%_ for (idx in listButtons) { _%>
+                    <%_ const attrib = listButtons[idx].attributes; _%>
+                    <%_  if (attrib.inDropdown !== 'true') { _%>
+                      <Button tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>">
+                        <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> <span className="d-none d-md-inline">
+                          <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text'] %></Translate>
+                        </span>
+                      </Button>
+                    <%_ } _%>
+                  <%_ } _%>
+                <%_ } _%>
+              </div>
+            <%_ } _%>
+            <%_  if (listButtonsInDropdown === true) { _%>
+              <Dropdown isOpen={state.dropdownButtons[i]} toggle={()=>this.toggle(i)}>
+                <DropdownToggle caret> 
+                    <Translate contentKey="<%= i18nKeyPrefix %>.dropdown_btn">Actions</Translate>
+                </DropdownToggle>
+                <DropdownMenu right>
+                  <%_ for (idx in listButtons) { _%>
+                    <%_ const attrib = listButtons[idx].attributes; _%>
+                    <%_  if (attrib.inDropdown === 'true') { _%>
+                      <DropdownItem tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>" >
+                        <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> <span className="d-none d-md-inline">
+                          <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text'] %></Translate></span>
+                      </DropdownItem>
+                    <%_ } _%>
+                  <%_ } _%>
+                </DropdownMenu>
+              </Dropdown>
+            <%_ } _%>
+          </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </Table>

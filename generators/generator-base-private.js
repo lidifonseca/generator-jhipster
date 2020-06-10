@@ -767,10 +767,10 @@
              return;
          }
          jhipsterUtils.renderContent(source, _this, _context, options, res => {
-             _this.fs.write(customDestination, res);
+            _this.fs.write(customDestination, res);
          });
      }
- 
+
      /**
       * Utility function to render a template into a string
       *

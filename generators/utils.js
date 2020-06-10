@@ -703,7 +703,8 @@ function analizeJavadoc(generator) {
                         }
                     }
                 } else {
-                    generator[parameter[0].trim()] = parameter[1].trim();
+                    let keyParam = parameter.shift();
+                    generator[keyParam] = parameter.join(" ").trim();
                 }
             }
             generatorJavadoc = generatorJavadoc.substring(0,generatorJavadoc.indexOf('@')) + generatorJavadoc.substring(generatorJavadoc.indexOf('@@')+2).trim();
@@ -735,7 +736,9 @@ function analizeJavadoc(generator) {
         if(javadoc) {
             while(javadoc.indexOf('@') > -1 ) {
                 let parameter =  javadoc.substring(javadoc.indexOf('@')+1, javadoc.indexOf('@@')).split(" ");
-                generator.relationships[idx][parameter[0].trim()] = parameter[1].trim();
+
+                let keyParam = parameter.shift();
+                generator.relationships[idx][keyParam] =parameter.join(" ").trim();
                 javadoc = javadoc.substring(0,javadoc.indexOf('@')) + javadoc.substring(javadoc.indexOf('@@')+2).trim();
             }
         }

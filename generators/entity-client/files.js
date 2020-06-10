@@ -263,6 +263,17 @@ const reactFiles = {
                 }
             ]
         },
+        { 
+            condition: generator => ((typeof generator['addComponenteListTable'] != "undefined" &&  generator['addComponenteListTable'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/components/${generator.entityFileName}-list-component.tsx`)),
+            path: REACT_DIR,
+            templates: [
+                {
+                    file: 'entities/components/entityListComponent.tsx',
+                    method: 'processJsx',
+                    renameTo: generator => `entities/${generator.entityFolderName}/components/${generator.entityFileName}-list-component.tsx`
+                }
+            ]
+        },
         {
             condition: generator => !generator.readOnly && !generator.embedded && (typeof generator['personalizeView'] == 'undefined' || generator['personalizeView'] == 'default'),
             path: REACT_DIR,

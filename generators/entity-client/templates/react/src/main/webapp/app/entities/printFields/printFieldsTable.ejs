@@ -1,7 +1,7 @@
   <%_ const fieldType = field.fieldType; _%>
   <%_ const fieldName = field.fieldName; _%>
   <%_ const fieldIsEnum = field.fieldIsEnum; _%>
-  { this.state.baseFilters !== '<%= fieldName %>' ? 
+  { state.baseFilters !== '<%= fieldName %>' ? 
   <%_ if (typeof field.listTableLayoutAllowEdit == "undefined" ||  field.listTableLayoutAllowEdit == "false"){ _%>
     <td id="<%=fieldName%>-cell">
       <b className="visible-xs"> <%= field.fieldNameHumanized %> </b>
@@ -92,11 +92,11 @@
                       )} <% if (isAnImage) { %>accept="image/*" <% } %> />
                     <AvInput type="hidden"  name="<%= fieldName %>" value={<%= fieldName %>}  />
       <%_ } else { _%>
-        <textarea className="form-control" defaultValue={<%= entityFileName %>.<%= fieldName %>}  onBlur={ v=> this.props.updateEntity({...<%= entityFileName %>, <%= fieldName %>:v.target.value }) }  />
+        <textarea className="form-control" defaultValue={<%= entityFileName %>.<%= fieldName %>}  onBlur={ v=> props.updateEntity({...<%= entityFileName %>, <%= fieldName %>:v.target.value }) }  />
       <%_ } _%>
     <%_ } else { _%>
       
-          <input className="form-control" type="text" defaultValue={<%= entityFileName %>.<%= fieldName %>}  onBlur={ v=> this.props.updateEntity({...<%= entityFileName %>, <%= fieldName %>:v.target.value }) }  />
+          <input className="form-control" type="text" defaultValue={<%= entityFileName %>.<%= fieldName %>}  onBlur={ v=> props.updateEntity({...<%= entityFileName %>, <%= fieldName %>:v.target.value }) }  />
     <%_ } _%>
     <%_ if ( field.javadoc) { _%>
       <UncontrolledTooltip target="<%= fieldName %>Label">

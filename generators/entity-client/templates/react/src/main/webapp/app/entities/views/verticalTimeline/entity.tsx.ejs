@@ -856,11 +856,13 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
                 </VerticalTimeline>
               
                 ) : (
-                  <div className="alert alert-warning">
-                    <Translate contentKey="<%= i18nKeyPrefix %>.home.notFound">
-                      No <%= entityClassPluralHumanized %> found
-                    </Translate>
-                  </div>
+                    !this.props.loading 
+                    ? <div className="alert alert-warning">
+                        <Translate contentKey="<%= i18nKeyPrefix %>.home.notFound">
+                          No <%= entityClassPluralHumanized %> found
+                        </Translate>
+                      </div> 
+                    : <div />
                 )
               }
 
@@ -907,6 +909,7 @@ const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) 
   <%_ if (pagination !== 'no') { _%>
   totalItems: <%= entityInstance %>.totalItems,
   <%_ } _%>
+  loading: <%= entityInstance %>.loading,
   <%_ if (pagination === 'infinite-scroll') { _%>
   links: <%= entityInstance %>.links,
   entity: <%= entityInstance %>.entity,

@@ -42,13 +42,37 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 <%_ if (typeof addComponenteBeforeListTable != "undefined" &&  addComponenteBeforeListTable != "false"){ _%>
   import <%= entityReactName %>BeforeComponent from './components/<%= entityFileName %>-before-component';
 <%_ } _%>
+<%_ if (typeof addComponenteListTable != "undefined" &&  addComponenteListTable != "false"){ _%>
+  import <%= entityReactName %>ListComponent from './components/<%= entityFileName %>-list-component';
+<%_ } _%>
 <%_ if (typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false"){ _%>
   import <%= entityReactName %>AfterComponent from './components/<%= entityFileName %>-after-component';
 <%_ } _%>
 
+<%_ let importEntities = {} _%>  
 <%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
-  <%_ const getEntityListTablePathName = (getEntityListTable.charAt(0).toLowerCase() + getEntityListTable.slice(1)).replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^_/, ""); _%>
-  import {getEntity as getEntity<%= getEntityListTable %>, updateEntity as update<%= getEntityListTable %>} from '../<%= getEntityListTablePathName %>/<%= getEntityListTablePathName %>.reducer';
+  <%_ const getEntityListTableSplit = getEntityListTable.split(",") _%>  
+  <%_ for(const importEntity in getEntityListTableSplit) { _%>
+    <%_ const importEntitySplit = getEntityListTableSplit[importEntity].split("-") _%>  
+    <%_ if(importEntitySplit.length === 1){ _%>
+      <%_ importEntities[importEntitySplit[0]] = 'Entity' _%>
+    <%_ } else if(importEntitySplit.length === 2){ _%>
+      <%_ importEntities[importEntitySplit[1]] = importEntitySplit[0].trim(" ") _%>
+    <%_ } _%>
+  <%_ } _%>
+<%_ } _%>
+
+<%_ if (Object.keys(importEntities).length > 0){ _%>
+  <%_ for(const importEntity in importEntities) { _%>
+    <%_ const importEntityPathName = (importEntity.charAt(0).toLowerCase() + importEntity.slice(1)).replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^_/, ""); _%>
+    <%_ if (importEntities[importEntity] == 'Entity'){ _%>
+      import {getEntity as getEntity<%= importEntity %>, updateEntity as update<%= importEntity %>} from '../<%= importEntityPathName %>/<%= importEntityPathName %>.reducer';
+    <%_ } else if (importEntities[importEntity] == 'List') { _%>
+      import {getEntities as getEntities<%= importEntity %>, updateEntity as update<%= importEntity %>} from '../<%= importEntityPathName %>/<%= importEntityPathName %>.reducer';
+    <%_ } else { _%>
+      import {getEntities as getEntities<%= importEntity %>, getEntity as getEntity<%= importEntity %>, updateEntity as update<%= importEntity %>} from '../<%= importEntityPathName %>/<%= importEntityPathName %>.reducer';
+    <%_ } _%>
+  <%_ } _%>
 <%_ } _%>
 
 
@@ -355,6 +379,10 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
       <%= baseFilters %>s.map((p)=>{ if(p.id === this.state.<%= baseFilters %>) <%= baseFilters %>BaseFilter = p });
     <%_ } _%>
 
+    const props = this.props;
+    const state = this.state;
+    const sortFunction = this.sort;
+
     return (
       <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
         <% if ((typeof hideHeader) === 'undefined') { %>
@@ -479,156 +507,21 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
                 <% } %>
               <%_ } _%>
 
-
               {
                 <%= entityInstance %>List && <%= entityInstance %>List.length > 0 ?(
-                  <Table id="<%= entityFileName %>-table-list" responsive aria-describedby="<%= entityFileName %>-heading"  className={'table-hover table-striped mt-4 table-responsive-css'}>
-                    <thead className={"thead-light"}>
-                      <tr>
-                        <%_ if (typeof listTableHideId == "undefined" ||  listTableHideId == "false"){ _%>
-                          <th<% if (pagination !== 'no') { %> className="hand" onClick={this.sort('id')} <%_ } _%>>
-                            <Translate contentKey="global.field.id">ID</Translate>
-                            <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
-                          </th>
-                        <%_ } _%>
-                        <%_ if (listTableLayout.length > 0) {  _%>
-                          <%_ for (idx in listTableLayout) { _%>
-                            <%_ if(listTableLayout[idx].type == 'field'){  _%>
-                              { this.state.baseFilters !== '<%= listTableLayout[idx].name %>' ?
-                              <th<% if (pagination !== 'no') { %> className="hand" onClick={this.sort('<%=listTableLayout[idx].entity.fieldName%>')} <%_ } _%>>
-                                <Translate contentKey="<%= `${i18nKeyPrefix}.${listTableLayout[idx].entity.fieldName}` %>">
-                                  <%= listTableLayout[idx].entity.fieldNameHumanized %>
-                                </Translate>
-                                <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
-                              </th> : null }
-                            <%_ } else { _%>
-                              { this.state.baseFilters !== '<%= listTableLayout[idx].name %>' ?
-                              <th<% if (pagination !== 'no') { %> <% } %>>
-                                  <Translate contentKey="<%= `${i18nKeyPrefix}.${listTableLayout[idx].entity.relationshipName}` %>">
-                                    <%= listTableLayout[idx].entity.relationshipNameHumanized %></Translate>
-                                    <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
-                              </th> : null }
-                            <%_ } _%>
-                          <%_ } _%>
-                        <%_ } else {  _%>
-                            <%_ for (idx in fields) { _%>
-                              { this.state.baseFilters !== '<%= fields[idx].fieldName %>' ?
-                              <th<% if (pagination !== 'no') { %> className="hand" onClick={this.sort('<%=fields[idx].fieldName%>')} <%_ } _%>>
-                                <Translate contentKey="<%= `${i18nKeyPrefix}.${fields[idx].fieldName}` %>"><%= fields[idx].fieldNameHumanized %></Translate>
-                                <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
-                              </th> : null }
-                            <%_ } _%>
-                            <%_ for (idx in relationships) { _%>
-                                <%_ if (relationships[idx].relationshipType === 'many-to-one'
-                                || (relationships[idx].relationshipType === 'one-to-one')
-                                || (relationships[idx].relationshipType === 'many-to-many')) {
-                                const fieldName = dto === 'no' ? "." + relationships[idx].otherEntityField : relationships[idx].otherEntityFieldCapitalized;_%>
-
-                                { this.state.baseFilters !== '<%= relationships[idx].relationshipName %>' ?
-                                <th<% if (pagination !== 'no') { %> <% } %>>
-                                    <Translate contentKey="<%= `${i18nKeyPrefix}.${relationships[idx].relationshipName}` %>">
-                                      <%= relationships[idx].relationshipNameHumanized %></Translate>
-                                      <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
-                                </th> : null }
-                              <%_ } _%>
-                            <%_ } _%>
-                        <%_ } _%>
-
-                        
-                        <th />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr></tr>
-                      {
-                        <%= entityInstance %>List.map((<%=entityInstance %>, i) => (
-                        <tr key={`entity-${i}`}>
-                          <%_ if (typeof listTableHideId == "undefined" ||  listTableHideId == "false"){ _%>
-                            <td>
-                              <b><Translate contentKey="global.field.id">ID</Translate></b>
-                              <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}`} color="link" size="sm">
-                                {<%= entityInstance %>.id}
-                              </Button>
-                            </td>
-                          <%_ } _%>
-                          <%_ if (listTableLayout.length > 0) {  _%>
-                            <%_ for (idx in listTableLayout) { _%>
-                              <%_ if(listTableLayout[idx].type == 'field'){  _%>
-                                <%- include('printFields/printFieldsTable', {field: listTableLayout[idx].entity}); -%>
-                              <%_ } else {  _%>
-                                <%- include('printFields/printRelationshipsTable', {rel: listTableLayout[idx].entity}); -%>
-                              <%_ } _%>
-                            <%_ } _%>
-                          <%_ } else {  _%>
-                            <%_ for (idx in fields) { _%> 
-                               <%- include('printFields/printFieldsTable', {field: fields[idx]}); -%>  
-                            <%_ } _%>
-                            <%_ relationships.forEach(rel => { _%> 
-                               <%- include('printFields/printRelationshipsTable', {rel: rel}); -%>  
-                            <%_ }) _%>
-                          <%_ } _%>
-
-
-                         
-                          <td className="text-right">
-                            <%_  if (listButtonsInDropdown !== true) { _%>
-                              <div className="btn-group flex-btn-group-container">
-                              <%_ if (listButtons.length === 0) { _%>
-                                  <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}?${get<%= entityReactName %>FiltersURL(this.state)}`} color="info" size="sm">
-                                    <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline" ><Translate contentKey="entity.action.view">View</Translate></span>
-                                  </Button>
-                                  <%_ if (!readOnly) { _%>
-                                    <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/edit?${get<%= entityReactName %>FiltersURL(this.state)}`} color="primary" size="sm">
-                                      <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="entity.action.edit">Edit</Translate></span>
-                                    </Button>
-                                    <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/delete?${get<%= entityReactName %>FiltersURL(this.state)}`} color="danger" size="sm">
-                                      <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline"><Translate contentKey="entity.action.delete">Delete</Translate></span>
-                                    </Button>
-                                  <%_ } _%>
-                                <%_ } else { _%>
-                                  <%_ for (idx in listButtons) { _%>
-                                    <%_ const attrib = listButtons[idx].attributes; _%>
-                                    <%_  if (attrib.inDropdown !== 'true') { _%>
-                                      <Button tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>">
-                                        <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> <span className="d-none d-md-inline">
-                                          <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text'] %></Translate>
-                                        </span>
-                                      </Button>
-                                    <%_ } _%>
-                                  <%_ } _%>
-                                <%_ } _%>
-                              </div>
-                            <%_ } _%>
-                            <%_  if (listButtonsInDropdown === true) { _%>
-                              <Dropdown isOpen={this.state.dropdownButtons[i]} toggle={()=>this.toggle(i)}>
-                                <DropdownToggle caret> 
-                                    <Translate contentKey="<%= i18nKeyPrefix %>.dropdown_btn">Actions</Translate>
-                                </DropdownToggle>
-                                <DropdownMenu right>
-                                  <%_ for (idx in listButtons) { _%>
-                                    <%_ const attrib = listButtons[idx].attributes; _%>
-                                    <%_  if (attrib.inDropdown === 'true') { _%>
-                                      <DropdownItem tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>" >
-                                        <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> <span className="d-none d-md-inline">
-                                          <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text'] %></Translate></span>
-                                      </DropdownItem>
-                                    <%_ } _%>
-                                  <%_ } _%>
-                                </DropdownMenu>
-                              </Dropdown>
-                            <%_ } _%>
-                          </td>
-                          </tr>
-                        ))
-                      }
-                    </tbody>
-                  </Table>
+                  <%_ if (typeof addComponenteListTable != "undefined" &&  addComponenteListTable != "false"){ _%>
+                    <<%= entityReactName %>ListComponent {...this.props} state={state} sortFunction={sortFunction} />
+                  <%_ } else {  _%>
+                    <%- include('printFields/entityListComponent'); -%>
+                  <%_ } _%>
                 ) : (
-                  <div className="alert alert-warning">
-                    <Translate contentKey="<%= i18nKeyPrefix %>.home.notFound">
-                      No <%= entityClassPluralHumanized %> found
-                    </Translate>
-                  </div>
+                    !this.props.loading 
+                    ? <div className="alert alert-warning">
+                        <Translate contentKey="<%= i18nKeyPrefix %>.home.notFound">
+                          No <%= entityClassPluralHumanized %> found
+                        </Translate>
+                      </div> 
+                    : <div />
                 )
               }
               <%_ if (pagination === 'infinite-scroll') { _%>
@@ -672,8 +565,17 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
 }
 
 const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) => ({
-  <%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
-    entity<%= getEntityListTable %>: storeState.<%= (getEntityListTable.charAt(0).toLowerCase() + getEntityListTable.slice(1)) %>.entity,
+  <%_ if (Object.keys(importEntities).length > 0){_%>
+    <%_ for(const importEntity in importEntities) { _%>
+      <%_ if (importEntities[importEntity] == 'Entity'){ _%>
+        entity<%= importEntity %>: storeState.<%= (importEntity.charAt(0).toLowerCase() + importEntity.slice(1)) %>.entity,
+      <%_ } else if (importEntities[importEntity] == 'List') { _%>
+        entities<%= importEntity %>: storeState.<%= (importEntity.charAt(0).toLowerCase() + importEntity.slice(1)) %>.entities,
+      <%_ } else { _%>
+        entities<%= importEntity %>: storeState.<%= (importEntity.charAt(0).toLowerCase() + importEntity.slice(1)) %>.entities,
+        entity<%= importEntity %>: storeState.<%= (importEntity.charAt(0).toLowerCase() + importEntity.slice(1)) %>.entity,
+      <%_ } _%>
+    <%_ } _%>
   <%_ } _%>
   <%_ otherEntityActions.forEach(val => { _%>
     <%= val.instance %>: storeState.<%= val.reducer %>.<%= val.entity === 'User' ? val.instance : 'entities' %>,
@@ -682,6 +584,7 @@ const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) 
   <%_ if (pagination !== 'no') { _%>
   totalItems: <%= entityInstance %>.totalItems,
   <%_ } _%>
+  loading: <%= entityInstance %>.loading,
   <%_ if (pagination === 'infinite-scroll') { _%>
   accountInfo: storeState.accountInfo.links,
   links: <%= entityInstance %>.links,
@@ -698,9 +601,21 @@ const mapDispatchToProps = {
  getSearchEntities,
  <%_ } _%>
  getEntities,
- <%_ if (typeof getEntityListTable != "undefined" &&  getEntityListTable != ""){ _%>
-getEntity<%= getEntityListTable %>,
-update<%= getEntityListTable %>,
+
+<%_ if (Object.keys(importEntities).length > 0){ _%>
+  <%_ for(const importEntity in importEntities) { _%>
+    <%_ if (importEntities[importEntity] == 'Entity'){ _%>
+      getEntity<%= importEntity %>,
+      update<%= importEntity %>,
+    <%_ } else if (importEntities[importEntity] == 'List') { _%>
+      getEntities<%= importEntity %>,
+      update<%= importEntity %>,
+    <%_ } else { _%>
+      getEntities<%= importEntity %>,
+      getEntity<%= importEntity %>,
+      update<%= importEntity %>,
+    <%_ } _%>
+  <%_ } _%>
 <%_ } _%>
 
  updateEntity,

@@ -167,7 +167,7 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
         }
         }
         <%_ } _%>
-        componentDidUpdate (prevProps, nextState) {
+        componentDidUpdate (prevProps) {
         if (prevProps.updateSuccess !== this.props.updateSuccess && prevProps.updateSuccess) {
           this.handleClose();
         }

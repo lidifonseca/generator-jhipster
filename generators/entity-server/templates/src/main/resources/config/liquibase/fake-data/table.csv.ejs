@@ -31,18 +31,22 @@ for (idx in fields) {
 for (idx in relationships) {
     const relationshipType = relationships[idx].relationshipType
     if (
-        (relationshipType === "many-to-one"
-            || (relationshipType === "one-to-one" && relationships[idx].ownerSide === true
-               && (relationships[idx].useJPADerivedIdentifier == null || relationships[idx].useJPADerivedIdentifier === false))
-        ) && (relationships[idx].relationshipValidate === true && relationships[idx].relationshipRequired)
+            relationshipType === "many-to-one"
+            || (relationshipType === "one-to-one" && relationships[idx].ownerSide === true)
     ) {
-        header.push(getColumnName(relationships[idx].relationshipName) + "_id");
+        if (relationships[idx].otherEntityNameCapitalized === 'User') {
+            <!-- header.push(getColumnName(relationships[idx].relationshipName) + "_id"); -->
+         } else {
+             header.push(getColumnName(relationships[idx].relationshipName) + "_id");
+         }
     }
 }
+
+
 table.push(header);
 
 // Set number of rows to be generated
-let numberOfRows = 10;
+let numberOfRows = 100;
 for (idx in relationships) {
     if ( relationships[idx].useJPADerivedIdentifier === true ) {
         const otherEntityNameCapitalized = relationships[idx].otherEntityNameCapitalized;
@@ -202,15 +206,13 @@ for (lineNb = 1; lineNb <= numberOfRows; lineNb++) {
     for (idx in relationships) {
         const relationshipType = relationships[idx].relationshipType;
         if (
-            (relationshipType === "many-to-one"
-                || (relationshipType === "one-to-one" && relationships[idx].ownerSide === true
-                   && (relationships[idx].useJPADerivedIdentifier == null || relationships[idx].useJPADerivedIdentifier === false))
-            ) && (relationships[idx].relationshipValidate === true && relationships[idx].relationshipRequired)
+            relationshipType === "many-to-one"
+            || (relationshipType === "one-to-one" && relationships[idx].ownerSide === true)
         ) {
             if (relationships[idx].otherEntityNameCapitalized === 'User') {
-                line.push(this.faker.random.number({min: 1, max: 2}));
+               <!-- line.push(this.faker.random.number({min: 1, max: 2})); -->
             } else {
-                line.push(lineNb);
+                line.push(this.faker.random.number({min: 1, max: 100}));
             }
         }
     }
@@ -219,8 +221,12 @@ for (lineNb = 1; lineNb <= numberOfRows; lineNb++) {
     }
 }
 
+
+
 let result = table
         .map(line => line.join(';'))
         .join('\n');
  _%>
 <%- result %>
+
+

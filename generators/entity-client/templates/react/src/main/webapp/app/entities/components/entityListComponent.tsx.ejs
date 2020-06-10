@@ -1,0 +1,107 @@
+import React from 'react';
+import { Button, Col, Row, Table, Label, UncontrolledCollapse, CardBody } from 'reactstrap';
+import {I<%= entityReactName %>Props, I<%= entityReactName %>State} from '../<%= entityFileName %>';
+import { Link, RouteComponentProps } from 'react-router-dom';
+import {
+  Translate,
+  translate,
+  ICrudGetAllAction,
+  TextFormat,
+  getSortState,
+  IPaginationBaseState,
+  JhiPagination,
+  JhiItemCount,
+} from 'react-jhipster';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
+
+import { IRootState } from 'app/shared/reducers';
+import {
+  updateEntity,
+  get<%= entityReactName %>State, I<%= entityReactName %>BaseState, get<%= entityReactName %>FiltersURL,
+  <%_ if (searchEngine === 'elasticsearch') { _%>
+  getSearchEntities,
+  <%_ } _%>
+  getEntities
+  <%_ if (pagination === 'infinite-scroll') { _%>
+  , reset
+  <%_ } _%>
+} from '../<%= entityFileName %>.reducer';
+
+
+
+<%_
+let hasRelationshipQuery = false;
+let otherEntityActions = new Set();
+let manyToManyOwners = new Set();
+let relFieldNames = new Set();
+let uniqueRealtionFields = new Set();
+
+
+Object.keys(differentRelationships).forEach(key => {
+
+  const hasAnyRelationshipQuery = differentRelationships[key].some(rel =>
+      (rel.relationshipType === 'one-to-one' && rel.ownerSide === true && rel.otherEntityName !== 'user')
+          || rel.relationshipType !== 'one-to-many'
+  );
+  if (hasAnyRelationshipQuery) {
+    hasRelationshipQuery = true;
+    differentRelationships[key].forEach(rel => {
+      if (rel.relationshipType === 'many-to-many' && rel.ownerSide === true) {
+        manyToManyOwners.add(rel);
+      } else {
+        relFieldNames.add(rel);
+      }
+    });
+  }
+  if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
+    const uniqueRel = differentRelationships[key][0];
+    uniqueRealtionFields.add(uniqueRel.otherEntityNamePlural);
+    otherEntityActions.add({
+      action: `get${upperFirstCamelCase(uniqueRel.otherEntityNamePlural)}`,
+      instance: `${uniqueRel.otherEntityNamePlural}`,
+      entity: uniqueRel.otherEntityAngularName,
+      reducer: uniqueRel.otherEntityAngularName === 'User' ? 'userManagement' : uniqueRel.otherEntityName
+    });
+    if (uniqueRel.otherEntityAngularName === 'User') {
+_%>
+import { I<%= uniqueRel.otherEntityAngularName %> } from 'app/shared/model/user.model';
+<%_ if (authenticationType === 'oauth2') { _%>
+import { getUsers } from 'app/shared/reducers/user-management';
+<%_ } else { _%>
+import { getUsers } from 'app/modules/administration/user-management/user-management.reducer';
+<%_ } _%>
+<%_
+  } else {
+    if (uniqueRel.otherEntityAngularName !== entityReactName) {
+_%>
+import { I<%= uniqueRel.otherEntityAngularName %> } from 'app/shared/model/<%= uniqueRel.otherEntityModelName %>.model';
+  <%_ } _%>
+import { getEntities as get<%= upperFirstCamelCase(uniqueRel.otherEntityNamePlural) %> } from 'app/entities/<%= uniqueRel.otherEntityPath %>/<%= uniqueRel.otherEntityFileName %>.reducer';
+<%_ }
+  }
+}); _%>
+
+
+export interface I<%= entityReactName %>BeforeComponentProps extends I<%= entityReactName %>Props {
+    state: I<%= entityReactName %>State;
+    sortFunction: Function;
+  }
+
+const <%= entityInstance %>BeforeComponent = (props: I<%= entityReactName %>BeforeComponentProps) => {
+    const { 
+        <% uniqueRealtionFields.forEach(rel => {%> <%= rel %>,<% }) %> 
+        <%=entityInstance %>List, match<% if (pagination === 'pagination' || pagination === 'pager') { %>,
+        totalItems<% } %>} = props;
+
+
+    const state = props.state;
+    const sortFunction = props.sortFunction;
+
+    return (<%- include('../printFields/entityListComponent'); -%>);
+};
+
+export default <%= entityInstance %>BeforeComponent;
+
+
+
