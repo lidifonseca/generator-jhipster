@@ -165,7 +165,6 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                            <%_  if(viewLayout[idx].type == 'field'){ _%>
                              <%- include('printFields/printFieldsDetails', {field: viewLayout[idx].entity}); -%>
                            <%_  } else { _%>
-                             <%_  printRelationships(viewLayout[idx].entity); _%>
                              <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
                            <%_  } _%>
                        <%_  } _%>
