@@ -1,0 +1,59 @@
+package <%= packageName %>.service.extended;
+
+<%_
+const serviceClassName = entityClass + 'ExtendedQueryService';
+const instanceType = (dto === 'mapstruct') ? asDto(entityClass) : asEntity(entityClass);
+const instanceName = (dto === 'mapstruct') ? asDto(entityInstance) : asEntity(entityInstance);
+const mapper = entityInstance  + 'Mapper';
+const dtoToEntity = mapper + '.'+ 'toEntity';
+const entityToDto = mapper + '.'+ 'toDto';
+const entityListToDto = mapper + '.' + 'toDto';
+const entityToDtoReference = mapper + '::'+ 'toDto';
+const repository = entityInstance  + 'Repository';
+const criteria = entityClass + 'Criteria';
+_%>
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import <%= packageName %>.service.<%= asEntity(entityClass) %>QueryService;
+import <%= packageName %>.repository.extended.<%= asEntity(entityClass) %>ExtendedRepository;
+
+import <%= packageName %>.domain.<%= asEntity(entityClass) %>;
+import <%= packageName %>.domain.*; // for static metamodels
+<% if (searchEngine === 'elasticsearch') { %>
+import <%= packageName %>.repository.search.<%= entityClass %>SearchRepository;<% } %>
+import <%= packageName %>.service.dto.<%= entityClass %>Criteria;
+<%_ if (dto === 'mapstruct') { _%>
+import <%= packageName %>.service.dto.<%= asDto(entityClass) %>;
+import <%= packageName %>.service.mapper.<%= entityClass %>Mapper;
+<%_ } _%>
+
+/**
+ * Service for executing complex queries for {@link <%= asEntity(entityClass) %>} entities in the database.
+ * The main input is a {@link <%= entityClass %>Criteria} which gets converted to {@link Specification},
+ * in a way that all the filters must apply.
+ * It returns a {@link List} of {@link <%= instanceType %>} or a {@link Page} of {@link <%= instanceType %>} which fulfills the criteria.
+ *
+ * Please use this query service layer instead of modify the generated one.
+ *
+ */
+@Service<% if (databaseType === 'sql') { %>
+@Transactional(readOnly = true)<% } %>
+public class <%= serviceClassName %> extends <%= asEntity(entityClass) %>QueryService {
+
+    private final Logger log = LoggerFactory.getLogger(<%= serviceClassName %>.class);
+
+    private final <%= asEntity(entityClass) %>ExtendedRepository <%= entityInstance %>ExtendedRepository;
+
+    public <%= serviceClassName %>( <%= asEntity(entityClass) %>ExtendedRepository  <%= entityInstance %>ExtendedRepository) {
+        super(<%= entityInstance %>ExtendedRepository);
+        this.<%= entityInstance %>ExtendedRepository = <%= entityInstance %>ExtendedRepository;
+    }
+
+}

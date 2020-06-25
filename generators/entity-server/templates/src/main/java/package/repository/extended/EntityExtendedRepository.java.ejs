@@ -1,0 +1,65 @@
+package <%= packageName %>.repository.extended;
+
+import com.mycompany.myapp.repository.<%= asEntity(entityClass) %>Repository;
+<%_ if (fieldsContainOwnerManyToMany) { _%>
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+<%_ } _%>
+<%_ if (databaseType === 'sql') { _%>
+<%_ if (fieldsContainOwnerManyToMany) { _%>
+import org.springframework.data.repository.query.Param;
+<%_ } _%>
+<%_ } _%>
+<%_ if (databaseType === 'mongodb') { _%>
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.MongoRepository;
+<%_ } _%>
+<%_ if (databaseType === 'neo4j') { _%>
+import org.neo4j.springframework.data.repository.Neo4jRepository;
+import org.neo4j.springframework.data.repository.query.Query;
+import java.util.List;
+<%_ } _%>
+<%_ if (searchEngine === 'couchbase') { _%>
+    import <%= packageName %>.repository.search.SearchCouchbaseRepository;
+<%_ } _%>
+<%_ if (databaseType === 'couchbase' && fieldsContainOwnerManyToMany === true) { _%>
+import org.springframework.data.couchbase.core.query.Query;
+<%_ } _%>
+<%_ if (databaseType === 'cassandra') { _%>
+import org.springframework.data.cassandra.repository.CassandraRepository;
+<%_ } _%>
+import org.springframework.stereotype.Repository;
+<%_
+if (databaseType === 'sql' || databaseType === 'mongodb' || databaseType === 'neo4j' || databaseType === 'couchbase') {
+    let importList = fieldsContainOwnerManyToMany;
+    for (r of relationships) {
+        if (r.relationshipType === 'many-to-one' && r.otherEntityName === 'user') {
+            importList = true;
+        }
+    }
+_%>
+<%_ if (importList || fieldsContainOwnerManyToMany) { _%>
+
+<%_ } _%>
+<%_ if (importList) { _%>
+import java.util.List;
+<%_ } _%>
+<%_ if (fieldsContainOwnerManyToMany) { _%>
+import java.util.Optional;
+<%_ } _%>
+<%_ } _%>
+<%_ if (databaseType === 'cassandra') { _%>
+
+import java.util.UUID;
+<%_ } _%>
+
+/**
+* Spring Data side by side<% if (databaseType === 'mongodb') { %>MongoDB<% } if (databaseType === 'neo4j') { %>Neo4j<% } if (databaseType === 'couchbase') { %>Couchbase<% } if (databaseType === 'cassandra') { %>Cassandra<% } %> repository for the <%= asEntity(entityClass) %> entity.
+* Please use this repository instead of modify the generated one.
+*/
+<%_ if (!fieldsContainOwnerManyToMany) { _%>
+@SuppressWarnings("unused")
+<%_ } _%>
+@Repository
+public interface <%= entityClass %>ExtendedRepository extends <%= entityClass %>Repository {
+}
