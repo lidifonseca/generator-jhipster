@@ -182,6 +182,17 @@ const serverFiles = {
                     renameTo: generator => `${generator.packageFolder}/repository/${generator.entityClass}Repository.java`,
                 },
             ],
+        },{
+            condition: generator =>
+                (!generator.reactive || !['mongodb', 'cassandra', 'couchbase', 'neo4j'].includes(generator.databaseType)) &&
+                !generator.embedded && !fs.existsSync(`src/main/java/${generator.packageFolder}/repository/extended/${generator.entityClass}ExtendedRepository.java`),
+            path: SERVER_MAIN_SRC_DIR,
+            templates: [
+                {
+                    file: 'package/repository/extended/EntityExtendedRepository.java',
+                    renameTo: generator => `${generator.packageFolder}/repository/extended/${generator.entityClass}ExtendedRepository.java`,
+                },
+            ],
         },
         {
             condition: generator =>
@@ -217,6 +228,17 @@ const serverFiles = {
                 {
                     file: 'package/service/impl/EntityServiceImpl.java',
                     renameTo: generator => `${generator.packageFolder}/service/${generator.entityClass}Service.java`,
+                },
+            ],
+        },
+        {
+            condition: generator => generator.service === 'serviceClass' && !generator.embedded &&
+                !fs.existsSync(`src/main/java/${generator.packageFolder}/service/extended/${generator.entityClass}ExtendedService.java`),
+            path: SERVER_MAIN_SRC_DIR,
+            templates: [
+                {
+                    file: 'package/service/extended/EntityExtendedService.java',
+                    renameTo: generator => `${generator.packageFolder}/service/extended/${generator.entityClass}ExtendedService.java`,
                 },
             ],
         },
@@ -342,7 +364,7 @@ function writeFiles() {
             if (this.skipServer) return;
 
             generator = utils.analizeJavadoc(this);
-            
+
             // write server side files
             this.writeFilesToDisk(serverFiles, generator, false, this.fetchFromInstalledJHipster('entity-server/templates'));
 
