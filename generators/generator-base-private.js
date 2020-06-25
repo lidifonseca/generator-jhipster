@@ -200,7 +200,7 @@
                  {
                      file: fullPath,
                      pattern: /\.constant.*LANGUAGES.*\[([^\]]*jhipster-needle-i18n-language-constant[^\]]*)\]/g,
-                     content,
+                     content
                  },
                  this
              );
@@ -237,7 +237,7 @@
                  {
                      file: fullPath,
                      pattern: /export.*LANGUAGES.*\[([^\]]*jhipster-needle-i18n-language-constant[^\]]*)\];/g,
-                     content,
+                     content
                  },
                  this
              );
@@ -271,7 +271,7 @@
                  {
                      file: fullPath,
                      pattern: /private.*static.*String.*languages.*\{([^}]*jhipster-needle-i18n-language-constant[^}]*)\};/g,
-                     content,
+                     content
                  },
                  this
              );
@@ -308,7 +308,7 @@
                  {
                      file: fullPath,
                      pattern: /{\s*('[a-z-]*':)?([^=]*jhipster-needle-i18n-language-key-pipe[^;]*)\};/g,
-                     content,
+                     content
                  },
                  this
              );
@@ -346,7 +346,7 @@
                  {
                      file: fullPath,
                      pattern: /groupBy:.*\[([^\]]*jhipster-needle-i18n-language-webpack[^\]]*)\]/g,
-                     content,
+                     content
                  },
                  this
              );
@@ -382,7 +382,7 @@
                  {
                      file: fullPath,
                      pattern: /localesToKeep:.*\[([^\]]*jhipster-needle-i18n-language-moment-webpack[^\]]*)\]/g,
-                     content,
+                     content
                  },
                  this
              );
@@ -417,7 +417,7 @@
                  {
                      file: fullPath,
                      pattern: /localesToKeep:.*\[([^\]]*jhipster-needle-i18n-language-moment-webpack[^\]]*)\]/g,
-                     content,
+                     content
                  },
                  this
              );
@@ -836,7 +836,7 @@
              try {
                  const finalOptions = {
                      ...options,
-                     jhipsterContext: this,
+                     jhipsterContext: this
                  };
                  this.useBlueprint = true;
                  const blueprintGenerator = this.composeExternalModule(blueprint, subGen, finalOptions);
@@ -868,8 +868,9 @@
              this.warning(msg);
              return undefined;
          }
-         return JSON.parse(fs.readFileSync(path.join(blueprintPackagePath, 'package.json')));
-     }
+         // eslint-disable-next-line global-require,import/no-dynamic-require
+         return require(path.join(blueprintPackagePath, 'package.json'));
+    }
  
      /**
       * Try to retrieve the version of the blueprint used.
@@ -915,16 +916,16 @@
          const mainGeneratorJhipsterVersion = packagejs.version;
          const blueprintJhipsterVersion = blueprintPackageJson.dependencies && blueprintPackageJson.dependencies['generator-jhipster'];
          if (blueprintJhipsterVersion) {
-             if (mainGeneratorJhipsterVersion !== blueprintJhipsterVersion) {
-                 this.error(
-                     `The installed ${chalk.yellow(
-                         blueprintPkgName
-                     )} blueprint targets JHipster v${blueprintJhipsterVersion} and is not compatible with this JHipster version. Either update the blueprint or JHipster. You can also disable this check using --skip-checks at your own risk`
-                 );
-             }
-             return;
-         }
-         const blueprintPeerJhipsterVersion =
+            if (mainGeneratorJhipsterVersion !== blueprintJhipsterVersion) {
+                this.error(
+                    `The installed ${chalk.yellow(
+                        blueprintPkgName
+                    )} blueprint targets JHipster v${blueprintJhipsterVersion} and is not compatible with this JHipster version. Either update the blueprint or JHipster. You can also disable this check using --skip-checks at your own risk`
+                );
+            }
+            return;
+        }         
+        const blueprintPeerJhipsterVersion =
              blueprintPackageJson.peerDependencies && blueprintPackageJson.peerDependencies['generator-jhipster'];
          if (blueprintPeerJhipsterVersion) {
              if (semver.satisfies(mainGeneratorJhipsterVersion, blueprintPeerJhipsterVersion)) {
@@ -1105,7 +1106,7 @@
              variables,
              rxjsMapIsUsed,
              selectableEntities,
-             selectableManyToManyEntities,
+             selectableManyToManyEntities
          };
      }
  
@@ -1469,7 +1470,7 @@
       *
       * @param {string} authenticationType - the auth type
       * @param {string} databaseType - the database type
-      * @param {T[]} relationships - relationships
+      * @param {any} relationships - relationships
       */
      getPkTypeBasedOnDBAndAssociation(authenticationType, databaseType, relationships) {
          let hasFound = false;
@@ -1601,15 +1602,15 @@
       * @param {any} generator
       */
      registerPrettierTransform(generator = this) {
-         // Prettier is clever, it uses correct rules and correct parser according to file extension.
-         let filterPatternForPrettier = '{,**/,.jhipster/**/}*.{md,json,ts,tsx,scss,css,yml}';
-         if (!this.skipServer && this.prettierJava) {
-             filterPatternForPrettier = '{,**/,.jhipster/**/}*.{md,json,ts,tsx,scss,css,yml,java}';
-         }
-         const prettierFilter = filter(['.yo-rc.json', filterPatternForPrettier], { restore: true });
-         // this pipe will pass through (restore) anything that doesn't match typescriptFilter
-         generator.registerTransformStream([prettierFilter, prettierTransform(prettierOptions), prettierFilter.restore]);
-     }
+        // Prettier is clever, it uses correct rules and correct parser according to file extension.
+        let filterPatternForPrettier = '{,**/,.jhipster/**/}*.{md,json,ts,tsx,scss,css,yml}';
+        if (!this.skipServer && this.prettierJava) {
+            filterPatternForPrettier = '{,**/,.jhipster/**/}*.{md,json,ts,tsx,scss,css,yml,java}';
+        }
+        const prettierFilter = filter(['.yo-rc.json', filterPatternForPrettier], { restore: true });
+        // this pipe will pass through (restore) anything that doesn't match typescriptFilter
+        generator.registerTransformStream([prettierFilter, prettierTransform(prettierOptions), prettierFilter.restore]);
+    }
  
      /**
       * Check if the subgenerator has been invoked from JHipster CLI or from Yeoman (yo jhipster:subgenerator)

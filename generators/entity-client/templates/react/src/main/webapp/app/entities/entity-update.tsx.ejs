@@ -17,6 +17,7 @@
   import { connect } from 'react-redux';
   import Select from 'react-select';
   import { Link, RouteComponentProps } from 'react-router-dom';
+  import InputMask from "react-input-mask";
 <%_ let baseFiltersModal = false; _%>
 <%_  if(this.generator.baseFiltersAttributes && this.generator.baseFiltersAttributes['window'] === "modal") { _%>
   <%_ baseFiltersModal = true; _%>
@@ -118,7 +119,7 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
   import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileName %>.model';
   import { convertDateTimeFromServer, convertDateTimeToServer } from 'app/shared/util/date-utils';
   <%_ if (relationships.filter(e => e.relationshipType === 'many-to-many') !== undefined) { _%>
-  import { mapIdList } from 'app/shared/util/entity-utils';
+  import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
   <%_ } _%>
   
   export interface I<%= entityReactName %>UpdateProps extends StateProps, DispatchProps, RouteComponentProps<{id: string}>
@@ -128,9 +129,7 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
     export class <%= entityReactName %>Update extends React.Component<I<%= entityReactName %>UpdateProps,
       I<%= entityReactName %>UpdateState> {
       <%_ for (idx in fields) { %>
-        <%_  if (['byte[]', 'ByteBuffer'].includes(fields[idx].fieldType)) {  %>
           <%= fields[idx].fieldName %>FileInput: React.RefObject<HTMLInputElement>;
-        <%_ } %>
       <%_ } _%>
       constructor(props: Readonly<I<%= entityReactName %>UpdateProps>) {
         super(props);
@@ -141,10 +140,15 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
       <%_ } _%>
         this.state = {
         <% uniqueRealtionFields.forEach(rel => { %> <%= rel.name %>SelectValue: null, <% }) %>
+        <%_ for (idx in fields) { _%>
+          <%= typeof fields[idx].formLayoutCepBr !== 'undefined' && fields[idx].formLayoutCepBr.trim() ? "cepRequest" + fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() + " : null," : "" %>
+        <%_ } _%>
+
+
         fieldsBase: {
           ...get<%= entityReactName %>State(this.props.location),
           <%_ if (typeof baseFilters !== 'undefined' && baseFilters) { _%>
-            <%= baseFilters _%>: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'],
+            <%= baseFilters _%>Id: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'],
             baseFilters: '<%= baseFilters _%>',
           <%_ } _%>  
         },
@@ -180,7 +184,7 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
            ) {
             this.setState({
               <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
-                f => this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null 
+                f => (this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %> ? (this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null): [])
               ).join(',') : null,
             })
           }
@@ -198,6 +202,16 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
           }
           <% } %>
         <% }) %>
+
+        <%_ for (idx in fields) { _%>
+          <%_ if(fields[idx].formLayoutCepBr) { _%>
+              if (( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id ) ||
+                ( this.props.<%= entityInstance %>Entity.<%= fields[idx].fieldName %> && this.state.cepRequest<%= fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %> === null )) {
+                  this.setState({ cepRequest<%= fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %>:  this.props.<%= entityInstance %>Entity.<%= fields[idx].fieldName %>})
+                }
+          <%_ } _%>
+        <%_ } _%>
+
         }
   
         componentDidMount() {
@@ -247,16 +261,35 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
         <%_ } _%>
 
         <% uniqueRealtionFields.forEach(rel => { %>
-          let <%= rel.relationshipFieldName %> = null; 
-          this.props.<%= rel.otherEntityNamePlural %>.forEach(e => { if(e.id === this.state.<%= rel.name %>SelectValue) { <%= rel.relationshipFieldName %> = e}});
+          <% if(rel.relationshipType === 'many-to-many') { %>          
+            const <%= rel.relationshipFieldName %> = [];  // <%= rel.relationshipType %> -- <%= rel.ownerSide ? "ownerSide=true" : "ownerSide=false" %>
+            this.props.<%= rel.otherEntityNamePlural %>.forEach(e => { if(this.state.<%= rel.name %>SelectValue.split(",").indexOf(e.id+"") !== -1) { <%= rel.relationshipFieldName %>.push(e)}});
+          <% } else { %>
+              let <%= rel.relationshipFieldName %> = null;  // <%= rel.relationshipType %> -- <%= rel.ownerSide ? "ownerSide=true" : "ownerSide=false" %>
+            this.props.<%= rel.otherEntityNamePlural %>.forEach(e => { if(e.id === this.state.<%= rel.name %>SelectValue) { <%= rel.relationshipFieldName %> = e}});
+          <% } %>
         <% }) %>
+
+        <%_ for (idx in fields) { _%> 
+          <% const rulesValidate = fields[idx].fieldValidateRules ? fields[idx].fieldValidateRules : ""; _%>
+          <%_ if(rulesValidate.includes('required') && fields[idx].formLayoutCepBr ){ %> 
+            if (!this.state.cepRequest<%- fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %>) {
+              errors.push(translate('entity.validation.required'));
+            }
+          <%_ } _%>
+        <%_ } _%>
   
         if (errors.length === 0) {
         const { <%= entityInstance %>Entity } = this.props;
         const entity = {
         ...<%= entityInstance %>Entity,
+        ...values,
         <% uniqueRealtionFields.forEach(rel => { %><%= rel.relationshipFieldName %>, <% }) %>
-        ...values
+        <%_ for (idx in fields) { _%>
+          <%_ if(fields[idx].formLayoutCepBr) { _%>
+              <%= fields[idx].fieldName %>:  this.state.cepRequest<%= fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %>,
+          <%_ } _%>
+        <%_ } _%>
         }
   
         if (this.state.isNew) {
@@ -269,7 +302,7 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
   
         handleClose = () => {
         this.props.history.push(<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-          _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %> + <%_ 
+          _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
         } %>"/<%= entityFileName %>?"+this.getFiltersURL());
         }
   
@@ -298,6 +331,12 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
         <%_ } _%>
         <%_ } _%>
         const baseFilters = this.state.fieldsBase && this.state.fieldsBase['baseFilters'] ? this.state.fieldsBase['baseFilters'] : null;
+
+        <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
+          let <%= baseFilters %>BaseFilter = null; 
+          <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.fieldsBase.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
+        <%_ } _%>
+        
         return (
           <div>
               <AvForm model={isNew ? {} : {
@@ -319,7 +358,7 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
               <Button tag={Link} id="cancel-save" to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-                _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %> + <%_ 
+                _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
               } %>"/<%= entityFileName %>?"+this.getFiltersURL()} replace color="info"
                 className="float-right jh-create-entity">
                 <FontAwesomeIcon icon="arrow-left" />&nbsp;
@@ -334,14 +373,14 @@ import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, 
             </li>
             <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
               <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>"}><%= _.startCase((baseFilters+"s")) %></Link></li>
-              <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state[this.state.baseFilters]}>{
+              <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters _%>Id}>{
                 <%if (typeof baseFiltersAttributes !== 'undefined' && typeof baseFiltersAttributes['showField']!== 'undefined') { %>
-                  <%= entityInstance %>Entity.<%= baseFilters %> ? <%= entityInstance %>Entity.<%= baseFilters %>.<%= baseFiltersAttributes['showField'] %> : this.state[this.state.baseFilters]
+                  <%= entityInstance %>Entity.<%= baseFilters %> ? <%= entityInstance %>Entity.<%= baseFilters %>.<%= baseFiltersAttributes['showField'] %> : this.state.fieldsBase.<%= baseFilters _%>Id
                 <% } else {%>
-                  this.state[this.state.baseFilters]
+                  this.state.fieldsBase.<%= baseFilters _%>Id
                 <% }%>
               }</Link></li>
-              <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state[this.state.baseFilters] + "/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
+              <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters _%>Id + "/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
             <%_ } else { _%>
               <li className="breadcrumb-item active"><Link to={"/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
             <%_ } _%>

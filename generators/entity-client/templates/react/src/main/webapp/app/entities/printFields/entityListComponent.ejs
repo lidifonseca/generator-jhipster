@@ -61,7 +61,7 @@
         <tr key={`entity-${i}`}>
           <%_ if (typeof listTableHideId == "undefined" ||  listTableHideId == "false"){ _%>
             <td>
-              <b><Translate contentKey="global.field.id">ID</Translate></b>
+              <b className="visible-xs"><Translate contentKey="global.field.id">ID</Translate></b>
               <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}`} color="link" size="sm">
                 {<%= entityInstance %>.id}
               </Button>
@@ -106,9 +106,12 @@
                     <%_ const attrib = listButtons[idx].attributes; _%>
                     <%_  if (attrib.inDropdown !== 'true') { _%>
                       <Button tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>">
-                        <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> <span className="d-none d-md-inline">
-                          <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text'] %></Translate>
-                        </span>
+                        <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> 
+                        <%_ if (attrib['text']){ %>
+                          <span className="d-none d-md-inline">
+                            <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text']  ? attrib['text'] : "" %></Translate>
+                          </span>
+                        <%_ } %>
                       </Button>
                     <%_ } _%>
                   <%_ } _%>
@@ -116,6 +119,19 @@
               </div>
             <%_ } _%>
             <%_  if (listButtonsInDropdown === true) { _%>
+              <%_ for (idx in listButtons) { _%>
+                <%_ const attrib = listButtons[idx].attributes; _%>
+                <%_  if (attrib.inDropdown !== 'true') { _%>
+                  <Button tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>">
+                    <FontAwesomeIcon icon="<%=attrib['icon'] %>" />
+                    <%_ if (attrib['text']){ %>
+                      <span className="d-none d-md-inline">
+                        <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text']  ? attrib['text'] : "" %></Translate>
+                      </span>
+                    <%_ } %>
+                  </Button>
+                <%_ } _%>
+              <%_ } _%>
               <Dropdown isOpen={state.dropdownButtons[i]} toggle={()=>this.toggle(i)}>
                 <DropdownToggle caret> 
                     <Translate contentKey="<%= i18nKeyPrefix %>.dropdown_btn">Actions</Translate>
@@ -125,8 +141,12 @@
                     <%_ const attrib = listButtons[idx].attributes; _%>
                     <%_  if (attrib.inDropdown === 'true') { _%>
                       <DropdownItem tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>" >
-                        <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> <span className="d-none d-md-inline">
-                          <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text'] %></Translate></span>
+                        <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> 
+                        <%_ if (attrib['text']){ %>
+                          <span className="d-none d-md-inline">
+                            <Translate contentKey="<%= i18nKeyPrefix %>.listButtons.<%=listButtons[idx].name %>"><%=attrib['text']  ? attrib['text'] : "" %></Translate>
+                          </span>
+                        <%_ } %>
                       </DropdownItem>
                     <%_ } _%>
                   <%_ } _%>

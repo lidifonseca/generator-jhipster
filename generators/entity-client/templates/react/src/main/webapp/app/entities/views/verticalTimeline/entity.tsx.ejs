@@ -230,7 +230,7 @@ _%>
       <%_ } else if (fieldType === 'LocalDate') { _%>
         <TextFormat type="date" value={<%= entityInstance %>.<%=fieldName%>} format={APP_LOCAL_DATE_FORMAT} />
       <%_ } else if (fieldIsEnum && enableTranslation) { _%>
-        <Translate contentKey={`<%= angularAppName %>.<%= fieldType %>.${<%= entityInstance %>.<%= fieldName %>}`} />
+        { <%= entityInstance %>.<%= fieldName %> ? <Translate contentKey={`<%= angularAppName %>.<%= fieldType %>.${<%= entityInstance %>.<%= fieldName %>}`} /> : <> </> }      
       <%_ } else if (['byte[]', 'ByteBuffer'].includes(fieldType)) { _%>
         <%_
           // blobFields

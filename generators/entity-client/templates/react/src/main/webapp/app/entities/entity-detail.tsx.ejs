@@ -1,24 +1,3 @@
-<%#
- Copyright 2013-2019 the original author or authors from the JHipster project.
-
- This file is part of the JHipster project, see https://www.jhipster.tech/
- for more information.
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
--%>
-
-
-
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
@@ -73,7 +52,7 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
       fieldsBase: {
         ...get<%= entityReactName %>State(this.props.location),
         <%_ if (typeof baseFilters !== 'undefined' && baseFilters) { _%>
-          <%= baseFilters _%>: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'],
+          <%= baseFilters _%>Id: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'],
           baseFilters: '<%= baseFilters _%>',
         <%_ } _%>  
       },
@@ -104,7 +83,7 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
   }
 
   render() {
-    const { <%= entityInstance %>Entity } = this.props;
+    const {<%= entityInstance %>Entity } = this.props;
     return (
       <div>
       <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
@@ -123,14 +102,14 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
           <li className="breadcrumb-item"><Link to="/">Inicio</Link></li>
           <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
             <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>"}><%= _.startCase((baseFilters+"s")) %></Link></li>
-            <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state[this.state.baseFilters]}>{
+            <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters _%>Id}>{
               <%if (typeof baseFiltersAttributes !== 'undefined' && typeof baseFiltersAttributes['showField']!== 'undefined') { %>
-                <%= entityInstance %>Entity.<%= baseFilters %> ? <%= entityInstance %>Entity.<%= baseFilters %>.<%= baseFiltersAttributes['showField'] %> : this.state[this.state.baseFilters]
+                <%= entityInstance %>Entity.<%= baseFilters %> ? <%= entityInstance %>Entity.<%= baseFilters %>.<%= baseFiltersAttributes['showField'] %> : this.state.fieldsBase.<%= baseFilters _%>Id
               <% } else {%>
-                this.state[this.state.baseFilters]
+                this.state.fieldsBase.<%= baseFilters _%>Id
               <% }%>
             }</Link></li> 
-            <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state[this.state.baseFilters] + "/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
+            <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters _%>Id + "/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
           <%_ } else { _%>
             <li className="breadcrumb-item active"><Link to={"/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
           <%_ } _%>
@@ -165,7 +144,9 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                            <%_  if(viewLayout[idx].type == 'field'){ _%>
                              <%- include('printFields/printFieldsDetails', {field: viewLayout[idx].entity}); -%>
                            <%_  } else { _%>
-                             <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
+                              <%_  if(typeof baseFilters === 'undefined' || baseFilters !== viewLayout[idx].name) { _%>
+                                <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
+                              <%_  } _%>
                            <%_  } _%>
                        <%_  } _%>
                     <%_ } else { _%>
@@ -173,7 +154,9 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                           <%- include('printFields/printFieldsDetails', {field: fields[idx]}); -%>
                             <%_ } _%>
                         <%_ for (idx in relationships) {  _%>
+                          <%_  if(typeof baseFilters === 'undefined' || baseFilters != relationships[idx].relationshipFieldName) { _%>
                               <%- include('printFields/printRelationshipsDetails', {rel: relationships[idx]}); -%>
+                          <%_ } _%>
                         <%_ } _%>
                     <%_ } _%>
                     <%_ } else { _%>
@@ -210,7 +193,9 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                                  <%_  if(viewLayout[idx].type == 'field'){ _%>
                                   <%- include('printFields/printFieldsDetails', {field: viewLayout[idx].entity}); -%>
                                  <%_  } else { _%>
-                                   <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
+                                    <%_  if(typeof baseFilters === 'undefined' || baseFilters != viewLayout[idx].name) { _%>
+                                      <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
+                                    <%_  } _%>
                                  <%_  } _%>
                                <%_  }  _%>
                              <%_  } _%>
@@ -221,9 +206,11 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                                    <%_  }  %>
                                  <%_  } _%>
                                  <%_ for (idx in relationships) { %>
-                                   <%_  if(viewTabs[iTabs] === relationships[idx]['viewTab']) {  %>
-                                     <%- include('printFields/printRelationshipsDetails', {rel: relationships[idx]}); -%>
-                                 <%_  } %>
+                                    <%_  if(typeof baseFilters === 'undefined' || baseFilters != relationships[idx].relationshipFieldName) { _%>
+                                      <%_  if(viewTabs[iTabs] === relationships[idx]['viewTab']) {  %>
+                                        <%- include('printFields/printRelationshipsDetails', {rel: relationships[idx]}); -%>
+                                      <%_  } %>
+                                    <%_  } %>
                                <%_  } _%>
                         <%_ } _%>
                           </TabPane>
@@ -236,7 +223,9 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                                    <%_  if(viewLayout[idx].type == 'field'){ _%>
                                     <%- include('printFields/printFieldsDetails', {field: viewLayout[idx].entity}); -%>
                                    <%_  } else { _%>
-                                     <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
+                                    <%_  if(typeof baseFilters === 'undefined' || baseFilters != viewLayout[idx].name) { _%>
+                                      <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
+                                    <%_  } _%>
                                    <%_  } _%>
                                  <%_  }  _%>
                                <%_  } _%>
@@ -247,9 +236,11 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                                  <%_  }  _%>
                                <%_  } _%>
                                 <%_ for (idx in relationships) { _%>
-                                 <%_  if(!relationships[idx]['viewTab'] || relationships[idx]['viewTab'] === "default") {  _%>
-                                   <%- include('printFields/printRelationshipsDetails', {rel: relationships[idx]}); -%>
-                                 <%_  } _%>
+                                  <%_  if(typeof baseFilters === 'undefined' || baseFilters != relationships[idx].relationshipFieldName) { _%>
+                                    <%_  if(!relationships[idx]['viewTab'] || relationships[idx]['viewTab'] === "default") {  _%>
+                                      <%- include('printFields/printRelationshipsDetails', {rel: relationships[idx]}); -%>
+                                    <%_  } _%>
+                                  <%_  } _%>
                                <%_  } _%>
                         <%_ } _%>
                             </TabPane>
@@ -260,13 +251,13 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                     </Row>
 
                 <Button tag={Link} to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-                  _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %> + <%_ 
+                  _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
                 } %>"/<%= entityFileName %>?"+this.getFiltersURL()} replace color="info">
                   <FontAwesomeIcon icon="arrow-left" /> <span className="d-none d-md-inline" ><Translate contentKey="entity.action.back">Back</Translate></span>
                 </Button>&nbsp;
                 <%_ if (!readOnly) { _%>
                 <Button tag={Link} to={`<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-                  _%> /<%= baseFilters %>/${this.state.fieldsBase.<%= baseFilters %>}<%_ 
+                  _%> /<%= baseFilters %>/${this.state.fieldsBase.<%= baseFilters %>Id }<%_ 
                 } %>/<%= entityFileName %>/${<%=entityInstance %>Entity.id}/edit?+${this.getFiltersURL()}`} replace color="primary">
                   <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="entity.action.edit">Edit</Translate></span>
                 </Button>
@@ -280,11 +271,14 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
   }
 }
 
-const mapStateToProps = ({ <%= entityInstance %> }: IRootState) => ({
-    <%= entityInstance %>Entity: <%= entityInstance %>.entity
+const mapStateToProps = ({ <%= entityInstance %>, ...storeState }: IRootState) => ({
+  <%= entityInstance %>Entity: <%= entityInstance %>.entity
 });
 
-const mapDispatchToProps = { getEntity };
+const mapDispatchToProps = { 
+  getEntity
+  
+};
 
 type StateProps = ReturnType<typeof mapStateToProps>;
 type DispatchProps = typeof mapDispatchToProps;

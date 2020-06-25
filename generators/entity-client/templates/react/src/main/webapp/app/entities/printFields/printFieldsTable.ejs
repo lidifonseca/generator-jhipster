@@ -6,13 +6,23 @@
     <td id="<%=fieldName%>-cell">
       <b className="visible-xs"> <%= field.fieldNameHumanized %> </b>
       <%_ if (fieldType === 'Boolean') { _%>
-        {<%= entityInstance %>.<%=field.fieldName%> ? 'true' : 'false'}
+
+        <div className="switcher switcher-success">
+          <input
+            type="checkbox"
+            name={'active_' + <%= entityInstance %>.id}
+            id={'active_' + <%= entityInstance %>.id}
+            defaultChecked={<%= entityInstance %>.<%=field.fieldName%>}
+            onClick={()=>props.updateEntity({...<%= entityInstance %>, <%=field.fieldName%>: !<%= entityInstance %>.<%=field.fieldName%> })}
+          />
+          <label htmlFor={'active_' + <%= entityInstance %>.id} />
+        </div>
       <%_ } else if (fieldType === 'Instant' || fieldType === 'ZonedDateTime') { _%>
         <TextFormat type="date" value={<%= entityInstance %>.<%=fieldName%>} format={APP_DATE_FORMAT} />
       <%_ } else if (fieldType === 'LocalDate') { _%>
         <TextFormat type="date" value={<%= entityInstance %>.<%=fieldName%>} format={APP_LOCAL_DATE_FORMAT} />
       <%_ } else if (fieldIsEnum && enableTranslation) { _%>
-        <Translate contentKey={`<%= angularAppName %>.<%= fieldType %>.${<%= entityInstance %>.<%= fieldName %>}`} />
+        { <%= entityInstance %>.<%= fieldName %> ? <Translate contentKey={`<%= angularAppName %>.<%= fieldType %>.${<%= entityInstance %>.<%= fieldName %>}`} /> : <> </> }      
       <%_ } else if (['byte[]', 'ByteBuffer'].includes(fieldType)) { _%>
         <%_
           // blobFields
@@ -79,7 +89,7 @@
                       </Row>
                       <a rel="noopener noreferrer" target={"_blank"} href={`${<%= fieldName %>}`}>
                         <%_ if (isAnImage) { _%>
-                        <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+arquivoBase64) : <%= fieldName %>}`}
+                        <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+<%= fieldName %>Base64) : <%= fieldName %>}`}
                           style={{ maxHeight: '100px' }} />
                         <%_ } else { _%>
                         <Translate contentKey="entity.action.open">Open</Translate>

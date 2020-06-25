@@ -21,6 +21,7 @@
 const path = require('path');
 const shelljs = require('shelljs');
 const ejs = require('ejs');
+const jhipsterUtils = require('generator-jhipster/generators/utils');
 const _ = require('lodash');
 const jhiCore = require('jhipster-core');
 const fs = require('fs');
@@ -46,6 +47,13 @@ class RandexpWithFaker extends randexp {
 }
 
 module.exports = {
+    addEntityToAppModuleImport,
+    addEntityToAppModule,
+    addControllerToAppModuleImport,
+    addControllerToAppModule,
+    addServiceToAppModuleImport,
+    addServiceToAppModule,
+    buildEnumInfo,
     rewrite,
     rewriteFile,
     replaceContent,
@@ -56,7 +64,6 @@ module.exports = {
     deepFind,
     getJavadoc,
     buildEnumInfo,
-    getEnumInfo,
     copyObjectProps,
     decodeBase64,
     getAllJhipsterConfig,
@@ -74,8 +81,136 @@ module.exports = {
     analizeJavadoc,
     RandexpWithFaker,
     gitExec,
-    isGitInstalled,
+    isGitInstalled
 };
+
+const SERVER_NODEJS_SRC_DIR = 'server';
+/**
+ * add entity import to app module
+ * @param {any} generator
+ * @param {string} entityClass
+ * @param {string} entityFileName
+ */
+function addEntityToAppModuleImport(generator, entityClass, entityFileName) {
+    rewriteFile(
+        {
+            file: `${SERVER_NODEJS_SRC_DIR}/src/app.module.ts`,
+            needle: 'jhipster-needle-add-entity-module-to-main-import',
+            splicable: [`import { ${entityClass}Module } from './module/${entityFileName}.module';`]
+        },
+        generator
+    );
+}
+
+
+/**
+ * add entity module to app module
+ * @param {any} generator
+ * @param {string} entityClass
+ */
+function addEntityToAppModule(generator, entityClass) {
+    console.info(` ${entityClass}Module,`);
+    jhipsterUtils.rewriteFile(
+        {
+            file: `${constants.SERVER_NODEJS_SRC_DIR}/src/app.module.ts`,
+            needle: 'jhipster-needle-add-entity-module-to-main',
+            splicable: [` ${entityClass}Module,`]
+        },
+        generator
+    );
+}
+
+/**
+ * add controller import to app module
+ * @param {any} generator
+ * @param {string} controllerClass
+ * @param {string} controllerFileName
+ */
+function addControllerToAppModuleImport(generator, controllerClass, controllerFileName) {
+    jhipsterUtils.rewriteFile(
+        {
+            file: `${constants.SERVER_NODEJS_SRC_DIR}/src/app.module.ts`,
+            needle: 'jhipster-needle-add-controller-module-to-main-import',
+            splicable: [`import { ${controllerClass}Controller } from './web/rest/${controllerFileName}.controller';`]
+        },
+        generator
+    );
+}
+
+/**
+ * add controller module to app module
+ * @param {any} generator
+ * @param {string} controllerClass
+ */
+function addControllerToAppModule(generator, controllerClass) {
+    jhipsterUtils.rewriteFile(
+        {
+            file: `${constants.SERVER_NODEJS_SRC_DIR}/src/app.module.ts`,
+            needle: 'jhipster-needle-add-controller-module-to-main',
+            splicable: [`${controllerClass}Controller,`]
+        },
+        generator
+    );
+}
+
+/**
+ * add service import to app module
+ * @param {any} generator
+ * @param {string} serviceClass
+ * @param {string} serviceFileName
+ */
+function addServiceToAppModuleImport(generator, serviceClass, serviceFileName) {
+    jhipsterUtils.rewriteFile(
+        {
+            file: `${constants.SERVER_NODEJS_SRC_DIR}/src/app.module.ts`,
+            needle: 'jhipster-needle-add-service-module-to-main-import',
+            splicable: [`import { ${serviceClass}Service } from './service/${serviceFileName}.service';`]
+        },
+        generator
+    );
+}
+
+/**
+ * add service module to app module
+ * @param {any} generator
+ * @param {string} serviceClass
+ */
+function addServiceToAppModule(generator, serviceClass) {
+    jhipsterUtils.rewriteFile(
+        {
+            file: `${constants.SERVER_NODEJS_SRC_DIR}/src/app.module.ts`,
+            needle: 'jhipster-needle-add-service-module-to-main',
+            splicable: [`${serviceClass}Service,`]
+        },
+        generator
+    );
+}
+
+/**
+ * Build an enum object
+ * @param {any} field : entity field
+ * @param {string} angularAppName
+ * @param {string} packageName
+ * @param {string} clientRootFolder
+ */
+function buildEnumInfo(field, angularAppName, packageName, clientRootFolder) {
+    const fieldType = field.fieldType;
+    field.enumInstance = _.lowerFirst(fieldType);
+    const enumInfo = {
+        enumName: fieldType,
+        enumValues: field.fieldValues.split(',').join(', '),
+        enumInstance: field.enumInstance,
+        enums: field.fieldValues.replace(/\s/g, '').split(','),
+        angularAppName,
+        packageName,
+        clientRootFolder: clientRootFolder ? `${clientRootFolder}-` : ''
+    };
+    return enumInfo;
+}
+
+
+
+
 
 /**
  * Rewrite file with passed arguments
@@ -518,14 +653,11 @@ function analizeJavadoc(generator) {
                             filtersAttributes[v.split(':')[0]] = v.split(':').length > 1 ? v.split(':')[1] : 'true'; 
                         });
                         generator["baseFiltersAttributes"] = filtersAttributes;
-
                     }
-
-
                 }
                 else if(parameter[0] === "formTab") {
                     let value = parameter[1].trim().split(">")[0].split("<");
-                    let fields = value[1].split(",");
+                    let fields = value[1] ? value[1].split(",") : "";
                     if(generator.formTabs.indexOf(value[0]) === -1) {
                         generator.formTabs.push(value[0]);
                     }
@@ -584,6 +716,7 @@ function analizeJavadoc(generator) {
                         if (key > 0) {
                             const element = parameter[key];
                             const value = element.trim().split("}")[0].split("{");
+                         
                             for (idx in generator.fields) { 
                                 if(generator.fields[idx].fieldName === value[0] ){
                                     generator[parameter[0]].push({
@@ -710,7 +843,7 @@ function analizeJavadoc(generator) {
             generatorJavadoc = generatorJavadoc.substring(0,generatorJavadoc.indexOf('@')) + generatorJavadoc.substring(generatorJavadoc.indexOf('@@')+2).trim();
         }
     }
-    generator['clean_javadoc'] = generatorJavadoc
+    generator['clean_javadoc'] = generatorJavadoc ? generatorJavadoc.split("\\n").join("") : ""
     for (idx in generator.fields) { 
         let javadoc = generator.fields[idx].javadoc; 
         generator.fields[idx]['clean_javadoc'] = undefined;
@@ -718,17 +851,18 @@ function analizeJavadoc(generator) {
             while(javadoc.indexOf('@') > -1 ) {
                 let parameter =  javadoc.substring(javadoc.indexOf('@')+1, javadoc.indexOf('@@')).split(" ");
                 if(parameter.length > 1) {
-                    generator.fields[idx][parameter[0]] = parameter[1].trim();
-                    if(parameter[0] === "formTab" && generator.formTabs.indexOf(parameter[1].trim()) === -1) {
-                        generator.formTabs.push(parameter[1].trim());
+                    let keyParam = parameter.shift();
+                    generator.fields[idx][keyParam] = parameter.join(" ").trim();
+                    if(keyParam === "formTab" && generator.formTabs.indexOf(parameter[0].trim()) === -1) {
+                        generator.formTabs.push(parameter[0].trim());
                     }
-                    if(parameter[0] === "viewTab" && generator.viewTabs.indexOf(parameter[1].trim()) === -1) {
-                        generator.viewTabs.push(parameter[1].trim());
+                    if(keyParam === "viewTab" && generator.viewTabs.indexOf(parameter[0].trim()) === -1) {
+                        generator.viewTabs.push(parameter[0].trim());
                     }
                 }
                 javadoc = javadoc.substring(0,javadoc.indexOf('@')) + javadoc.substring(javadoc.indexOf('@@')+2).trim();
             }
-            generator.fields[idx]['clean_javadoc'] = javadoc;
+            generator.fields[idx]['clean_javadoc'] = javadoc ? javadoc.split("\\n").join("") : "";
         }
     }
     for (idx in generator.relationships) { 
@@ -742,7 +876,7 @@ function analizeJavadoc(generator) {
                 javadoc = javadoc.substring(0,javadoc.indexOf('@')) + javadoc.substring(javadoc.indexOf('@@')+2).trim();
             }
         }
-        generator.relationships[idx]['clean_javadoc'] = javadoc;
+        generator.relationships[idx]['clean_javadoc'] = javadoc ? javadoc.split("\\n").join("") : "";
        
     } 
     if(generator.formTabs.length > 0){
@@ -779,7 +913,6 @@ function analizeJavadoc(generator) {
     generator.clean_javadoc = generator.clean_javadoc ? generator.clean_javadoc.split("\\n").join("") : ""; 
     generator.javadoc = generator.clean_javadoc; 
 
-    // console.info(generator);
     return generator;
 }
 
@@ -864,9 +997,6 @@ function getEnums(enums, customValuesState) {
     });
 }
 
-function doesTheEnumValueHaveACustomValue(enumValue) {
-    return enumValue.includes('(');
-}
 function doesTheEnumValueHaveACustomValue(enumValue) {
     return enumValue.includes('(');
 }
@@ -1037,7 +1167,7 @@ function parseBlueprintInfo(blueprint) {
     }
     return {
         name: bpName,
-        version,
+        version
     };
 }
 

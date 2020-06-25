@@ -42,22 +42,22 @@ let helpBlocks = 0; %>
                 "btn_filter": "Filtrar",
                 "btn_filter_clean": "Limpar Filtros",
                 "btn_filter_open": "Filtros",
-                "createLabel": "Criar novo <%= entityClassHumanized %>",
-                "createOrEditLabel": "Criar ou editar <%= entityClassHumanized %>"<% if (searchEngine === 'elasticsearch') { %>,
-                "search": "Pesquisar por <%= entityClassHumanized %>"<% } %>,
-                "notFound": "Nenhum <%= entityClassHumanized %> encontrado"
+                "createLabel": "Criar novo <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>",
+                "createOrEditLabel": "Criar ou editar <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>"<% if (searchEngine === 'elasticsearch') { %>,
+                "search": "Pesquisar por <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>"<% } %>,
+                "notFound": "Nenhum <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> encontrado"
             },<% if (!microserviceAppName) { %>
-            "created": "Um novo <%= entityClassHumanized %> foi criado com o identificador {{ param }}",
-            "updated": "Um <%= entityClassHumanized %> foi atualizado com o identificador {{ param }}",
-            "deleted": "Um <%= entityClassHumanized %> foi excluído com o identificador {{ param }}",<% } %>
+            "created": "Um novo <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> foi criado com o identificador {{ param }}",
+            "updated": "Um <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> foi atualizado com o identificador {{ param }}",
+            "deleted": "Um <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> foi excluído com o identificador {{ param }}",<% } %>
             "delete": {
-                "question": "Tem certeza de que deseja excluir <%= entityClassHumanized %> {{ id }}?"
+                "question": "Tem certeza de que deseja excluir <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> {{ id }}?"
             },
             "detail": {
-                "title": "<%= entityClassHumanized %>"
+                "title": "<%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>"
             }<% for (idx in fields) {
             if (typeof fields[idx].clean_javadoc !== 'undefined') ++helpBlocks; %>,
-            "<%= fields[idx].fieldName %>": "<%= fields[idx].fieldNameHumanized %>"<% } %><% for (idx in relationships) { %>,
+            "<%= fields[idx].fieldName %>": "<%= fields[idx].fieldNameHumanizedPt ? fields[idx].fieldNameHumanizedPt  : fields[idx].fieldNameHumanized %>"<% } %><% for (idx in relationships) { %>,
             "<%= relationships[idx].relationshipName %>_empty": "Sem <%= relationships[idx].relationshipNameHumanized %>",
             "<%= relationships[idx].relationshipName %>": "<%= relationships[idx].relationshipNameHumanized %>"<% } if (helpBlocks > 0) { %>,
             "help": {<% for (idx in fields) {
@@ -71,9 +71,9 @@ let helpBlocks = 0; %>
     }<% if (microserviceAppName) { %>,
     "<%= microserviceAppName %>": {
         "<%= entityTranslationKey %>" : {
-            "created": "Um novo <%= entityClassHumanized %> foi criado com o identificador {{ param }}",
-            "updated": "Um <%= entityClassHumanized %> foi atualizado com o identificador {{ param }}",
-            "deleted": "Um <%= entityClassHumanized %> foi excluído com o identificador {{ param }}"
+            "created": "Um novo <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> foi criado com o identificador {{ param }}",
+            "updated": "Um <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> foi atualizado com o identificador {{ param }}",
+            "deleted": "Um <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> foi excluído com o identificador {{ param }}"
         }
     }<% } %>
 }

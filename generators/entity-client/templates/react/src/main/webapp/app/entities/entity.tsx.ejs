@@ -7,6 +7,7 @@ import { convertDateTimeFromServer, convertDateTimeToServer } from 'app/shared/u
 import { connect } from 'react-redux';
 import Select from 'react-select';
 import { Link, RouteComponentProps } from 'react-router-dom';
+import InputMask from "react-input-mask";
 import { Button, <% if (searchEngine === 'elasticsearch') { %>InputGroup, <% } %>Col, Row, Table, Label, UncontrolledTooltip, 
 <%_ if (typeof notListFilterLayout === 'undefined') {  _%>
   UncontrolledCollapse,
@@ -186,7 +187,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
         ...getSortState(this.props.location, ITEMS_PER_PAGE),
         ...get<%= entityReactName %>State(this.props.location)
         <%_ if (typeof baseFilters !== 'undefined' && baseFilters) { _%>
-          , <%= baseFilters _%>: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>']
+          , <%= baseFilters _%>Id: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>']
           , baseFilters: '<%= baseFilters _%>' 
         <%_ } _%>
         <%_ } _%>
@@ -376,7 +377,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
       totalItems<% } %>} = this.props;
     <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
       let <%= baseFilters %>BaseFilter = null; 
-      <%= baseFilters %>s.map((p)=>{ if(p.id === this.state.<%= baseFilters %>) <%= baseFilters %>BaseFilter = p });
+      <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
     <%_ } _%>
 
     const props = this.props;
@@ -412,8 +413,9 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
               <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
                 <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>"}><%= _.startCase((baseFilters+"s")) %></Link></li>
                 <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state[this.state.baseFilters]}>{
+
                   <%if (typeof baseFiltersAttributes !== 'undefined' && typeof baseFiltersAttributes['showField']!== 'undefined') { %>
-                    <%= baseFilters %>BaseFilter ? <%= baseFilters %>BaseFilter.<%= baseFiltersAttributes['showField'] %> : this.state[this.state.baseFilters]
+                    <%= baseFilters %>BaseFilter ? <%= baseFilters %>BaseFilter.<%= baseFiltersAttributes['showField'] %> : this.state[this.state.baseFilters+"Id"]
                   <% } else {%>
                     this.state[this.state.baseFilters]
                   <% }%>

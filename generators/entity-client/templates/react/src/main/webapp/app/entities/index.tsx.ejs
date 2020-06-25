@@ -36,6 +36,11 @@ import <%= entityReactName %>DeleteDialog from './<%= entityFileName %>-delete-d
 const Routes = ({ match }) => (
   <>
     <Switch>
+      <%_ if(openModalRoutes.length > 0 ){  %>
+        <%_ for(idx in openModalRoutes){  %>
+          <ErrorBoundaryRoute path={`${match.path}/:idPaciente/<%= openModalRoutes[idx] %>`} component={<%= _.startCase(openModalRoutes[idx].split("-").join(" ")).split(" ").join("") %>} />
+        <%_ } %>
+      <%_ } %>
       <%_ if (!readOnly) { _%>
       <ErrorBoundaryRoute exact path={`${match.path}/new`} component={<%= entityReactName %>Update} />
       <ErrorBoundaryRoute exact path={`${match.path}/:id/edit`} component={<%= entityReactName %>Update} />
@@ -50,7 +55,7 @@ const Routes = ({ match }) => (
     <%_ if(openModalRoutes.length > 0 ){  %>
       <Switch>
         <%_ for(idx in openModalRoutes){  %>
-            <ErrorBoundaryRoute path={`${match.path}/:idPaciente/<%= openModalRoutes[idx] %>`} component={<%= _.startCase(openModalRoutes[idx].split("-").join(" ")).split(" ").join("") %>} />
+            { /* <ErrorBoundaryRoute path={`${match.path}/:idPaciente/<%= openModalRoutes[idx] %>`} component={<%= _.startCase(openModalRoutes[idx].split("-").join(" ")).split(" ").join("") %>} /> */ }
         <%_ } %>
       </Switch>
     <%_ } %>

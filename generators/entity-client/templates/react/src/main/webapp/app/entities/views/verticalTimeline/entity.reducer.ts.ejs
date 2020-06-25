@@ -47,11 +47,14 @@ import {
   ICrudSearchAction,
   <%_ } _%>
   <%_ if (pagination === 'infinite-scroll') { _%>
-  parseHeaderForLinks, loadMoreDataWhenScrolled,
+  loadMoreDataWhenScrolled,
   <%_ } _%>
   ICrudGetAction, ICrudPutAction, ICrudDeleteAction
 } from 'react-jhipster';
 
+<%_ if (pagination === 'infinite-scroll') { _%>
+  import { parseHeaderForLinks } from 'app/shared/util/entity-utils.ts';
+  <%_ } _%>
 import { IPayload } from 'react-jhipster/src/type/redux-action.type';
 
 import { cleanEntity } from 'app/shared/util/entity-utils';

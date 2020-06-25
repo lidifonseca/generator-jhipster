@@ -1,20 +1,54 @@
 <%_ const formLayoutLabel =  field.formLayoutLabel ?  field.formLayoutLabel : 'left' ; _%>
 <%_ const formLayoutSize =  field.formLayoutSize ?  field.formLayoutSize : 12; _%>
+<%_ const formLayoutClassName = typeof field.formLayoutClassName !== 'undefined' && field.formLayoutClassName.trim() ? field.formLayoutClassName.split("**") : []; _%>
+<%_ const formLayoutInputMask = typeof field.formLayoutInputMask !== 'undefined' && field.formLayoutInputMask.trim() ? "mask='"+field.formLayoutInputMask.split("**").join(" ")+"' tag={InputMask}" : ""; _%>
+<%_ const formLayoutCepBr = typeof field.formLayoutCepBr !== 'undefined' && field.formLayoutCepBr.trim() ? field.formLayoutCepBr : ""; _%>
+
+<% const rulesValidate = field.fieldValidateRules ? field.fieldValidateRules : ""; _%>
 <% const fieldType =  field.fieldType; _%>
 <% const fieldName =  field.fieldName; _%>
 <% const fieldNameHumanized =  field.fieldNameHumanized; _%>
+
 { baseFilters !== '<%= fieldName %>' ?
-  <Col md="<%= formLayoutSize %>">
+  <Col md="<%= formLayoutSize %>"
+    <%_ if (formLayoutClassName.length > 0) { _%>className="<%= formLayoutClassName.map(v=>v+'-container').join(" ") %>"<%_ } _%>
+    >
       <AvGroup>
         <Row>
-          <%_ if (fieldType === 'Boolean') { _%>
+          <%_ if (formLayoutCepBr) { _%>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+              <Label className={"mt-2" <%_ if(rulesValidate.includes('required')){ %> + (this.state.cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>  ==="" 
+                  ? " text-danger" : "")<% } %>} id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>"
+                >
+                <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                  <%= fieldNameHumanized %>
+                </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
+              </Label>
+            </Col>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+              <input id="<%= entityFileName %>-<%= fieldName %>"  type="text" name="<%= fieldName %>"  <%- formLayoutInputMask %> 
+              className={"form-control" <%_ if(rulesValidate.includes('required')){ %> + (this.state.cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %> ===""
+                ? " is-touched is-pristine av-invalid is-invalid" : "")<% } %>}  
+              value={this.state.cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %> }  
+              <%_ if(formLayoutCepBr == "cep"){ _%>
+                onBlur={inputVal => {
+                  viacepRequest( inputVal.target.value, (cepRequest: any)=>{this.setState(cepRequest)});
+                  this.setState({cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>: inputVal.target.value ? inputVal.target.value : ""}); 
+                }}
+              <%_ } else { _%>
+                onBlur={inputVal => this.setState({cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>: inputVal.target.value ? inputVal.target.value : ""}) }  
+              <%_ } _%>
+              onChange={inputVal => this.setState({cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>: inputVal.target.value}) }  
+              />
+            </Col>
+          <%_ }  else if (fieldType === 'Boolean') { _%>
             <Col md="12">
               <Label className="mt-2" id="<%= fieldName %>Label" check>
-                <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="checkbox" className="form-control"
+                <AvInput validate={{ <%- include('../react_validators') -%> }} id="<%= entityFileName %>-<%= fieldName %>" type="checkbox" className="form-control"
                   name="<%= fieldName %>" />
                 <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
                   <%= fieldNameHumanized %>
-                </Translate>
+                </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
               </Label>
             </Col>
           <%_ } else if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
@@ -22,11 +56,11 @@
               <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
                 <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
                   <%= fieldNameHumanized %>
-                </Translate>
+                </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
               </Label>
             </Col>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-              <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="datetime-local" className="form-control"
+            <AvInput validate={{ <%- include('../react_validators') -%> }}  id="<%= entityFileName %>-<%= fieldName %>" type="datetime-local" className="form-control"
                 name="<%= fieldName %>" placeholder={"YYYY-MM-DD HH:mm"} value={isNew ? null :
                 convertDateTimeFromServer(this.props.<%= entityInstance %>Entity.<%= fieldName %>)}
                  />
@@ -36,7 +70,7 @@
               <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
                 <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
                   <%= fieldNameHumanized %>
-                </Translate>
+                </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
               </Label>
             </Col>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
@@ -51,11 +85,11 @@
             <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
               <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
                 <%= fieldNameHumanized %>
-              </Translate>
+              </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
             </Label>
           </Col>
           <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-          <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="select" className="form-control"
+          <AvInput validate={{ <%- include('../react_validators') -%> }} id="<%= entityFileName %>-<%= fieldName %>" type="select" className="form-control"
             name="<%= fieldName %>" value={(!isNew && <%= entityInstance %>Entity.<%= fieldName%>) || '<%= values[0] %>' }>
             <%_
             const enumPrefix = angularAppName + '.'+ fieldType;
@@ -77,7 +111,7 @@
               <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
                 <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
                   <%= fieldNameHumanized %>
-                </Translate>
+                </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
               </Label>
             </Col>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
@@ -98,7 +132,7 @@
                       <Label className="mt-2" id="<%= fieldName %>Label" for="<%= fieldName %>">
                         <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
                           <%= fieldNameHumanized %>
-                        </Translate>
+                        </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
                       </Label>
                     </Col>
                     <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
@@ -115,7 +149,7 @@
                         </Row>
                         <a rel="noopener noreferrer" target={"_blank"} href={`${<%= fieldName %>}`}>
                           <%_ if (isAnImage) { _%>
-                          <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+arquivoBase64) : <%= fieldName %>}`}
+                          <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+<%= fieldName %>Base64) : <%= fieldName %>}`}
                             style={{ maxHeight: '100px' }} />
                           <%_ } else { _%>
                           <Translate contentKey="entity.action.open">Open</Translate>
@@ -136,11 +170,11 @@
             <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
               <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
                 <%= fieldNameHumanized %>
-              </Translate>
+              </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
             </Label>
           </Col>
           <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-            <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="textarea" name="<%= fieldName %>"  />
+            <AvInput validate={{ <%- include('../react_validators') -%> }} id="<%= entityFileName %>-<%= fieldName %>" type="textarea" name="<%= fieldName %>"  />
           </Col>
         <%_ } _%>
       <%_ } else { _%>
@@ -148,11 +182,11 @@
           <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
             <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
               <%= fieldNameHumanized %>
-            </Translate>
+            </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
           </Label>
         </Col>
         <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-          <AvField id="<%= entityFileName %>-<%= fieldName %>" type="text" name="<%= fieldName %>"  />
+          <AvInput validate={{ <%- include('../react_validators') -%> }} id="<%= entityFileName %>-<%= fieldName %>" type="text" name="<%= fieldName %>" className={"form-control"} <%- formLayoutInputMask %> />
         </Col>
       <%_ } _%>
       <%_ if ( field.javadoc) { _%>
@@ -164,7 +198,7 @@
           <%_ } _%>
         </UncontrolledTooltip>
       <%_ } _%>
-    </Row>
+        </Row>
       </AvGroup>
     </Col> : 
     <AvInput type="hidden" name="<%= fieldName %>" value={this.state.fieldsBase[baseFilters]} /> }

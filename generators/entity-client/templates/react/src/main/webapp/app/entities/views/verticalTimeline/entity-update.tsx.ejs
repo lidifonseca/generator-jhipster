@@ -30,7 +30,7 @@
   
                     <Select 
                       id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                      value={this.state.<%= otherEntityName %>SelectValue} 
+                      value={this.state.<%= otherEntityName %>SelectValue ? this.state.<%= otherEntityName %>SelectValue : ""} 
                       options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                       onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
                       name={"<%= relationshipFieldName %>"} 
@@ -53,7 +53,7 @@
   
                     <Select 
                       id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                      value={this.state.<%= otherEntityName %>SelectValue} 
+                      value={this.state.<%= otherEntityName %>SelectValue ? this.state.<%= otherEntityName %>SelectValue : ""} 
                       options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                       onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
                       name={"<%= relationshipFieldName %>"} 
@@ -62,7 +62,7 @@
   
                     <Select 
                     id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                    value={this.state.<%= otherEntityName %>SelectValue} 
+                    value={this.state.<%= otherEntityName %>SelectValue ? this.state.<%= otherEntityName %>SelectValue : ""} 
                     options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                     onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
                     name={"<%= relationshipFieldName %>"} 
@@ -88,7 +88,7 @@
   
                 <Select 
                 id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                value={this.state.<%= otherEntityName %>SelectValue} 
+                value={this.state.<%= otherEntityName %>SelectValue ? this.state.<%= otherEntityName %>SelectValue : ""} 
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                 onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
                 name={"<%= relationshipFieldName %>"} 
@@ -97,7 +97,7 @@
   
                 <Select 
                 id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"}
-                value={this.state.<%= otherEntityName %>SelectValue} 
+                value={this.state.<%= otherEntityName %>SelectValue ? this.state.<%= otherEntityName %>SelectValue : ""} 
                 options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
                 onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options}) }
                 name={"<%= relationshipFieldName %>"} 
@@ -262,7 +262,7 @@
                           </Row>
                           <a rel="noopener noreferrer" target={"_blank"} href={`${<%= fieldName %>}`}>
                             <%_ if (isAnImage) { _%>
-                            <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+arquivoBase64) : <%= fieldName %>}`}
+                            <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+<%= fieldName %>Base64) : <%= fieldName %>}`}
                               style={{ maxHeight: '100px' }} />
                             <%_ } else { _%>
                             <Translate contentKey="entity.action.open">Open</Translate>
@@ -488,7 +488,7 @@
           this.handleClose();
         }
         <% uniqueRealtionFields.forEach(rel => { %> 
-          if (nextProps.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && nextProps.<%= entityInstance %>Entity.<%= rel.name %> && nextProps.<%= entityInstance %>Entity.<%= rel.name %>.id) {
+          if (nextProps.<%= rel.namePlural %>.length > 0 &&  this.state.<%= rel.name %>SelectValue && this.state.<%= rel.name %>SelectValue === null && nextProps.<%= entityInstance %>Entity.<%= rel.name %> && nextProps.<%= entityInstance %>Entity.<%= rel.name %>.id) {
             this.setState({<%= rel.name %>SelectValue: 
               nextProps.<%= rel.namePlural %>.map((p)=>(nextProps.<%= entityInstance %>Entity.<%= rel.name %>.id === p.id ? {value: p.id , label: p.<%=rel.otherEntityField ? rel.otherEntityField : 'id' %>} : null))
             })
@@ -606,7 +606,7 @@
                   <%= val.relationshipFieldName %>:<%= entityInstance %>Entity.<%= val.relationshipFieldName %> ? <%= entityInstance %>Entity.<%= val.relationshipFieldName %>.id: null,
                 <%_ }) _%>
               } } onSubmit={this.saveEntity}>
-          <Modal isOpen >
+          <Modal isOpen size={"lg"} >
           <ModalHeader>
           <div id="page-heading">
               <span className="page-header ml-3">

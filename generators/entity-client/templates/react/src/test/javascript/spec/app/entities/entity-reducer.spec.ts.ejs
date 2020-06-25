@@ -28,8 +28,8 @@ import promiseMiddleware from 'redux-promise-middleware';
 import thunk from 'redux-thunk';
 import sinon from 'sinon';
 <%_ if (pagination === 'infinite-scroll') { _%>
-import { parseHeaderForLinks } from 'react-jhipster';
-<%_ } _%>
+  import { parseHeaderForLinks } from 'app/shared/util/entity-utils.ts';
+  <%_ } _%>
 
 import reducer, {
   ACTION_TYPES,
