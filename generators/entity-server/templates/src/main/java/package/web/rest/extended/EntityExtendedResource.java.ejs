@@ -1,0 +1,32 @@
+package <%= packageName %>.web.rest.extended;
+
+import <%= packageName %>.web.rest.<%= entityClass %>Resource;
+import <%= packageName %>.service.extended.<%= entityClass %>ExtendedService;
+import <%= packageName %>.service.extended.<%= entityClass %>ExtendedQueryService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * REST controller for managing {@link <%= packageName %>.domain.<%= asEntity(entityClass) %>}.
+ * Please use this controller instead of modify the generated one.
+ */
+@RestController
+@RequestMapping("/api/v1")
+public class <%= entityClass %>ExtendedResource extends <%= entityClass %>Resource {
+
+    private final Logger log = LoggerFactory.getLogger(<%= entityClass %>ExtendedResource.class);
+
+    private final <%= entityClass %>ExtendedService <%= entityInstance %>ExtendedService;
+
+    private final <%= entityClass %>ExtendedQueryService <%= entityInstance %>ExtendedQueryService;
+
+    public <%= entityClass %>ExtendedResource(<%= entityClass %>ExtendedService <%= entityInstance %>ExtendedService, <%= entityClass %>ExtendedQueryService <%= entityInstance %>ExtendedQueryService) {
+        super(<%= entityInstance %>ExtendedService, <%= entityInstance %>ExtendedQueryService);
+        this.<%= entityInstance %>ExtendedService = <%= entityInstance %>ExtendedService;
+        this.<%= entityInstance %>ExtendedQueryService = <%= entityInstance %>ExtendedQueryService;
+    }
+
+}

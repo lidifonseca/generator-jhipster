@@ -1179,6 +1179,24 @@ const serverFiles = {
                 { file: 'package/repository/package-info.java', renameTo: generator => `${generator.javaDir}repository/package-info.java` },
             ],
         },
+        {
+            path: SERVER_MAIN_SRC_DIR,
+            templates: [
+                {
+                    file: 'package/repository/extended/package-info.java',
+                    renameTo: generator => `${generator.javaDir}repository/extended/package-info.java`,
+                },
+            ],
+        },
+        {
+            path: SERVER_MAIN_SRC_DIR,
+            templates: [
+                {
+                    file: 'package/service/extended/package-info.java',
+                    renameTo: generator => `${generator.javaDir}service/extended/package-info.java`,
+                },
+            ],
+        },
     ],
     serverJavaServiceError: [
         {

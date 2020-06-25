@@ -148,6 +148,18 @@ const serverFiles = {
             ],
         },
         {
+            condition: generator =>
+                !generator.embedded &&
+                !fs.existsSync(`src/main/java/${generator.packageFolder}/web/rest/extended/${generator.entityClass}ExtendedResource.java`),
+            path: SERVER_MAIN_SRC_DIR,
+            templates: [
+                {
+                    file: 'package/web/rest/extended/EntityExtendedResource.java',
+                    renameTo: generator => `${generator.packageFolder}/web/rest/extended/${generator.entityClass}ExtendedResource.java`,
+                },
+            ],
+        },
+        {
             condition: generator => generator.jpaMetamodelFiltering,
             path: SERVER_MAIN_SRC_DIR,
             templates: [
@@ -232,13 +244,30 @@ const serverFiles = {
             ],
         },
         {
-            condition: generator => generator.service === 'serviceClass' && !generator.embedded &&
+            condition: generator =>
+                generator.service === 'serviceClass' &&
+                !generator.embedded &&
                 !fs.existsSync(`src/main/java/${generator.packageFolder}/service/extended/${generator.entityClass}ExtendedService.java`),
             path: SERVER_MAIN_SRC_DIR,
             templates: [
                 {
                     file: 'package/service/extended/EntityExtendedService.java',
                     renameTo: generator => `${generator.packageFolder}/service/extended/${generator.entityClass}ExtendedService.java`,
+                },
+            ],
+        },
+        {
+            condition: generator =>
+                generator.service === 'serviceClass' &&
+                !generator.embedded &&
+                !fs.existsSync(
+                    `src/main/java/${generator.packageFolder}/service/extended/${generator.entityClass}ExtendedQueryService.java`
+                ),
+            path: SERVER_MAIN_SRC_DIR,
+            templates: [
+                {
+                    file: 'package/service/extended/EntityExtendedQueryService.java',
+                    renameTo: generator => `${generator.packageFolder}/service/extended/${generator.entityClass}ExtendedQueryService.java`,
                 },
             ],
         },

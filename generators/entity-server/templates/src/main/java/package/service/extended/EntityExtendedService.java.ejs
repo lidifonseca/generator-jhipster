@@ -1,0 +1,62 @@
+package <%= packageName %>.service.extended;
+
+<%_
+const serviceClassName = service === 'serviceImpl' ? entityClass + 'ServiceImpl' : entityClass + 'Service';
+const instanceType = (dto === 'mapstruct') ? asDto(entityClass) : asEntity(entityClass);
+const instanceName = (dto === 'mapstruct') ? asDto(entityInstance) : asEntity(entityInstance);
+const optionalOrMono = (reactive === true) ? 'Mono' : 'Optional';
+const listOrFlux = (reactive === true) ? 'Flux' : 'List';
+const pageOrFlux = (reactive === true) ? 'Flux' : 'Page';
+const mapper = entityInstance  + 'Mapper';
+const dtoToEntity = mapper + '.'+ 'toEntity';
+const entityToDto = 'toDto';
+const entityToDtoReference = mapper + '::'+ 'toDto';
+const repository = entityInstance  + 'Repository';
+const searchRepository = entityInstance  + 'SearchRepository';
+let isUsingMapsId = false;
+let mapsIdAssoc;
+for (idx in relationships) {
+    isUsingMapsId = relationships[idx].useJPADerivedIdentifier === true;
+    if (isUsingMapsId) {
+        mapsIdAssoc = relationships[idx];
+        break;
+    }
+}
+_%>
+import <%= packageName %>.service.<%= asEntity(entityClass) %>Service;
+import  <%= packageName %>.repository.extended.<%= entityClass %>ExtendedRepository;
+<%_ if (service === 'serviceImpl') { _%>
+import <%= packageName %>.service.<%= entityClass %>Service;
+<%_ } _%>
+import <%= packageName %>.domain.<%= asEntity(entityClass) %>;
+<%_ if (isUsingMapsId === true) { _%>
+import <%= packageName %>.repository.<%= mapsIdAssoc.otherEntityNameCapitalized %>Repository;
+<%_ } _%>
+<%_ if (searchEngine === 'elasticsearch') { _%>
+import <%= packageName %>.repository.search.<%= entityClass %>SearchRepository;
+<%_ } _%>
+<%_ if (dto === 'mapstruct') { _%>
+import <%= packageName %>.service.dto.<%= asDto(entityClass) %>;
+import <%= packageName %>.service.mapper.<%= entityClass %>Mapper;
+<%_ } _%>
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+/**
+ * Service side by side implementation for managing {@link <%= asEntity(entityClass) %>}.
+ * Please use this service instead of modify the generated one.
+ */
+@Service
+public class <%= entityClass %>ExtendedService extends <%= serviceClassName %> <% if (service === 'serviceImpl') { %> implements <%= entityClass %>Service<% } %> {
+
+    private final Logger log = LoggerFactory.getLogger(<%= serviceClassName %>.class);
+
+    private final <%= entityClass %>ExtendedRepository <%= entityInstance %>ExtendedRepository;
+
+    public <%= entityClass %>ExtendedService(<%= entityClass %>ExtendedRepository <%= entityInstance %>ExtendedRepository) {
+        super(<%= entityInstance %>ExtendedRepository);
+        this.<%= entityInstance %>ExtendedRepository = <%= entityInstance %>ExtendedRepository;
+    }
+
+}
