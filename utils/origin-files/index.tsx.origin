@@ -1,21 +1,40 @@
+/* eslint complexity: ["error", 200] */
+
 import React from 'react';
-import { Switch } from 'react-router-dom';
+import { Switch, RouteComponentProps } from 'react-router-dom';
+import { hasAnyAuthority } from 'app/shared/auth/private-route';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ErrorBoundaryRoute from 'app/shared/error/error-boundary-route';
 
 import PageNotFound from 'app/shared/error/page-not-found';
-
+import { connect } from 'react-redux';
+import { IRootState } from 'app/shared/reducers';
+import { hot } from 'react-hot-loader';
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
-const Routes = ({ match }) => (
+export interface IEntityProps extends StateProps, DispatchProps, RouteComponentProps<{ url: string }> {}
+const component = [
+  /* jhipster-needle-add-route-path - JHipster will add routes here */
+];
+const Routes = (props: IEntityProps) => (
   <div>
     <Switch>
-   
-      {/* jhipster-needle-add-route-path - JHipster will add routes here */}
+      {component.map(v =>
+          <ErrorBoundaryRoute path={`${props.match.url + v.name}`} component={v.component} />
+      )}
       <ErrorBoundaryRoute component={PageNotFound} />
     </Switch>
   </div>
 );
 
-export default Routes;
+const mapStateToProps = ({ authentication }: IRootState) => ({
+  userAccount: authentication.account,
+});
+
+const mapDispatchToProps = {};
+
+type StateProps = ReturnType<typeof mapStateToProps>;
+type DispatchProps = typeof mapDispatchToProps;
+
+export default connect(mapStateToProps, mapDispatchToProps)(hot(module)(Routes));
