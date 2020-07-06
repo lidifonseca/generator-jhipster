@@ -348,8 +348,8 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
         <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
-          <%= fields[idx].fieldName %>?: any,
-          <%= fields[idx].fieldName %>?: any,
+          <%= fields[idx].fieldName %>Start?: any,
+          <%= fields[idx].fieldName %>End?: any,
         <%_ } else {  _%>
           <%= fields[idx].fieldName %>?: any,
         <%_ } _%>
@@ -591,14 +591,16 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
 }
 
 <%_ if (!readOnly) { _%>
-export const createEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, listFiltersPage)  => async dispatch => {
+export const createEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, listFiltersPage )  => async dispatch => {
   const result = await dispatch({
     type: ACTION_TYPES.CREATE_<%= entityActionName %>,
     payload: axios.post(apiUrl, cleanEntity(entity))
   });
   <%_ if (pagination !== 'infinite-scroll') { _%>
-    await dispatch(reset());
-    dispatch(getEntities(...listFiltersPage));
+    if(listFiltersPage !== false && listFiltersPage['reloadList'] !== false){
+      await dispatch(reset());
+      dispatch(getEntities(...listFiltersPage));
+    }
   <%_ } _%>
   return result;
 };
@@ -609,8 +611,10 @@ export const updateEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, li
     payload: axios.put(apiUrl, cleanEntity(entity))
   });
   <%_ if (pagination !== 'infinite-scroll') { _%>
-    await dispatch(reset());
-    dispatch(getEntities(...listFiltersPage));
+    if(listFiltersPage !== false && listFiltersPage['reloadList'] !== false){
+      await dispatch(reset());
+      dispatch(getEntities(...listFiltersPage));
+    }
   <%_ } _%>
   return result;
 };

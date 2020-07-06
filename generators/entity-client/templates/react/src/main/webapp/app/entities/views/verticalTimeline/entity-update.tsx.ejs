@@ -265,7 +265,7 @@
                             <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+<%= fieldName %>Base64) : <%= fieldName %>}`}
                               style={{ maxHeight: '100px' }} />
                             <%_ } else { _%>
-                            <Translate contentKey="%= i18nKeyPrefix %>.btnOpen">Open</Translate>
+                            <Translate contentKey="<%= i18nKeyPrefix %> %>.btnOpen">Open</Translate>
                             <%_ } _%>
                           </a>
                           <br />
@@ -763,7 +763,7 @@
                         <Button color="primary" id="save-entity" type="submit" disabled={updating}
                           className="btn btn-primary float-right jh-create-entity">
                           <FontAwesomeIcon icon="save" />&nbsp;
-                          <Translate contentKey="%= i18nKeyPrefix %>.btnSave">Save</Translate>
+                          <Translate contentKey="<%= i18nKeyPrefix %> %>.btnSave">Save</Translate>
                         </Button>
                         : null }
                         <%_ } _%>
@@ -823,7 +823,7 @@
                         <Button color="primary" id="save-entity" type="submit" disabled={updating}
                           className="btn btn-primary float-right jh-create-entity">
                           <FontAwesomeIcon icon="save" />&nbsp;
-                          <Translate contentKey="%= i18nKeyPrefix %>.btnSave">Save</Translate>
+                          <Translate contentKey="<%= i18nKeyPrefix %> %>.btnSave">Save</Translate>
                         </Button>
                         : null }
   

@@ -348,8 +348,8 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
         <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
-          <%= fields[idx].fieldName %>?: any,
-          <%= fields[idx].fieldName %>?: any,
+          <%= fields[idx].fieldName %>Start?: any,
+          <%= fields[idx].fieldName %>End?: any,
         <%_ } else {  _%>
           <%= fields[idx].fieldName %>?: any,
         <%_ } _%>

@@ -181,7 +181,7 @@
                           <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+<%= fieldName %>Base64) : <%= fieldName %>}`}
                             style={{ maxHeight: '100px' }} />
                           <%_ } else { _%>
-                          <Translate contentKey="%= i18nKeyPrefix %>.btnOpen">Open</Translate>
+                          <Translate contentKey="<%= i18nKeyPrefix %> %>.btnOpen">Open</Translate>
                           <%_ } _%>
                         </a>
                         <br />
