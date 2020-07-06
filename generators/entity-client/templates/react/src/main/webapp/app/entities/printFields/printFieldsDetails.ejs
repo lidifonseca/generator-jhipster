@@ -43,14 +43,14 @@
               <%_ if (fieldBlobType === 'image') { _%>
                 <img src={`${<%= entityInstance %>Entity.<%= fieldName %>}`} style={{ maxHeight: '30px' }} />
               <%_ } else { _%>
-                <Translate contentKey="entity.action.open">Open</Translate>&nbsp;
+                <Translate contentKey="%= i18nKeyPrefix %>.btnOpen">Open</Translate>&nbsp;
               <%_ } _%>
               </a>
               <a rel="noopener noreferrer" target={"_blank"} href={`${<%= entityInstance %>Entity.<%= fieldName %>}`}>
                 { (<%= entityInstance %>Entity.<%= fieldName %>ContentType && <%= entityInstance %>Entity.<%= fieldName %>ContentType.includes("image/")) ? 
                   <img src={`${<%= entityInstance %>Entity.<%= fieldName %>}`} style={{ maxHeight: '30px' }} />
                   :
-                  <Translate contentKey="entity.action.open">Open</Translate>
+                  <Translate contentKey="%= i18nKeyPrefix %>.btnOpen">Open</Translate>
                 } 
               </a>
             </div>

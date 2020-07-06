@@ -175,7 +175,7 @@ _%>
                 const fieldName = fields[idx].fieldName;
                 const fieldType = fields[idx].fieldType;
             _%>
-                <%_ if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+                <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
                 <%= entityInstance %>.<%= fieldName %> = today;
                 <%_ } _%>
             <%_ } _%>
@@ -199,7 +199,7 @@ _%>
         const fieldType = fields[idx].fieldType;
         const fieldTypeBlobContent = fields[idx].fieldTypeBlobContent;
     _%>
-        <%_ if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
             <%= fieldName %>: <%= entityInstance %>.<%= fieldName %> ? <%= entityInstance %>.<%= fieldName %>.format(DATE_TIME_FORMAT) : null,
         <%_ } else if (['byte[]', 'ByteBuffer'].includes(fieldType) && fieldTypeBlobContent !== 'text') { _%>
             <%= fieldName %>: <%= entityInstance %>.<%= fieldName %>,
@@ -283,7 +283,7 @@ _%>
         const fieldType = fields[idx].fieldType;
         const fieldTypeBlobContent = fields[idx].fieldTypeBlobContent;
     _%>
-        <%_ if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
             <%= fieldName %>: this.editForm.get(['<%= fieldName %>'])!.value ? moment(this.editForm.get(['<%= fieldName %>'])!.value, DATE_TIME_FORMAT) : undefined,
         <%_ } else if (['byte[]', 'ByteBuffer'].includes(fieldType) && fieldTypeBlobContent !== 'text') { _%>
             <%= fieldName %>ContentType: this.editForm.get(['<%= fieldName %>ContentType'])!.value,

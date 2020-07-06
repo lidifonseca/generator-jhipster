@@ -274,6 +274,39 @@ const reactFiles = {
                 }
             ]
         },
+        { 
+            condition: generator => ((typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/extended/${generator.entityFileName}-detail.tsx`)),
+            path: REACT_DIR,
+            templates: [
+                {
+                    file: 'entities/extended/entity-detail.tsx',
+                    method: 'processJsx',
+                    renameTo: generator => `entities/${generator.entityFolderName}/extended/${generator.entityFileName}-detail.tsx`
+                },
+            ]
+        },
+        { 
+            condition: generator => ((typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/extended/${generator.entityFileName}-update.tsx`)),
+            path: REACT_DIR,
+            templates: [
+                {
+                    file: 'entities/extended/entity-update.tsx',
+                    method: 'processJsx',
+                    renameTo: generator => `entities/${generator.entityFolderName}/extended/${generator.entityFileName}-update.tsx`
+                },
+            ]
+        },
+        { 
+            condition: generator => ((typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/extended/${generator.entityFileName}.tsx`)),
+            path: REACT_DIR,
+            templates: [
+                {
+                    file: 'entities/extended/entity.tsx',
+                    method: 'processJsx',
+                    renameTo: generator => `entities/${generator.entityFolderName}/extended/${generator.entityFileName}.tsx`
+                },
+            ]
+        },
         {
             condition: generator => !generator.readOnly && !generator.embedded && (typeof generator['personalizeView'] == 'undefined' || generator['personalizeView'] == 'default'),
             path: REACT_DIR,

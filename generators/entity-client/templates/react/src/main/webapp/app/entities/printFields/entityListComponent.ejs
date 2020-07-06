@@ -49,9 +49,10 @@
               <%_ } _%>
             <%_ } _%>
         <%_ } _%>
-
         
+        <% if (typeof notlistButtons === "undefined" || notlistButtons == false || notlistButtons == "false") { %>
         <th />
+        <%_ } _%>
       </tr>
     </thead>
     <tbody>
@@ -85,20 +86,21 @@
           <%_ } _%>
 
 
+          <% if (typeof notlistButtons === "undefined" || notlistButtons == false || notlistButtons == "false") { %>
          
           <td className="text-right">
             <%_  if (listButtonsInDropdown !== true) { _%>
               <div className="btn-group flex-btn-group-container">
               <%_ if (listButtons.length === 0) { _%>
                   <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}?${get<%= entityReactName %>FiltersURL(state)}`} color="info" size="sm">
-                    <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline" ><Translate contentKey="entity.action.view">View</Translate></span>
+                    <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline" ><Translate contentKey="%= i18nKeyPrefix %>.btnView">View</Translate></span>
                   </Button>
                   <%_ if (!readOnly) { _%>
                     <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/edit?${get<%= entityReactName %>FiltersURL(state)}`} color="primary" size="sm">
-                      <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="entity.action.edit">Edit</Translate></span>
+                      <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="%= i18nKeyPrefix %>.btnEdit">Edit</Translate></span>
                     </Button>
                     <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/delete?${get<%= entityReactName %>FiltersURL(state)}`} color="danger" size="sm">
-                      <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline"><Translate contentKey="entity.action.delete">Delete</Translate></span>
+                      <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline"><Translate contentKey="%= i18nKeyPrefix %>.btnDelete">Delete</Translate></span>
                     </Button>
                   <%_ } _%>
                 <%_ } else { _%>
@@ -134,7 +136,9 @@
               <%_ } _%>
               <Dropdown isOpen={state.dropdownButtons[i]} toggle={()=>this.toggle(i)}>
                 <DropdownToggle caret> 
-                    <Translate contentKey="<%= i18nKeyPrefix %>.dropdown_btn">Actions</Translate>
+                    <%_ if (typeof btnActions != "undefined" && btnActions.trim() != ""){ _%>
+                      <Translate contentKey="<%= i18nKeyPrefix %>.btnActions"><%= btnActions _%></Translate>
+                    <%_ } _%>
                 </DropdownToggle>
                 <DropdownMenu right>
                   <%_ for (idx in listButtons) { _%>
@@ -154,6 +158,7 @@
               </Dropdown>
             <%_ } _%>
           </td>
+          <%_ } _%>
           </tr>
         ))
       }

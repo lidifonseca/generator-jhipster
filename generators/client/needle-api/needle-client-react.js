@@ -60,8 +60,8 @@ module.exports = class extends needleClientBase {
 
             const indexAddRoutePathRewriteFileModel = this.generateFileModel(
                 indexModulePath,
-                'jhipster-needle-add-route-path',
-                this.generator.stripMargin(`|<ErrorBoundaryRoute path={\`\${match.url}${entityFileName}\`} component={${entityName}} />`)
+                'jhipster-needle-add-route-path', // prettier-ignore
+                this.generator.stripMargin(`{name: "${entityFileName}", component: ${entityName}},`)
             );
             this.addBlockContentToFile(indexAddRoutePathRewriteFileModel, errorMessage(indexModulePath));
         }

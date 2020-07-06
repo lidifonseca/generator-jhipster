@@ -57,11 +57,11 @@ export class <%= entityReactName %>DeleteDialog extends React.Component<I<%= ent
       <ModalFooter>
         <Button color="secondary" onClick={this.handleClose}>
           <FontAwesomeIcon icon="ban" />&nbsp;
-          <Translate contentKey="entity.action.cancel">Cancel</Translate>
+          <Translate contentKey="%= i18nKeyPrefix %>.btnCancel">Cancel</Translate>
         </Button>
         <Button id="<%= jhiPrefixDashed %>-confirm-delete-<%= entityInstance %>" color="danger" onClick={this.confirmDelete}>
           <FontAwesomeIcon icon="trash" />&nbsp;
-          <Translate contentKey="entity.action.delete">Delete</Translate>
+          <Translate contentKey="%= i18nKeyPrefix %>.btnDelete">Delete</Translate>
         </Button>
       </ModalFooter>
     </Modal>

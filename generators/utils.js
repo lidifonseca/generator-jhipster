@@ -476,8 +476,9 @@ function getEnumInfo(field, clientRootFolder) {
 }
 
 
-function analizeJavadoc(generator) {
 
+function analizeJavadoc(generator) {
+    generator.faker = faker;
     generator.addSubRelation = [];
     generator.openModalRoutes = [];
     generator.formTabs = [];
@@ -554,7 +555,7 @@ function analizeJavadoc(generator) {
                         }
                     }
                 }
-                else if((["listButtons","viewButtons"]).indexOf(parameter[0]) !== -1) {
+                else if((["listTopButtons","listButtons","viewButtons"]).indexOf(parameter[0]) !== -1) {
                     
                     for (const key in parameter) {
                         if (key > 0) {
@@ -571,6 +572,7 @@ function analizeJavadoc(generator) {
                                         generator[parameter[0]+'InDropdown'] = true;
                                     }
                                 }
+                                generator[parameter[0]] = generator[parameter[0]] ? generator[parameter[0]] : [];
                                 generator[parameter[0]].push(button);
                             }
                         }
@@ -581,8 +583,146 @@ function analizeJavadoc(generator) {
                         if (key > 0) {
                             const element = parameter[key];
                             const value = element.trim().split("}")[0].split("{");
+                            
+                            if('createdBy' === value[0]) {
+                                let createdByParameter = {
+                                    name:'createdBy',
+                                    relationshipName:'createdBy',
+                                    type: 'relationship',
+                                    entity: {
+                                        relationshipType: 'many-to-one',
+                                        otherEntityName: 'user',
+                                        otherEntityRelationshipName: generator.entityInstance,
+                                        relationshipName: 'createdBy',
+                                        otherEntityField: 'login',
+                                        otherEntityRelationshipNamePlural: generator.entityInstancePlural,
+                                        otherEntityRelationshipNameCapitalized: generator.entityClass,
+                                        otherEntityRelationshipNameCapitalizedPlural: generator.entityClassPlural,
+                                        relationshipNameCapitalized: 'CreatedBy',
+                                        relationshipNameCapitalizedPlural: 'CreatedBies',
+                                        relationshipNameHumanized: 'Created By',
+                                        relationshipNamePlural: 'createdBies',
+                                        relationshipFieldName: 'createdBy',
+                                        relationshipFieldNamePlural: 'createdBies',
+                                        otherEntityTableName: 'jhi_user',
+                                        otherEntityNamePlural: 'users',
+                                        otherEntityNameCapitalized: 'User',
+                                        otherEntityAngularName: 'User',
+                                        otherEntityNameCapitalizedPlural: 'Users',
+                                        otherEntityFieldCapitalized: 'Login',
+                                        otherEntityStateName: 'user',
+                                        otherEntityModuleName: 'GeneradorSharedModule',
+                                        otherEntityModulePath: 'app/core',
+                                        clean_javadoc: ''
+                                    }
+                                };
+                                if(value.length > 1){
+                                    const fields = value[1].split(",");
+                                    for (const i in fields) {
+                                        const element = fields[i].split(":");
+                                        createdByParameter[parameter[0]+element[0]] = element[1];
+                                    }
+                                } else {
+                                    createdByParameter[parameter[0]] = true;
+                                }
+                                generator[parameter[0]].push(createdByParameter);
+                            } else if('createdDate' === value[0]) {
+                                let createdDateParameter = {
+                                    name:'createdDate',
+                                    type: 'field',
+                                    entity:  {
+                                        fieldName: 'createdDate',
+                                        fieldType: 'Instant',
+                                        fieldIsEnum: false,
+                                        fieldNameCapitalized: 'CreatedDate',
+                                        fieldNameUnderscored: 'created_date',
+                                        fieldNameAsDatabaseColumn: 'created_date',
+                                        fieldNameHumanized: 'Created Date',
+                                        fieldInJavaBeanMethod: 'CreatedDate',
+                                        fieldValidate: false
+                                    }
+                                };
+                                if(value.length > 1){
+                                    const fields = value[1].split(",");
+                                    for (const i in fields) {
+                                        const element = fields[i].split(":");
+                                        createdDateParameter[parameter[0]+element[0]] = element[1];
+                                    }
+                                } else {
+                                    createdDateParameter[parameter[0]] = true;
+                                }
+                                generator[parameter[0]].push(createdDateParameter);
+                            } else if('lastModifiedBy' === value[0]) {
+                                let lastModifiedByParameter = {
+                                    name:'lastModifiedBy',
+                                    relationshipName:'lastModifiedBy',
+                                    type: 'relationship',
+                                    entity:  {
+                                        relationshipType: 'many-to-one',
+                                        otherEntityName: 'user',
+                                        otherEntityRelationshipName: generator.entityInstance,
+                                        relationshipName: 'lastModifiedBy',
+                                        otherEntityField: 'login',
+                                        otherEntityRelationshipNamePlural: generator.entityInstancePlural,
+                                        otherEntityRelationshipNameCapitalized: generator.entityClass,
+                                        otherEntityRelationshipNameCapitalizedPlural: generator.entityClassPlural,
+                                        relationshipNameCapitalized: 'LastModifiedBy',
+                                        relationshipNameCapitalizedPlural: 'LastModifiedBies',
+                                        relationshipNameHumanized: 'Last Modified By',
+                                        relationshipNamePlural: 'lastModifiedBies',
+                                        relationshipFieldName: 'lastModifiedBy',
+                                        relationshipFieldNamePlural: 'lastModifiedBies',
+                                        otherEntityTableName: 'jhi_user',
+                                        otherEntityNamePlural: 'users',
+                                        otherEntityNameCapitalized: 'User',
+                                        otherEntityAngularName: 'User',
+                                        otherEntityNameCapitalizedPlural: 'Users',
+                                        otherEntityFieldCapitalized: 'Login',
+                                        otherEntityStateName: 'user',
+                                        otherEntityModuleName: 'GeneradorSharedModule',
+                                        otherEntityModulePath: 'app/core',
+                                        clean_javadoc: ''
+                                    }
+                                };
+                                if(value.length > 1){
+                                    const fields = value[1].split(",");
+                                    for (const i in fields) {
+                                        const element = fields[i].split(":");
+                                        lastModifiedByParameter[parameter[0]+element[0]] = element[1];
+                                    }
+                                } else {
+                                    lastModifiedByParameter[parameter[0]] = true;
+                                }
+                                generator[parameter[0]].push(lastModifiedByParameter);
+                            } else if('lastModifiedDate' === value[0]) {
+                                let lastModifiedDateParameter = {
+                                    name:'lastModifiedDate',
+                                    type: 'field',
+                                    entity:  {
+                                        fieldName: 'lastModifiedDate',
+                                        fieldType: 'Instant',
+                                        fieldIsEnum: false,
+                                        fieldNameCapitalized: 'LastModifiedDate',
+                                        fieldNameUnderscored: 'last_modified_date',
+                                        fieldNameAsDatabaseColumn: 'last_modified_date',
+                                        fieldNameHumanized: 'Last Modified Date',
+                                        fieldInJavaBeanMethod: 'LastModifiedDate',
+                                        fieldValidate: false
+                                    }
+                                };
+                                if(value.length > 1){
+                                    const fields = value[1].split(",");
+                                    for (const i in fields) {
+                                        const element = fields[i].split(":");
+                                        lastModifiedDateParameter[parameter[0]+element[0]] = element[1];
+                                    }
+                                } else {
+                                    lastModifiedDateParameter[parameter[0]] = true;
+                                }
+                                generator[parameter[0]].push(lastModifiedDateParameter);
+                            }
                          
-                            for (idx in generator.fields) { 
+                            for (idx in generator.fields) {
                                 if(generator.fields[idx].fieldName === value[0] ){
                                     generator[parameter[0]].push({
                                         name: generator.fields[idx].fieldName,
@@ -593,7 +733,16 @@ function analizeJavadoc(generator) {
                                         const fields = value[1].split(",");
                                         for (const i in fields) {
                                             const element = fields[i].split(":");
-                                            generator.fields[idx][parameter[0]+element[0]] = element[1];
+                                            if(["ShowCondition","ListCondition"].indexOf(element[0]) !== -1){
+                                                if(typeof generator.fields[idx][parameter[0]+element[0]] === "undefined"){
+                                                    generator.fields[idx][parameter[0]+element[0]] = [];
+                                                } 
+                                                if(generator.fields[idx][parameter[0]+element[0]].indexOf(element[1].split("*-*").join(" ")) === -1){
+                                                    generator.fields[idx][parameter[0]+element[0]].push(element[1].split("*-*").join(" "));
+                                                }
+                                            } else {
+                                                generator.fields[idx][parameter[0]+element[0]] = element[1];
+                                            }
                                         }
                                     } else {
                                         generator.fields[idx][parameter[0]] = true;
@@ -691,7 +840,16 @@ function analizeJavadoc(generator) {
                                         const fields = value[1].split(",");
                                         for (const i in fields) {
                                             const element = fields[i].split(":");
-                                            generator.relationships[idx][parameter[0]+element[0]] = element[1];
+                                            if(["ShowCondition","ListCondition"].indexOf(element[0]) !== -1) {
+                                                if(typeof generator.relationships[idx][parameter[0]+element[0]] === "undefined"){
+                                                    generator.relationships[idx][parameter[0]+element[0]] = [];
+                                                }
+                                                if(generator.relationships[idx][parameter[0]+element[0]].indexOf(element[1].split("*-*").join(" ")) === -1){
+                                                    generator.relationships[idx][parameter[0]+element[0]].push(element[1].split("*-*").join(" "));
+                                                }
+                                            } else {
+                                                generator.relationships[idx][parameter[0]+element[0]] = element[1];
+                                            }
                                         }
                                     } else {
                                         generator.relationships[idx][parameter[0]] = true;
@@ -730,6 +888,7 @@ function analizeJavadoc(generator) {
             generator.fields[idx]['clean_javadoc'] = javadoc ? javadoc.split("\\n").join("") : "";
         }
     }
+
     for (idx in generator.relationships) { 
         let javadoc = generator.relationships[idx].javadoc; 
         if(javadoc) {
@@ -743,7 +902,7 @@ function analizeJavadoc(generator) {
         }
         generator.relationships[idx]['clean_javadoc'] = javadoc ? javadoc.split("\\n").join("") : "";
        
-    } 
+    }
     if(generator.formTabs.length > 0){
         generator.defaultFormTab = false;
         for (idx in generator.fields) { 
@@ -780,6 +939,7 @@ function analizeJavadoc(generator) {
 
     return generator;
 }
+
 /**
  * @Deprecated
  * Build an enum object, deprecated use getEnumInfoInstead

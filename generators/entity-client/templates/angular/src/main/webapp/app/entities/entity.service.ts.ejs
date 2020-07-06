@@ -101,7 +101,7 @@ export class <%= entityAngularName %>Service {
     protected convertDateFromClient(<%= entityInstance %>: I<%= entityAngularName %>): I<%= entityAngularName %> {
         const copy: I<%= entityAngularName %> = Object.assign({}, <%= entityInstance %>, {
     <%_ for (idx in fields) { _%>
-        <%_ if ( ['Instant', 'ZonedDateTime'].includes(fields[idx].fieldType) ) { _%>
+        <%_ if ( ['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType) ) { _%>
         <%= fields[idx].fieldName %>: <%= entityInstance %>.<%= fields[idx].fieldName %> && <%= entityInstance %>.<%= fields[idx].fieldName %>.isValid() ? <%= entityInstance %>.<%= fields[idx].fieldName %>.toJSON() : undefined,
         <%_ } _%>
         <%_ if ( fields[idx].fieldType === 'LocalDate' ) { _%>

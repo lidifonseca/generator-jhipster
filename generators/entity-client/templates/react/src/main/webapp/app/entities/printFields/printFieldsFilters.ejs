@@ -11,26 +11,42 @@ _%>
     <Col md="<%= listFilterLayoutSize %>">
       <Row className="mr-1 mt-1">
         <%_ if (fieldType === 'Boolean') { _%>
-        <Label id="<%= fieldName %>Label" check>
-          <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="checkbox" className="form-control" name="<%= fieldName %>" />
-          <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
-            <%= fieldNameHumanized %>
-          </Translate>
-        </Label>
-        <%_ } else if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
-        <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
-          <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
-            <%= fieldNameHumanized %>
-          </Translate>
-        </Label>
-        <AvInput
-          id="<%= entityFileName %>-<%= fieldName %>"
-          type="datetime-local"
-          className="form-control"
-          name="<%= fieldName %>"
-          placeholder={"YYYY-MM-DD HH:mm"}
-          value={this.state.<%= fieldName %> ? convertDateTimeFromServer(this.state.<%= fieldName %>) : null }
-        />
+        <div className="col-xs-12 checkbox checkbox-css pt-4">
+          <Label id="<%= fieldName %>Label" check>
+            <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="checkbox" className="form-control" name="<%= fieldName %>" />
+            <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+              <%= fieldNameHumanized %>
+            </Translate>
+          </Label>
+        </div>
+
+        <%_ } else if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+          <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>_start">
+            <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>_start">
+              <%= fieldNameHumanized %> (start)
+            </Translate>
+          </Label>
+          <AvInput
+            id="<%= entityFileName %>-<%= fieldName %>"
+            type="date"
+            className="form-control"
+            name="<%= fieldName %>[start]"
+            placeholder={"YYYY-MM-DD"}
+            value={this.state.<%= fieldName %>Start ? convertDateFromServer(this.state.<%= fieldName %>Start) : null }
+          />
+          <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>_end">
+            <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>_end">
+              <%= fieldNameHumanized %> (end)
+            </Translate>
+          </Label>
+          <AvInput
+            id="<%= entityFileName %>-<%= fieldName %>"
+            type="date"
+            className="form-control"
+            name="<%= fieldName %>[end]"
+            placeholder={"YYYY-MM-DD"}
+            value={this.state.<%= fieldName %>End ? convertDateFromServer(this.state.<%= fieldName %>End) : null }
+          />
         <%_ } else if (fieldType === 'LocalDate') { _%>
         <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
           <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">

@@ -1,0 +1,48 @@
+import React from 'react';
+import { connect } from 'react-redux';
+<%_ let baseFiltersModal = false; _%>
+<%_  if(this.generator.baseFiltersAttributes && this.generator.baseFiltersAttributes['window'] === "modal") { _%>
+  <%_ baseFiltersModal = true; _%>
+  import { Modal as Panel, ModalHeader as PanelHeader, ModalBody as PanelBody, ModalFooter as PanelFooter } from 'reactstrap';
+<%_ } else { _%> 
+  import {Panel, PanelHeader, PanelBody} from 'app/shared/layout/panel/panel.tsx';
+<%_ } _%> 
+import { <%= entityReactName %>Detail, mapStateToProps, mapDispatchToProps } from '../<%= entityFileName %>-detail';
+
+
+export class <%= entityReactName %>ExtendedDetail extends <%= entityReactName %>Detail {
+  renderHeader() {
+    return <> { super.renderHeader() } </>
+  }
+
+  renderBody() {
+    return <> { super.renderBody() } </>
+  }
+
+  render() {
+    return (
+      <div>
+      <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
+        <PanelHeader>
+          { this.renderHeader() }
+        </PanelHeader>
+        <PanelBody>
+          { this.renderBody() }
+        </PanelBody>
+          </Panel>
+        </div>
+      );
+  }
+}
+
+
+export const mapStateToPropsExtended = mapStateToProps;
+
+export const mapDispatchToPropsExtended = {
+ ...mapDispatchToProps
+};
+
+type StateProps = ReturnType<typeof mapStateToPropsExtended >;
+    type DispatchProps = typeof mapDispatchToPropsExtended;
+    
+    export default connect(mapStateToPropsExtended, mapDispatchToPropsExtended)(<%= entityReactName %>ExtendedDetail);

@@ -17,17 +17,19 @@
  limitations under the License.
 -%>
 <%
+
 const primaryKeyType = getPkTypeBasedOnDBAndAssociation(authenticationType, databaseType, relationships);
 const variablesWithTypes = generateEntityClientFields(primaryKeyType, fields, relationships, dto);
 const typeImports = generateEntityClientImports(relationships, dto);
 const defaultVariablesValues = generateEntityClientFieldDefaultValues(fields, 'react');
 const enumImports = generateEntityClientEnumImports(fields);
 %>
-<%_ if (fieldsContainInstant || fieldsContainZonedDateTime || fieldsContainLocalDate) { _%>
 import { Moment } from 'moment';
-<%_ } _%>
+import { IUser } from 'app/shared/model/user.model';
 <%_ typeImports.forEach( (importedPath, importedType) => { _%>
-import { <%- importedType %> } from '<%- importedPath %>';
+<%_ if (importedType !== 'IUser') { _%>
+    import { <%- importedType %> } from '<%- importedPath %>';
+<%_ } _%>
 <%_ }); _%>
 <%_ enumImports.forEach( (importedPath, importedType) => { _%>
 import { <%- importedType %> } from '<%- importedPath %>';
@@ -37,8 +39,14 @@ export interface I<%= entityReactName %> {
     <%_ variablesWithTypes.forEach(variablesWithType => { _%>
     <%- variablesWithType %>;
     <%_ }); _%>
+    createdBy?: IUser,
+    createdDate?: Moment,
+    lastModifiedBy?: IUser,
+    lastModifiedDate?: Moment,
+    deletedAt?: Moment
 }
 
 export const defaultValue:  Readonly<I<%= entityReactName %>> = {
 <% for (idx in defaultVariablesValues) { %><%- defaultVariablesValues[idx] %><% } %>
+
 };

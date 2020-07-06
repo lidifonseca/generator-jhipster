@@ -164,7 +164,7 @@
                   </Translate>
                 </Label>
               </Col>
-            <%_ } else if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+            <%_ } else if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
               <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
                 <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
                   <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
@@ -173,9 +173,9 @@
                 </Label>
               </Col>
               <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-                <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="datetime-local" className="form-control"
+                <AvInput id="<%= entityFileName %>-<%= fieldName %>" type="date" className="form-control"
                   name="<%= fieldName %>" placeholder={"YYYY-MM-DD HH:mm"} value={isNew ? null :
-                  convertDateTimeFromServer(this.props.<%= entityInstance %>Entity.<%= fieldName %>)}
+                  convertDateFromServer(this.props.<%= entityInstance %>Entity.<%= fieldName %>)}
                    />
               </Col>
             <%_ } else if (fieldType === 'LocalDate') { _%>
@@ -265,7 +265,7 @@
                             <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+<%= fieldName %>Base64) : <%= fieldName %>}`}
                               style={{ maxHeight: '100px' }} />
                             <%_ } else { _%>
-                            <Translate contentKey="entity.action.open">Open</Translate>
+                            <Translate contentKey="%= i18nKeyPrefix %>.btnOpen">Open</Translate>
                             <%_ } _%>
                           </a>
                           <br />
@@ -430,7 +430,7 @@
   reset
   } from './<%= entityFileName %>.reducer';
   import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileName %>.model';
-  import { convertDateTimeFromServer, convertDateTimeToServer } from 'app/shared/util/date-utils';
+  import { convertDateFromServer, convertDateTimeToServer } from 'app/shared/util/date-utils';
   <%_ if (relationships.filter(e => e.relationshipType === 'many-to-many') !== undefined) { _%>
   import { mapIdList } from 'app/shared/util/entity-utils';
   <%_ } _%>
@@ -599,7 +599,13 @@
         const baseFilters = this.state.fieldsBase && this.state.fieldsBase['baseFilters'] ? this.state.fieldsBase['baseFilters'] : null;
         return (
           <div>
-              <AvForm  ref={c => (this.myFormUpdate = c)} model={isNew ? {} : {
+              <AvForm  ref={c => (this.myFormUpdate = c)} model={isNew ? {
+                  <%_ for (idx in fields) { _%>
+                    <%_ if (typeof fields[idx].formLayoutDefault !== "undefined") { _%>
+                      <%= fields[idx].fieldName %>: <%= fields[idx].formLayoutDefault %>
+                    <%_ } _%>
+                  <%_ } _%>
+              } : {
                 ...<%= entityInstance %>Entity, 
                 <%_ if (formTabs.length > 0) { _%>activeTab: 0,<%_ } _%>
                 <%_ relFieldNames.forEach(val => { _%>
@@ -757,7 +763,7 @@
                         <Button color="primary" id="save-entity" type="submit" disabled={updating}
                           className="btn btn-primary float-right jh-create-entity">
                           <FontAwesomeIcon icon="save" />&nbsp;
-                          <Translate contentKey="entity.action.save">Save</Translate>
+                          <Translate contentKey="%= i18nKeyPrefix %>.btnSave">Save</Translate>
                         </Button>
                         : null }
                         <%_ } _%>
@@ -817,7 +823,7 @@
                         <Button color="primary" id="save-entity" type="submit" disabled={updating}
                           className="btn btn-primary float-right jh-create-entity">
                           <FontAwesomeIcon icon="save" />&nbsp;
-                          <Translate contentKey="entity.action.save">Save</Translate>
+                          <Translate contentKey="%= i18nKeyPrefix %>.btnSave">Save</Translate>
                         </Button>
                         : null }
   
@@ -854,7 +860,7 @@
               <ModalFooter>
                 <div className='btn btn-primary float-right jh-create-entity' onClick={this.myFormUpdateHandle}>
                     <FontAwesomeIcon icon="save" />&nbsp;
-                    <Translate contentKey="entity.action.save">Save</Translate>
+                    <Translate contentKey="<%= i18nKeyPrefix %>.btnSave">Save</Translate>
                 </div>
                 <Button tag={Link} id="cancel-save" to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
                   _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %> + <%_ 
@@ -862,7 +868,7 @@
                   className="float-right jh-create-entity">
                   <FontAwesomeIcon icon="arrow-left" />&nbsp;
                   <span className="d-none d-md-inline">
-                    <Translate contentKey="entity.action.back">Back</Translate>
+                    <Translate contentKey="<%= i18nKeyPrefix %>.btnBack">Back</Translate>
                   </span>
                 </Button>
               </ModalFooter>

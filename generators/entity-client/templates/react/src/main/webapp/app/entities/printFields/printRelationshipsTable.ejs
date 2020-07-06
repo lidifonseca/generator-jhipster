@@ -10,8 +10,8 @@
   <%_ if (relationshipType === 'many-to-one'
   || (relationshipType === 'one-to-one')
   || (relationshipType === 'many-to-many')) { _%>
-      { state.baseFilters !== '<%= relationshipFieldName %>' ? 
-        <td id="<%=relationshipFieldName%>-cell">
+    { state.baseFilters !== '<%= relationshipFieldName %>' ? 
+    <td id="<%=relationshipFieldName%>-cell">
             <b className="visible-xs"> <%=rel.relationshipNameHumanized %> </b>
           <%_ if (otherEntityName === 'user') { _%>
             <%_ if (relationshipType === 'many-to-many') { _%>
@@ -24,9 +24,9 @@
                 }
             <%_ } else { _%>
                   <%_ if (dto === 'no') { _%>
-                  {<%= entityInstance + "." + relationshipFieldName  %> ? <%= entityInstance + "." + relationshipFieldName  %> : ''}
+                  {<%= entityInstance + "." + relationshipFieldName  %> ? <%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField %> : ''}
                       <%_ } else { _%>
-                  {<%= entityInstance + "." + relationshipFieldName %> ? <%= entityInstance + "." + relationshipFieldName  %> : ''}
+                  {<%= entityInstance + "." + relationshipFieldName %> ? <%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField %> : ''}
                     <%_ } _%>
             <%_ } _%>
           <%_ } else { _%>

@@ -20,6 +20,11 @@ let helpBlocks = 0; %>
 {
     "<%= angularAppName %>": {
         "<%= entityTranslationKey %>" : {
+            "listTopButtons": {
+                <% if (typeof listTopButtons !== "undefined") { for (idx in listTopButtons) { %>
+                    "<%= listTopButtons[idx].name %>": "<%= listTopButtons[idx].attributes && listTopButtons[idx].attributes.text ? listTopButtons[idx].attributes.text : listTopButtons[idx].name  
+                %>",<% } } %>
+            },
             "listButtons": {
                 <% for (idx in listButtons) { %>
                     "<%= listButtons[idx].name %>": "<%= listButtons[idx].attributes && listButtons[idx].attributes.text ? listButtons[idx].attributes.text : listButtons[idx].name  
@@ -43,6 +48,7 @@ let helpBlocks = 0; %>
                 "btn_filter_clean": "Clean Filters",
                 "btn_filter_open": "Filters",
                 "createLabel": "Create a new <%= entityClassHumanized %>",
+                "editLabel": "Edit a <%= entityClassHumanized %>",
                 "createOrEditLabel": "Create or edit a <%= entityClassHumanized %>"<% if (searchEngine === 'elasticsearch') { %>,
                 "search": "Search for <%= entityClassHumanized %>"<% } %>,
                 "notFound": "No <%= entityClassPluralHumanized %> found"<% %>
@@ -53,17 +59,32 @@ let helpBlocks = 0; %>
             "delete": {
                 "question": "Are you sure you want to delete <%= entityClassHumanized %> {{ id }}?"
             },
+            "btnNewItem": "<%= typeof btnNewItem !== 'undefined' ? btnNewItem : "Create new Invoice" %>",
+            "btnFilter": "<%= typeof btnFilter !== 'undefined' ? btnFilter : "Filter" %>",
+            "btnOpenFilter": "<%= typeof btnOpenFilter !== 'undefined' ? btnOpenFilter : "Filters" %>",
+            "btnCleanFilter": "<%= typeof btnCleanFilter !== 'undefined' ? btnCleanFilter : "Clean Filter" %>",
+            "btnEditItem": "<%= typeof btnEditItem !== 'undefined' ? btnEditItem : "Edit" %>",
+            "btnActions": "<%= typeof btnActions !== 'undefined' ? btnActions : "Actions" %>",
+            "btnSave": "<%= typeof btnSave !== 'undefined' ? btnSave : "Save" %>",
+            "btnBack": "<%= typeof btnBack !== 'undefined' ? btnBack : "Back" %>",
+            "btnCancel": "<%= typeof btnCancel !== 'undefined' ? btnCancel : "Cancel" %>",
+            "btnDelete": "<%= typeof btnDelete !== 'undefined' ? btnDelete : "Delete" %>",
+            "btnOpen": "<%= typeof btnOpen !== 'undefined' ? btnOpen : "Open" %>",
+            "createdDate" : "Created date",
+            "lastModifiedDate" : "Last modified date",
+            "createdBy" : "Created by",
+            "lastModifiedBy" : "Last modified by",
             "detail": {
                 "title": "<%= entityClassHumanized %>"
             }<% for (idx in fields) {
-            if (typeof fields[idx].javadoc !== 'undefined') ++helpBlocks; %>,
+            if (typeof fields[idx].clean_javadoc !== 'undefined') ++helpBlocks; %>,
             "<%= fields[idx].fieldName %>": "<%= fields[idx].fieldNameHumanized %>"<% } %><% for (idx in relationships) { %>,
             "<%= relationships[idx].relationshipName %>_empty": "Without <%= relationships[idx].relationshipNameHumanized %>",
             "<%= relationships[idx].relationshipName %>": "<%= relationships[idx].relationshipNameHumanized %>"<% } if (helpBlocks > 0) { %>,
             "help": {<% for (idx in fields) {
-                if (fields[idx].javadoc) {
+                if (fields[idx].clean_javadoc) {
                     --helpBlocks; %>
-                "<%= fields[idx].fieldName %>": "<%= fields[idx].javadoc %>"<% if (helpBlocks > 0) { %>,<% }
+                "<%= fields[idx].fieldName %>": "<%= fields[idx].clean_javadoc %>"<% if (helpBlocks > 0) { %>,<% }
                 }
             } %>
             }<% } %>

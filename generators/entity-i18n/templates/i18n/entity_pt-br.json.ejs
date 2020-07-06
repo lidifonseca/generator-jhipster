@@ -15,11 +15,16 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
--%><%
+ -%><%
 let helpBlocks = 0; %>
 {
     "<%= angularAppName %>": {
         "<%= entityTranslationKey %>" : {
+            "listTopButtons": {
+                <% if (typeof listTopButtons !== "undefined") { for (idx in listTopButtons) { %>
+                    "<%= listTopButtons[idx].name %>": "<%= listTopButtons[idx].attributes && listTopButtons[idx].attributes.text ? listTopButtons[idx].attributes.text : listTopButtons[idx].name  
+                %>",<% } } %>
+            },
             "listButtons": {
                 <% for (idx in listButtons) { %>
                     "<%= listButtons[idx].name %>": "<%= listButtons[idx].attributes && listButtons[idx].attributes.text ? listButtons[idx].attributes.text : listButtons[idx].name  
@@ -38,11 +43,12 @@ let helpBlocks = 0; %>
             <%_ } %>
             "dropdown_btn": "Actions",
             "home": {
-                "title": "<%= entityClassPluralHumanized %>",
+                "title": "<%= typeof entityClassPluralHumanizedPt !== 'undefined' ? entityClassPluralHumanizedPt : entityClassPluralHumanized %>",
                 "btn_filter": "Filtrar",
                 "btn_filter_clean": "Limpar Filtros",
                 "btn_filter_open": "Filtros",
                 "createLabel": "Criar novo <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>",
+                "editLabel": "Editar <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>",
                 "createOrEditLabel": "Criar ou editar <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>"<% if (searchEngine === 'elasticsearch') { %>,
                 "search": "Pesquisar por <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>"<% } %>,
                 "notFound": "Nenhum <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> encontrado"
@@ -53,6 +59,21 @@ let helpBlocks = 0; %>
             "delete": {
                 "question": "Tem certeza de que deseja excluir <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> {{ id }}?"
             },
+            "btnNewItem": "<%= typeof btnNewItemPt !== 'undefined' ? btnNewItemPt : ("Criar novo "  + (typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized) ) %>",
+            "btnFilter": "<%= typeof btnFilterPt !== 'undefined' ? btnFilterPt : "Filtrar" %>",
+            "btnOpenFilter": "<%= typeof btnOpenFilterPt !== 'undefined' ? btnOpenFilterPt : "Filtrar" %>",
+            "btnCleanFilter": "<%= typeof btnCleanFilterPt !== 'undefined' ? btnCleanFilterPt : "Limpar Filtro" %>",
+            "btnEditItem": "<%= typeof btnEditItemPt !== 'undefined' ? btnEditItemPt : "Editar" %>",
+            "btnActions": "<%= typeof btnActionsPt !== 'undefined' ? btnActionsPt : "Ações" %>",
+            "btnSave": "<%= typeof btnSavePt !== 'undefined' ? btnSavePt : "Salvar" %>",
+            "btnBack": "<%= typeof btnBackPt !== 'undefined' ? btnBackPt : "Ir na listagem" %>",
+            "btnCancel": "<%= typeof btnCancelPt !== 'undefined' ? btnCancelPt : "Cancelar" %>",
+            "btnDelete": "<%= typeof btnDeletePt !== 'undefined' ? btnDeletePt : "Apagar" %>",
+            "btnOpen": "<%= typeof btnOpenPt !== 'undefined' ? btnOpenPt : "Abrir" %>",
+            "createdDate" : "Data criação",
+            "lastModifiedDate" : "Data modificação",
+            "createdBy" : "Criado por",
+            "lastModifiedBy" : "Modificado por",
             "detail": {
                 "title": "<%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>"
             }<% for (idx in fields) {

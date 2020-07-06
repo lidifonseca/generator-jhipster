@@ -41,7 +41,7 @@
         fieldInputType = 'number';
     } else if (fieldType === 'LocalDate') {
         fieldInputType = 'date';
-    } else if (['Instant', 'ZonedDateTime'].includes(fieldType)) {
+    } else if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) {
         fieldInputType = 'datetime-local';
     } else if (fieldType === 'Boolean') {
         fieldInputType = 'checkbox';
@@ -93,7 +93,7 @@ _%>
                             <button type="button" class="btn btn-secondary" (click)="<%= fieldName %>Dp.toggle()"><fa-icon icon="calendar-alt"></fa-icon></button>
                         </span>
                     </div>
-        <%_ } else if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+        <%_ } else if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
                     <div class="d-flex">
                         <input id="field_<%= fieldName %>" type="<%= fieldInputType %>" class="form-control" name="<%= fieldName %>" formControlName="<%= fieldName %>" placeholder="YYYY-MM-DD HH:mm"/>
                     </div>
@@ -165,7 +165,7 @@ _%>
                             This field should be a number.
                         </small>
         <%_ } _%>
-        <%_ if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
                         <small class="form-text text-danger"
                             [hidden]="!editForm.get('<%= fieldName %>')?.errors?.ZonedDateTimelocal" jhiTranslate="entity.validation.ZonedDateTimelocal">
                             This field should be a date and time.

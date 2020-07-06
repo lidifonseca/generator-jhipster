@@ -1,0 +1,135 @@
+/* eslint complexity: ["error", 300] */
+import React from 'react';
+<%_ if (pagination === 'infinite-scroll') { _%>
+import InfiniteScroll from 'react-infinite-scroller';
+<%_ } _%>
+import { connect } from 'react-redux';
+
+<%_ let baseFiltersModal = false; _%>
+<%_  if(this.generator.baseFiltersAttributes && this.generator.baseFiltersAttributes['window'] === "modal") { _%>
+  <%_ baseFiltersModal = true; _%>
+  import { Modal as Panel, ModalHeader as PanelHeader, ModalBody as PanelBody, ModalFooter as PanelFooter } from 'reactstrap';
+<%_ } else { _%> 
+  import {Panel, PanelHeader, PanelBody, PanelFooter} from 'app/shared/layout/panel/panel.tsx';
+<%_ } _%> 
+
+
+
+<%_ if (typeof addComponenteBeforeListTable != "undefined" &&  addComponenteBeforeListTable != "false"){ _%>
+  import <%= entityReactName %>BeforeComponent from '../components/<%= entityFileName %>-before-component';
+<%_ } _%>
+<%_ if (typeof addComponenteListTable != "undefined" &&  addComponenteListTable != "false"){ _%>
+  import <%= entityReactName %>ListComponent from '../components/<%= entityFileName %>-list-component';
+<%_ } _%>
+<%_ if (typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false"){ _%>
+  import <%= entityReactName %>AfterComponent from '../components/<%= entityFileName %>-after-component';
+<%_ } _%>
+import { <%= entityReactName %>, mapStateToProps, mapDispatchToProps } from '../<%= entityFileName %>';
+
+  export class <%= entityReactName %>Extended extends <%= entityReactName %> {
+
+  renderHeader() {
+    return <> { super.renderHeader() } </>
+  }
+
+  renderFilter() {
+    return <> { super.renderFilter() } </>
+  }
+
+  renderTable() {   
+    return <> { super.renderTable() } </>
+  }
+  
+
+  renderFooter() {
+    return <> { super.renderFooter() } </>
+  }
+
+  
+
+  render() {
+    const { 
+      <%=entityInstance %>List, match<% if (pagination === 'pagination' || pagination === 'pager') { %>,
+      totalItems<% } %>} = this.props;
+    <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
+      let <%= baseFilters %>BaseFilter = null; 
+      <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
+    <%_ } _%>
+
+    const props = this.props;
+    const state = this.state;
+    const sortFunction = this.sort;
+
+    return (
+      <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
+        <% if ((typeof hideHeader) === 'undefined') { %>
+          <PanelHeader>
+            { this.renderHeader() }
+          </PanelHeader>
+        <% } %>
+          <PanelBody>
+            <%_ if (searchEngine === 'elasticsearch') { _%>
+            <Row>
+              <Col sm="12">
+                <AvForm onSubmit={this.search}>
+                  <div>
+                    <InputGroup>
+                      <AvInput type="text" name="search" value={this.state.search} onChange={this.handleSearch}
+                        placeholder=<% if (enableTranslation) { %>{translate('<%= i18nKeyPrefix %>.home.search')}<% } else { %>"Search"<% } %>/>
+                      <Button className="input-group-addon">
+                        <FontAwesomeIcon icon="search" />
+                      </Button>
+                      <Button type="reset" className="input-group-addon" onClick={this.clear}>
+                        <FontAwesomeIcon icon="trash" />
+                      </Button>
+                    </InputGroup>
+                  </div>
+                </AvForm>
+              </Col>
+            </Row>
+            <%_ } _%>
+
+
+            <%_ if (typeof addComponenteBeforeListTable != "undefined" &&  addComponenteBeforeListTable != "false"){ _%>
+              <<%= entityReactName %>BeforeComponent {...this.props}  />
+            <%_ } _%>
+
+            <div className="table-responsive">
+              <%_ if (pagination === 'infinite-scroll') { _%>
+              <InfiniteScroll pageStart={this.state.activePage}
+                              loadMore={this.handleLoadMore}
+                              hasMore={this.state.activePage - 1 < this.props.links.next}
+                              loader={<div className="loader">Loading ...</div>}
+                              threshold={0}
+                              initialLoad={false}>
+              <%_ } _%>
+              <%_ if (typeof notListFilterLayout === 'undefined') {  _%>
+                  { this.renderFilter() }
+              <%_ } _%>
+
+              { this.renderTable() }
+              <%_ if (pagination === 'infinite-scroll') { _%>
+              </InfiniteScroll>
+              <%_ } _%>
+            </div>
+
+            <%_ if (typeof addComponenteAfterListTable != "undefined" &&  addComponenteAfterListTable != "false"){ _%>
+              <<%= entityReactName %>AfterComponent {...this.props}  />
+            <%_ } _%>
+
+          </PanelBody>
+          <PanelFooter>
+            { this.renderFooter() }
+          </PanelFooter>
+        </Panel>
+    );
+  }
+}
+
+export const mapStateToPropsExtended = mapStateToProps;
+
+export const mapDispatchToPropsExtended = {
+ ...mapDispatchToProps
+};
+
+export default connect(mapStateToPropsExtended, mapDispatchToPropsExtended)(<%= entityReactName %>Extended);
