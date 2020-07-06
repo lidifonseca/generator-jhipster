@@ -174,6 +174,20 @@ const serverFiles = {
             ],
         },
         {
+            condition: generator =>
+                generator.jpaMetamodelFiltering &&
+                !fs.existsSync(
+                    `src/main/java/${generator.packageFolder}/service/dto/extended/${generator.entityClass}ExtendedResource.java`
+                ),
+            path: SERVER_MAIN_SRC_DIR,
+            templates: [
+                {
+                    file: 'package/service/dto/extended/EntityExtendedCriteria.java',
+                    renameTo: generator => `${generator.packageFolder}/service/dto/extended/${generator.entityClass}ExtendedCriteria.java`,
+                },
+            ],
+        },
+        {
             condition: generator => generator.searchEngine === 'elasticsearch',
             path: SERVER_MAIN_SRC_DIR,
             templates: [
