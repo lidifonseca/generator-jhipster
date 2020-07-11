@@ -53,12 +53,19 @@ do
     [ -e "src/test/javascript/spec/app/entities/$int" ] && rm  -R  "src/test/javascript/spec/app/entities/$int" && echo "Apagando Pasta src/test/javascript/spec/app/entities/$int"
     [ -e "src/main/webapp/i18n/en/$int.json" ] && rm "src/main/webapp/i18n/en/$int.json" && echo "src/main/webapp/i18n/en/$int.json"
     [ -e "src/main/webapp/i18n/pt-br/$CInt.json" ] && rm "src/main/webapp/i18n/pt-br/$CInt.json" && echo "src/main/webapp/i18n/pt-br/$CInt.json"   
-     [ -e "src/main/webapp/i18n/en/$CInt.json" ] && rm "src/main/webapp/i18n/en/$CInt.json" && echo "src/main/webapp/i18n/en/$CInt.json"
+    [ -e "src/main/webapp/i18n/en/$CInt.json" ] && rm "src/main/webapp/i18n/en/$CInt.json" && echo "src/main/webapp/i18n/en/$CInt.json"
     [ -e "src/main/webapp/i18n/pt-br/$int.json" ] && rm "src/main/webapp/i18n/pt-br/$int.json" && echo "src/main/webapp/i18n/pt-br/$int.json"
-    [ -e "src/main/webapp/app/entities/$int" ] && rm  -R  "src/main/webapp/app/entities/$int" && echo "Apagando Pasta src/main/webapp/app/entities/$int"
     [ -e "src/main/webapp/app/shared/model/enumerations/$int.model.ts" ] && rm "src/main/webapp/app/shared/model/enumerations/$int.model.ts" && echo "src/main/webapp/app/shared/model/enumerations/$int.model.ts"
     [ -e "src/main/webapp/app/shared/model/$int.model.ts" ] && rm "src/main/webapp/app/shared/model/$int.model.ts" && echo "Apagando src/main/webapp/app/shared/model/$int.model.ts"
     
+    [ -e "src/main/webapp/app/entities/$int/$int.reducer.ts" ] && rm  -R  "src/main/webapp/app/entities/$int/$int.reducer.ts" && echo "Apagando Pasta src/main/webapp/app/entities/$int/$int.reducer.ts"
+    [ -e "src/main/webapp/app/entities/$int/$int.tsx" ] && rm  -R  "src/main/webapp/app/entities/$int/$int.tsx" && echo "Apagando Pasta src/main/webapp/app/entities/$int/$int.tsx"
+    [ -e "src/main/webapp/app/entities/$int/$int-delete-dialog.tsx" ] && rm  -R  "src/main/webapp/app/entities/$int/$int-delete-dialog.tsx" && echo "Apagando Pasta src/main/webapp/app/entities/$int/$int-delete-dialog.tsx"
+    [ -e "src/main/webapp/app/entities/$int/$int-detail.tsx" ] && rm  -R  "src/main/webapp/app/entities/$int/$int-detail.tsx" && echo "Apagando Pasta src/main/webapp/app/entities/$int/$int-detail.tsx"
+    [ -e "src/main/webapp/app/entities/$int/$int-update.tsx" ] && rm  -R  "src/main/webapp/app/entities/$int/$int-update.tsx" && echo "Apagando Pasta src/main/webapp/app/entities/$int/$int-update.tsx"
+    [ -e "src/main/webapp/app/entities/$int/index.tsx" ] && rm  -R  "src/main/webapp/app/entities/$int/index.tsx" && echo "Apagando Pasta src/main/webapp/app/entities/$int/index.tsx"
+
+
     [ -e "target/classes/static/app/entities/$int" ] && rm  -R "target/classes/static/app/entities/$int" && echo "Apagando Pasta target/classes/static/app/entities/$int"
     [ -e "target/classes/static/app/shared/model/$int.model.js.map" ] && rm "target/classes/static/app/shared/model/$int.model.js.map" && echo "target/classes/static/app/shared/model/$int.model.js.map"
     [ -e "target/classes/static/app/shared/model/$int.model.js" ] && rm "target/classes/static/app/shared/model/$int.model.js" && echo "target/classes/static/app/shared/model/$int.model.js"
@@ -90,8 +97,7 @@ done
  echo "src/main/java/com/mycompany/myapp/config/CacheConfiguration.java"
 
 
-echo a | jhipster import-jdl jhipster-jdl.jh --skip-install
-./mvnw
+echo a | jhipster import-jdl jhipster-jdl.jh --skip-install && /usr/bin/npm run lint:fix && /usr/bin/npm run prettier:format && ./mvnw
 
 
 
