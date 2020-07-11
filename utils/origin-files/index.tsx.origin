@@ -22,7 +22,7 @@ const Routes = (props: IEntityProps) => (
     <Switch>
       {component.map((v,i) => (
         <ErrorBoundaryRoute key={i} path={`${props.match.url + v.name}`} component={v.component} />
-      )}
+      ))}
       <ErrorBoundaryRoute component={PageNotFound} />
     </Switch>
   </div>
