@@ -26,13 +26,13 @@ import ErrorBoundaryRoute from 'app/shared/error/error-boundary-route';
 <%_ } else { %>
     import <%= entityReactName %> from './<%= entityFileName %>';
 <%_ } %>
-<%_ if (typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false"){ %>
+<%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
     import <%= entityReactName %>Detail from './extended/<%= entityFileName %>-detail';
 <%_ } else { %>
     import <%= entityReactName %>Detail from './<%= entityFileName %>-detail';
 <%_ } %>
 <%_ if (!readOnly) { _%>
-  <%_ if (typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false"){ %>
+  <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
     import <%= entityReactName %>Update from './extended/<%= entityFileName %>-update';
   <%_ } else { %>
     import <%= entityReactName %>Update from './<%= entityFileName %>-update';

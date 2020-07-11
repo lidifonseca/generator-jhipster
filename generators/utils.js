@@ -867,6 +867,8 @@ function analizeJavadoc(generator) {
         }
     }
     generator['clean_javadoc'] = generatorJavadoc ? generatorJavadoc.split("\\n").join("") : ""
+    generator['javadoc'] = generatorJavadoc ? generatorJavadoc.split("\\n").join("") : ""
+
     for (idx in generator.fields) { 
         let javadoc = generator.fields[idx].javadoc; 
         generator.fields[idx]['clean_javadoc'] = undefined;
@@ -886,6 +888,7 @@ function analizeJavadoc(generator) {
                 javadoc = javadoc.substring(0,javadoc.indexOf('@')) + javadoc.substring(javadoc.indexOf('@@')+2).trim();
             }
             generator.fields[idx]['clean_javadoc'] = javadoc ? javadoc.split("\\n").join("") : "";
+            generator.fields[idx]['javadoc'] = javadoc ? javadoc.split("\\n").join("") : "";
         }
     }
 
@@ -901,6 +904,7 @@ function analizeJavadoc(generator) {
             }
         }
         generator.relationships[idx]['clean_javadoc'] = javadoc ? javadoc.split("\\n").join("") : "";
+        generator.relationships[idx]['javadoc'] = javadoc ? javadoc.split("\\n").join("") : "";
        
     }
     if(generator.formTabs.length > 0){

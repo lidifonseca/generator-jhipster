@@ -265,7 +265,7 @@
                             <img src={`${<%= fieldName %>Base64  ? ('data:'+<%= fieldName %>ContentType+';base64,'+<%= fieldName %>Base64) : <%= fieldName %>}`}
                               style={{ maxHeight: '100px' }} />
                             <%_ } else { _%>
-                            <Translate contentKey="<%= i18nKeyPrefix %> %>.btnOpen">Open</Translate>
+                            <Translate contentKey="<%= i18nKeyPrefix %>.btnOpen">Open</Translate>
                             <%_ } _%>
                           </a>
                           <br />
@@ -471,7 +471,7 @@
         <%_ relFieldNames.forEach(val => { _%>
           <%= val.relationshipFieldName %>: null,
         <%_ }) _%>
-        isNew: !this.props.match.params || !this.props.match.params.id,
+        isNew: !this.props.match.params || !this.props.match.params['id'],
         };
         }
         <%_ if (formTabs.length > 0) { _%>
@@ -504,13 +504,13 @@
         componentDidMount() {
         <%_ if (pagination === 'infinite-scroll') { _%>
         if (!this.state.isNew) {
-        this.props.getEntity(this.props.match.params.id);
+        this.props.getEntity(this.props.match.params['id']);
         }
         <%_ } else { _%>
         if (this.state.isNew) {
         this.props.reset();
         } else {
-        this.props.getEntity(this.props.match.params.id);
+        this.props.getEntity(this.props.match.params['id']);
         }
         <%_ } _%>
   
@@ -690,8 +690,8 @@
                         <NavLink className={classnames({ active: this.state.activeTab===<%= idx %> })} onClick={()=> {
                           this.toggleTab(<%= idx %>); }}
                           >
-                          <span className="d-sm-none"> <%= formTabs[idx] %></span>
-                          <span className="d-sm-block d-none"><%= formTabs[idx] %></span>
+                          <span className="d-sm-none"><Translate contentKey="<%= i18nKeyPrefix %>.formTabs.<%= formTabs[idx] %>"><%= formTabs[idx] %></Translate></span>
+                          <span className="d-sm-block d-none"><Translate contentKey="<%= i18nKeyPrefix %>.formTabs.<%= formTabs[idx] %>"><%= formTabs[idx] %></Translate></span>
                         </NavLink>
                       </NavItem>
                       <%_ } _%>
@@ -749,10 +749,14 @@
                           this.toggleTab(<%= Number.parseInt(iTabs, 10) + 1 %>); }}
                           >
                           <span className="d-sm-none">
-                            <%= formTabs[Number.parseInt(iTabs, 10) + 1] ? formTabs[Number.parseInt(iTabs, 10) + 1] : "Default" %>
+                            <Translate contentKey="<%= i18nKeyPrefix %>.formTabs.btn<%= formTabs[Number.parseInt(iTabs, 10) + 1] ? formTabs[Number.parseInt(iTabs, 10) + 1] : "Default" %>">
+                              <%= formTabs[Number.parseInt(iTabs, 10) + 1] ? formTabs[Number.parseInt(iTabs, 10) + 1] : "Default" %>
+                            </Translate>
                           </span>
                           <span className="d-sm-block d-none">
-                            <%= formTabs[Number.parseInt(iTabs, 10) + 1] ? formTabs[Number.parseInt(iTabs, 10) + 1] : "Default" %>
+                            <Translate contentKey="<%= i18nKeyPrefix %>.formTabs.btn<%= formTabs[Number.parseInt(iTabs, 10) + 1] ? formTabs[Number.parseInt(iTabs, 10) + 1] : "Default" %>">
+                              <%= formTabs[Number.parseInt(iTabs, 10) + 1] ? formTabs[Number.parseInt(iTabs, 10) + 1] : "Default" %>
+                            </Translate>
                             &nbsp;
                             <FontAwesomeIcon icon="arrow-right" />
                           </span>
@@ -763,7 +767,7 @@
                         <Button color="primary" id="save-entity" type="submit" disabled={updating}
                           className="btn btn-primary float-right jh-create-entity">
                           <FontAwesomeIcon icon="save" />&nbsp;
-                          <Translate contentKey="<%= i18nKeyPrefix %> %>.btnSave">Save</Translate>
+                          <Translate contentKey="<%= i18nKeyPrefix %>.btnSave">Save</Translate>
                         </Button>
                         : null }
                         <%_ } _%>
@@ -774,10 +778,16 @@
                           this.toggleTab(<%= Number.parseInt(iTabs, 10) - 1 %>); }}
                           >
   
-                          <span className="d-sm-none"> <%= formTabs[Number.parseInt(iTabs, 10) - 1] %> </span>
+                          <span className="d-sm-none"> 
+                            <Translate contentKey="<%= i18nKeyPrefix %>.formTabs.btn<%= formTabs[Number.parseInt(iTabs, 10) - 1] %>">
+                              <%= formTabs[Number.parseInt(iTabs, 10) - 1] %> 
+                            </Translate>
+                          </span>
                           <span className="d-sm-block d-none">
                             <FontAwesomeIcon icon="arrow-left" />&nbsp;
-                            <%= formTabs[Number.parseInt(iTabs, 10) - 1] %>
+                            <Translate contentKey="<%= i18nKeyPrefix %>.formTabs.btn<%= formTabs[Number.parseInt(iTabs, 10) - 1] %>">
+                              <%= formTabs[Number.parseInt(iTabs, 10) - 1] %>
+                            </Translate>
                           </span>
                         </Button>
                         : null }
@@ -823,7 +833,7 @@
                         <Button color="primary" id="save-entity" type="submit" disabled={updating}
                           className="btn btn-primary float-right jh-create-entity">
                           <FontAwesomeIcon icon="save" />&nbsp;
-                          <Translate contentKey="<%= i18nKeyPrefix %> %>.btnSave">Save</Translate>
+                          <Translate contentKey="<%= i18nKeyPrefix %>.btnSave">Save</Translate>
                         </Button>
                         : null }
   

@@ -57,6 +57,8 @@ import { parseHeaderForLinks } from 'app/shared/util/entity-utils.ts';
 <%_ } _%>
 import { IPayload } from 'react-jhipster/src/type/redux-action.type';
 
+import { BASE_API_VERSION_PATH } from 'app/config/constants';
+
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util';
 <%_ if (!(applicationType === 'gateway' && locals.microserviceName) && authenticationType !== 'uaa') { _%>
@@ -305,7 +307,7 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
   }
 };
 
-const apiUrl = '<% if (applicationType === 'gateway' && locals.microserviceName) { %>services/<%= microserviceName.toLowerCase() %>/<% } %>api/<%= entityApiUrl %>';
+const apiUrl = BASE_API_VERSION_PATH + '<% if (applicationType === 'gateway' && locals.microserviceName) { %>services/<%= microserviceName.toLowerCase() %>/<% } %>api/<%= entityApiUrl %>';
 <%_ if (searchEngine === 'elasticsearch') { _%>
 const apiSearchUrl = '<% if (applicationType === 'gateway' && locals.microserviceName) { %>services/<%= microserviceName.toLowerCase() %>/<% } %>api/_search/<%= entityApiUrl %>';
 <%_ } _%>
@@ -370,8 +372,15 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
           <%_ if(listFilterLayout[idx].type == 'field'){  _%>
             <%_ const field = listFilterLayout[idx].entity _%>
             <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(field.fieldType) ) { _%>
-              const <%= field.fieldName %>StartRequest = filters && typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start'] ? `<%= field.fieldName %>.greaterThan=${filters['<%= field.fieldName %>Start']}&` : ''; 
-              const <%= field.fieldName %>EndRequest   = filters && typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']   ? `<%= field.fieldName %>.lessThan=${filters['<%= field.fieldName %>End']}&` : ''; 
+              let <%= field.fieldName %>StartRequest = "";
+              let <%= field.fieldName %>EndRequest = "";
+              if(filters && (typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && !(typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
+                <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${filters['<%= field.fieldName %>Start']}&`; 
+              } else if(filters && !(typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && (typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
+                <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${filters['<%= field.fieldName %>End']}&`; 
+              } else if(filters && (typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && (typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
+                <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${filters['<%= field.fieldName %>Start']},${filters['<%= field.fieldName %>End']}&`;
+              }
               <%_ getAllEntitiesRequests += "${"+field.fieldName+"StartRequest}"; _%>
               <%_ getAllEntitiesRequests += "${"+field.fieldName+"EndRequest}"; _%>
             <%_ } else { _%>
@@ -387,8 +396,16 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
       <%_ } else {  _%>
         <%_ for (idx in fields) { _%>
           <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType) ) { _%>
-            const <%= fields[idx].fieldName %>StartRequest = filters && typeof filters['<%= fields[idx].fieldName %>Start'] !== "undefined" && filters['<%= fields[idx].fieldName %>Start'] ? `<%= fields[idx].fieldName %>.greaterThan=${filters['<%= fields[idx].fieldName %>Start']}&` : ''; 
-            const <%= fields[idx].fieldName %>EndRequest   = filters && typeof filters['<%= fields[idx].fieldName %>End'] !== "undefined" && filters['<%= fields[idx].fieldName %>End']   ? `<%= fields[idx].fieldName %>.lessThan=${filters['<%= fields[idx].fieldName %>End']}&` : ''; 
+            <%_ const field = fields[idx] _%>
+            let <%= field.fieldName %>StartRequest = "";
+            let <%= field.fieldName %>EndRequest = "";
+            if(filters && (typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && !(typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${filters['<%= field.fieldName %>Start']}&`; 
+            } else if(filters && !(typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && (typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
+              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${filters['<%= field.fieldName %>End']}&`; 
+            } else if(filters && (typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && (typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${filters['<%= field.fieldName %>Start']},${filters['<%= field.fieldName %>End']}&`;
+            }
             <%_ getAllEntitiesRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
             <%_ getAllEntitiesRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
           <%_ } else { _%>
@@ -451,8 +468,15 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
         <%_ if(listFilterLayout[idx].type == 'field'){  _%>
           <%_ const field = listFilterLayout[idx].entity _%>
           <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(field.fieldType) ) { _%>
-            const <%= field.fieldName %>StartRequest = <%= field.fieldName %>Start ? `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&` : ''; 
-            const <%= field.fieldName %>EndRequest   = <%= field.fieldName %>End   ? `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&` : ''; 
+            let <%= field.fieldName %>StartRequest = "";
+            let <%= field.fieldName %>EndRequest = "";
+            if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`; 
+            } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`; 
+            } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
+            }
             <%_ getEntitiesRequests += "${"+field.fieldName+"StartRequest}"; _%>
             <%_ getEntitiesRequests += "${"+field.fieldName+"EndRequest}"; _%>
           <%_ } else { _%>
@@ -468,8 +492,16 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
         <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType) ) { _%>
-          const <%= fields[idx].fieldName %>StartRequest = <%= fields[idx].fieldName %>Start ? `<%= fields[idx].fieldName %>.greaterThan=${<%= fields[idx].fieldName %>Start}&` : ''; 
-          const <%= fields[idx].fieldName %>EndRequest   = <%= fields[idx].fieldName %>End   ? `<%= fields[idx].fieldName %>.lessThan=${<%= fields[idx].fieldName %>End}&` : ''; 
+          <%_ const field = fields[idx] _%>
+          let <%= field.fieldName %>StartRequest = "";
+          let <%= field.fieldName %>EndRequest = "";
+          if(filters && (typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`; 
+          } else if(filters && !(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`; 
+          } else if(filters && (typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
+          }
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
         <%_ } else { _%>
@@ -485,7 +517,7 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
 
     
     <%_ if (pagination !== 'no') { _%>
-      const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}`;
+      const requestUrl = `${apiUrl}${sort ? `?page=${page >= 0 ? page : 0}&size=${size}&sort=${sort}&` : '?'}`;
       return {
         type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
         payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesRequests %>&cacheBuster=${new Date().getTime()}`)
@@ -542,8 +574,15 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
         <%_ if(listFilterLayout[idx].type == 'field'){  _%>
           <%_ const field = listFilterLayout[idx].entity _%>
           <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(field.fieldType) ) { _%>
-            const <%= field.fieldName %>StartRequest = <%= field.fieldName %>Start ? `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&` : ''; 
-            const <%= field.fieldName %>EndRequest   = <%= field.fieldName %>End   ? `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&` : ''; 
+            let <%= field.fieldName %>StartRequest = "";
+            let <%= field.fieldName %>EndRequest = "";
+            if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`; 
+            } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`; 
+            } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
+            }
             <%_ getEntitiesExportRequests += "${"+field.fieldName+"StartRequest}"; _%>
             <%_ getEntitiesExportRequests += "${"+field.fieldName+"EndRequest}"; _%>
           <%_ } else { _%>
@@ -559,8 +598,16 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
         <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType) ) { _%>
-          const <%= fields[idx].fieldName %>StartRequest = <%= fields[idx].fieldName %>Start ? `<%= fields[idx].fieldName %>.greaterThan=${<%= fields[idx].fieldName %>Start}&` : ''; 
-          const <%= fields[idx].fieldName %>EndRequest   = <%= fields[idx].fieldName %>End   ? `<%= fields[idx].fieldName %>.lessThan=${<%= fields[idx].fieldName %>End}&` : ''; 
+          <%_ const field = fields[idx] _%>
+          let <%= field.fieldName %>StartRequest = "";
+          let <%= field.fieldName %>EndRequest = "";
+          if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`; 
+          } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`; 
+          } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
+          }
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
         <%_ } else { _%>
@@ -576,7 +623,7 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
 
         
     <%_ if (pagination !== 'no') { _%>
-      const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}`;
+      const requestUrl = `${apiUrl}${sort ? `?page=${page >= 0 ? page : 0}&size=${size}&sort=${sort}&` : '?'}`;
       return {
         type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
         payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesExportRequests %>&cacheBuster=${new Date().getTime()}`)
@@ -591,7 +638,7 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
 }
 
 <%_ if (!readOnly) { _%>
-export const createEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, listFiltersPage )  => async dispatch => {
+export const createEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, listFiltersPage)  => async dispatch => {
   const result = await dispatch({
     type: ACTION_TYPES.CREATE_<%= entityActionName %>,
     payload: axios.post(apiUrl, cleanEntity(entity))
@@ -720,7 +767,7 @@ export const get<%= entityReactName %>State = (location): I<%= entityReactName %
 };
 
 
-export const get<%= entityReactName %>FiltersURL = (state, offset = null) => {
+export const getEntityFiltersURL = (state, offset = null) => {
   return 'baseFilters=' + state.baseFilters + '&page=' + state.activePage + '&' +
   'size=' + state.itemsPerPage + '&' +
   (offset !== null ? ('offset=' + offset) + '&' : '') +

@@ -25,10 +25,11 @@ import {
   <%_ if (pagination !== 'no') { _%>
   , getSortState, IPaginationBaseState
   <%_ if (pagination === 'pagination' || pagination === 'pager') { _%>
-  , JhiPagination, JhiItemCount
+  , JhiItemCount
   <%_ }} _%>
 } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import ReactPaginate from 'react-paginate';
 
 <%_ let baseFiltersModal = false; _%>
 <%_  if(this.generator.baseFiltersAttributes && this.generator.baseFiltersAttributes['window'] === "modal") { _%>
@@ -80,14 +81,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IRootState } from 'app/shared/reducers';
 import {
   updateEntity,
-  get<%= entityReactName %>State, I<%= entityReactName %>BaseState, get<%= entityReactName %>FiltersURL,
+  get<%= entityReactName %>State, I<%= entityReactName %>BaseState, getEntityFiltersURL,
   <%_ if (searchEngine === 'elasticsearch') { _%>
   getSearchEntities,
   <%_ } _%>
-  getEntities
-  <%_ if (pagination === 'infinite-scroll') { _%>
-  , reset
-  <%_ } _%>
+  getEntities,
+  reset
 } from './<%= entityFileName %>.reducer';
 import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileName %>.model';
  import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
@@ -151,9 +150,16 @@ import { getAllEntities as get<%= upperFirstCamelCase(uniqueRel.otherEntityNameP
   }
 }); _%>
 
+<%_ if (typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false"){ %>
+  import { StatePropsExtended, DispatchPropsExtended } from './extended/<%= entityFileName %>';
+<%_ } _%>
 
 
-export interface I<%= entityReactName %>Props extends StateProps, DispatchProps, RouteComponentProps<{url: string}> {}
+<%_ if (typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false"){ %>
+  export interface I<%= entityReactName %>Props extends StateProps, DispatchProps, StatePropsExtended, DispatchPropsExtended, RouteComponentProps<{url: string}> {}
+<%_ } else { _%>
+  export interface I<%= entityReactName %>Props extends StateProps, DispatchProps, RouteComponentProps<{url: string}> {}
+<%_ } _%>
 
 
 <% if (searchEngine === 'elasticsearch' && pagination !== 'no') { _%>
@@ -330,7 +336,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
   <%_ if (pagination === 'pagination' || pagination === 'pager') { _%>
     sortEntities() {
       this.getEntities();
-      this.props.history.push(this.props.location.pathname +'?' + get<%= entityReactName %>FiltersURL(this.state));
+      this.props.history.push(this.props.location.pathname +'?' + getEntityFiltersURL(this.state));
     }
   <%_ } _%>
 
@@ -340,6 +346,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
   <%_ } _%>
 
   getEntities = () => {
+    this.props.reset();
     <%_ if (searchEngine === 'elasticsearch') { _%>
     const { activePage, itemsPerPage, sort, order, search } = this.state;
     if (search) {
@@ -503,7 +510,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
             <%_ } _%>
           <%_ } else { _%>
             <%_ if (!readOnly) { _%>
-            <Link to={`${match.url}/new?${get<%= entityReactName %>FiltersURL(this.state)}`} className="btn btn-primary float-right jh-create-entity" id="jh-create-entity">
+            <Link to={`${match.url}/new?${getEntityFiltersURL(state)}`} className="btn btn-primary float-right jh-create-entity" id="jh-create-entity">
               <FontAwesomeIcon icon="plus" />&nbsp;
               <%_ if(typeof btnNewItem !== 'undefined') { _%>
                 <Translate contentKey="<%= i18nKeyPrefix %>.btnNewItem"><%= btnNewItem %></Translate>
@@ -541,6 +548,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
 
 
   renderFilter() {
+    <%_ if (typeof notListFilterLayout === 'undefined') {  _%>
     const { 
       <% uniqueRealtionFields.forEach(rel => {%> <%= rel %>,<% }) %> 
       <%=entityInstance %>List, match<% if (pagination === 'pagination' || pagination === 'pager') { %>,
@@ -595,6 +603,9 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
         </UncontrolledCollapse>
       </>
     )
+    <%_ } else { _%>
+          return ( <> </> )
+    <%_ } _%>
   }
   
   
@@ -665,12 +676,26 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
             />
           </Row>
           <Row className="justify-content-center">
-            <JhiPagination
-              activePage={this.state.activePage}
-              onSelect={this.handlePagination}
-              maxButtons={5}
-              itemsPerPage={this.state.itemsPerPage}
-              totalItems={this.props.totalItems}
+            <ReactPaginate
+              previousLabel={'<'}
+              nextLabel={'>'}
+              previousClassName={'page-item'}
+              nextClassName={'page-item'}
+              breakClassName={'page-item'}
+              pageClassName={'page-item'}
+              nextLinkClassName={'page-link'}
+              previousLinkClassName={'page-link'}
+              breakLinkClassName={'page-link'}
+              pageLinkClassName={'page-link'}
+              pageCount={this.props.totalItems / this.state.itemsPerPage}
+              initialPage={this.state.activePage}
+              breakLabel={'...'}
+              marginPagesDisplayed={2}
+              pageRangeDisplayed={5}
+              onPageChange={(v) => { if(v.selected >= 0) this.handlePagination(v.selected+1) } }
+              containerClassName={'pagination'}
+              subContainerClassName={'page-item'}
+              activeClassName={'active'}
             />
           </Row>
         </div>
@@ -817,12 +842,10 @@ export const  mapDispatchToProps = {
 <%_ } _%>
 
  updateEntity,
- <%_ if (pagination === 'infinite-scroll') { _%>
  reset
- <%_ } _%>
 };
 
-type StateProps = ReturnType<typeof mapStateToProps>;
-type DispatchProps = typeof mapDispatchToProps;
+      export type StateProps = ReturnType<typeof mapStateToProps>;
+      export type DispatchProps = typeof mapDispatchToProps;
 
 export default connect(mapStateToProps, mapDispatchToProps)(<%= entityReactName %>);

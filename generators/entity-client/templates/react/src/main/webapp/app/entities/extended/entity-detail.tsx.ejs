@@ -8,6 +8,8 @@ import { connect } from 'react-redux';
   import {Panel, PanelHeader, PanelBody} from 'app/shared/layout/panel/panel.tsx';
 <%_ } _%> 
 import { <%= entityReactName %>Detail, mapStateToProps, mapDispatchToProps } from '../<%= entityFileName %>-detail';
+import { IRootState } from 'app/shared/reducers';
+
 
 
 export class <%= entityReactName %>ExtendedDetail extends <%= entityReactName %>Detail {
@@ -36,13 +38,19 @@ export class <%= entityReactName %>ExtendedDetail extends <%= entityReactName %>
 }
 
 
-export const mapStateToPropsExtended = mapStateToProps;
+export const mapStateToPropsExtended = (storeState: IRootState) => {
+  const listBase = mapStateToProps(storeState);
+  return {
+    ...listBase, 
+    listProcediment: storeState.patDrPrescrProcd.entities
+  };
+};
 
 export const mapDispatchToPropsExtended = {
  ...mapDispatchToProps
 };
 
-type StateProps = ReturnType<typeof mapStateToPropsExtended >;
-    type DispatchProps = typeof mapDispatchToPropsExtended;
+export type StatePropsExtended = ReturnType<typeof mapStateToPropsExtended >;
+  export type DispatchPropsExtended = typeof mapDispatchToPropsExtended;
     
     export default connect(mapStateToPropsExtended, mapDispatchToPropsExtended)(<%= entityReactName %>ExtendedDetail);

@@ -45,7 +45,7 @@
               <%_ if (fieldBlobType === 'image') { _%>
                 <img src={`data:${<%= entityInstance %>.<%= fieldName %>ContentType};base64,${<%= entityInstance %>.<%= fieldName %>}`} style={{ maxHeight: '30px' }} />
               <%_ } else { _%>
-                <Translate contentKey="<%= i18nKeyPrefix %> %>.btnOpen">Open</Translate>
+                <Translate contentKey="<%= i18nKeyPrefix %>.btnOpen">Open</Translate>
               <%_ } _%>
               &nbsp;
             </a>
@@ -428,7 +428,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
               <Button color="secondary" onClick={this.handleClose}>
                 <FontAwesomeIcon icon="ban" />
                 &nbsp;
-                <Translate contentKey="<%= i18nKeyPrefix %> %>.btnCancel">Cancel</Translate>
+                <Translate contentKey="<%= i18nKeyPrefix %>.btnCancel">Cancel</Translate>
               </Button>
               <Button id="jhi-confirm-delete-paciente" color="danger" onClick={this.confirmExport}>
                 <FontAwesomeIcon icon="trash" />

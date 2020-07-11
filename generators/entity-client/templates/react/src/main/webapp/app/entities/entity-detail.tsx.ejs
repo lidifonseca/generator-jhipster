@@ -22,7 +22,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { IRootState } from 'app/shared/reducers';
-import { getEntity, I<%= entityReactName %>BaseState, get<%= entityReactName %>State } from './<%= entityFileName %>.reducer';
+import { getEntity, I<%= entityReactName %>BaseState, get<%= entityReactName %>State, getEntityFiltersURL } from './<%= entityFileName %>.reducer';
 import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileName %>.model';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 
@@ -34,11 +34,26 @@ import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
   
 export interface I<%= entityReactName %>State {
   fieldsBase: I<%= entityReactName %>BaseState;
-}
-
-export interface I<%= entityReactName %>DetailProps extends StateProps, DispatchProps, RouteComponentProps<{id: string}>  {
   <%_ if (viewTabs.length > 0) { _%>activeTab: number;<%_ } _%>
 }
+
+
+
+<%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
+  import { StatePropsExtended, DispatchPropsExtended } from './extended/<%= entityFileName %>-update';
+<%_ } _%>
+
+
+<%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
+  export interface I<%= entityReactName %>DetailProps extends StateProps, DispatchProps, StatePropsExtended, DispatchPropsExtended, RouteComponentProps<{id: string}>  {
+  }
+<%_ } else { _%>
+  export interface I<%= entityReactName %>DetailProps extends StateProps, DispatchProps, RouteComponentProps<{id: string}>  {
+  }
+<%_ } _%>
+
+
+
 
 export class <%= entityReactName %>Detail extends React.Component<I<%= entityReactName %>DetailProps, I<%= entityReactName %>State> {
 
@@ -77,11 +92,12 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
   };
 
   componentDidMount() {
-    this.props.getEntity(this.props.match.params.id);
+    this.props.getEntity(this.props.match.params['id']);
   }
 
   renderHeader() {
     const {<%= entityInstance %>Entity } = this.props;
+    const state = this.state;
     return (
       <>
       <div id="page-heading">
@@ -117,6 +133,7 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
 
   renderBody() {
     const {<%= entityInstance %>Entity } = this.props;
+    const state = this.state;
     return (
       <>
         <Row>
@@ -169,8 +186,16 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                             className={classnames({ active: this.state.activeTab === <%= idx %> })}
                             onClick={() => { this.toggleTab(<%= idx %>); }}
                           >
-                            <span className="d-sm-none"> <%= viewTabs[idx] %></span>
-                            <span className="d-sm-block d-none"><%= viewTabs[idx] %></span>
+                            <span className="d-sm-none">
+                              <Translate contentKey="<%= i18nKeyPrefix %>.viewTabs.<%= viewTabs[idx] %>">
+                                <%= viewTabs[idx] %>
+                              </Translate> 
+                            </span>
+                            <span className="d-sm-block d-none">
+                              <Translate contentKey="<%= i18nKeyPrefix %>.viewTabs.<%= viewTabs[idx] %>">
+                                <%= viewTabs[idx] %>
+                              </Translate> 
+                            </span>
                           </NavLink>
                         </NavItem>
                       <%_ } _%>
@@ -272,6 +297,7 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
 
   render() {
     const {<%= entityInstance %>Entity } = this.props;
+    const state = this.state;
     return (
       <div>
       <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
@@ -296,7 +322,7 @@ export const mapDispatchToProps = {
   
 };
 
-type StateProps = ReturnType<typeof mapStateToProps>;
-type DispatchProps = typeof mapDispatchToProps;
+      export type StateProps = ReturnType<typeof mapStateToProps>;
+      export type DispatchProps = typeof mapDispatchToProps;
 
 export default connect(mapStateToProps, mapDispatchToProps)(<%= entityReactName %>Detail);

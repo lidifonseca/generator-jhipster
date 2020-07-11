@@ -25,6 +25,8 @@ import { connect } from 'react-redux';
   import <%= entityReactName %>AfterComponent from '../components/<%= entityFileName %>-after-component';
 <%_ } _%>
 import { <%= entityReactName %>, mapStateToProps, mapDispatchToProps } from '../<%= entityFileName %>';
+import { IRootState } from 'app/shared/reducers';
+
 
   export class <%= entityReactName %>Extended extends <%= entityReactName %> {
 
@@ -126,10 +128,17 @@ import { <%= entityReactName %>, mapStateToProps, mapDispatchToProps } from '../
   }
 }
 
-export const mapStateToPropsExtended = mapStateToProps;
+export const mapStateToPropsExtended = (storeState: IRootState) => {
+  const listBase = mapStateToProps(storeState);
+  return {
+    ...listBase, 
+  };
+};
 
 export const mapDispatchToPropsExtended = {
  ...mapDispatchToProps
 };
-
+export type StatePropsExtended = ReturnType<typeof mapStateToPropsExtended >;
+  export type DispatchPropsExtended = typeof mapDispatchToPropsExtended;
+  
 export default connect(mapStateToPropsExtended, mapDispatchToPropsExtended)(<%= entityReactName %>Extended);

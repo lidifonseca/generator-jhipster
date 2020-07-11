@@ -244,7 +244,7 @@ _%>
                   (<%= entityInstance %>.<%= fieldName %>ContentType && <%= entityInstance %>.<%= fieldName %>ContentType.includes("image/")) ? 
                   <img src={`${<%= entityInstance %>.<%= fieldName %>}`} style={{ maxHeight: '30px' }} />
                   :
-                  <Translate contentKey="<%= i18nKeyPrefix %> %>.btnOpen">Open</Translate>
+                  <Translate contentKey="<%= i18nKeyPrefix %>.btnOpen">Open</Translate>
                 } 
               </a>
             </div>
@@ -850,14 +850,14 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
                               <div className="btn-group flex-btn-group-container">
                               <%_ if (listButtons.length === 0) { _%>
                                   <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}?${this.getFiltersURL()}`} color="info" size="sm">
-                                    <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline" ><Translate contentKey="<%= i18nKeyPrefix %> %>.btnView">View</Translate></span>
+                                    <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline" ><Translate contentKey="<%= i18nKeyPrefix %>.btnView">View</Translate></span>
                                   </Button>
                                   <%_ if (!readOnly) { _%>
                                     <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/edit?${this.getFiltersURL()}`} color="primary" size="sm">
-                                      <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %> %>.btnEdit">Edit</Translate></span>
+                                      <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnEdit">Edit</Translate></span>
                                     </Button>
                                     <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/delete?${this.getFiltersURL()}`} color="danger" size="sm">
-                                      <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %> %>.btnDelete">Delete</Translate></span>
+                                      <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnDelete">Delete</Translate></span>
                                     </Button>
                                   <%_ } _%>
                                 <%_ } else { _%>

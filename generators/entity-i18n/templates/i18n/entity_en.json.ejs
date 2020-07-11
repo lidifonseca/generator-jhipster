@@ -74,6 +74,13 @@ let helpBlocks = 0; %>
             "lastModifiedDate" : "Last modified date",
             "createdBy" : "Created by",
             "lastModifiedBy" : "Last modified by",
+            <% for (idx in fields) { %>
+                <%_ if (fields[idx].fieldType === 'Boolean') { _%>
+                    "<%= fields[idx].fieldName %>_filter_all": "Indifferent",
+                    "<%= fields[idx].fieldName %>_filter_with": "Active",
+                    "<%= fields[idx].fieldName %>_filter_without": "Inactive",
+                <% } %>
+            <% } %>
             "detail": {
                 "title": "<%= entityClassHumanized %>"
             }<% for (idx in fields) {

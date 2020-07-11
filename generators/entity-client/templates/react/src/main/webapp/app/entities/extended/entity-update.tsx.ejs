@@ -24,6 +24,7 @@ import {Panel, PanelHeader, PanelBody} from 'app/shared/layout/panel/panel.tsx';
 <%_ } _%> 
 import { AvForm } from 'availity-reactstrap-validation';
 import { <%= entityReactName %>Update, mapStateToProps, mapDispatchToProps } from '../<%= entityFileName %>-update';
+import { IRootState } from 'app/shared/reducers';
 
   export class <%= entityReactName %>ExtendedUpdate extends <%= entityReactName %>Update {
       renderHeader() {
@@ -58,11 +59,6 @@ import { <%= entityReactName %>Update, mapStateToProps, mapDispatchToProps } fro
       <%_ } _%>
       const baseFilters = this.state.fieldsBase && this.state.fieldsBase['baseFilters'] ? this.state.fieldsBase['baseFilters'] : null;
 
-      <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-        let <%= baseFilters %>BaseFilter = null; 
-        <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.fieldsBase.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
-      <%_ } _%>
-      
       return (
         <div>
             <AvForm model={isNew ? {
@@ -89,10 +85,17 @@ import { <%= entityReactName %>Update, mapStateToProps, mapDispatchToProps } fro
       }
       }
 
-      export const mapStateToPropsExtended = mapStateToProps;
+      export const mapStateToPropsExtended = (storeState: IRootState) => {
+        const listBase = mapStateToProps(storeState);
+        return {
+          ...listBase, 
+          listProcediment: storeState.patDrPrescrProcd.entities
+        };
+      };
       
       export const mapDispatchToPropsExtended = {
        ...mapDispatchToProps
       };
-   
+      export type StatePropsExtended = ReturnType<typeof mapStateToPropsExtended >;
+        export type DispatchPropsExtended = typeof mapDispatchToPropsExtended;
           export default connect(mapStateToPropsExtended, mapDispatchToPropsExtended)(<%= entityReactName %>ExtendedUpdate);
