@@ -495,11 +495,11 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
           <%_ const field = fields[idx] _%>
           let <%= field.fieldName %>StartRequest = "";
           let <%= field.fieldName %>EndRequest = "";
-          if(filters && (typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+          if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
             <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`; 
-          } else if(filters && !(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+          } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
             <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`; 
-          } else if(filters && (typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+          } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
             <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
           }
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
