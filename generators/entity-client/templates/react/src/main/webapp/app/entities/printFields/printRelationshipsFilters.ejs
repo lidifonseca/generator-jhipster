@@ -29,7 +29,7 @@
             id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
             value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")  ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
             options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-            onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : options.map((option)=>(option['value'])).join(",") }) }
+            onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
             name={"<%= relationshipFieldName %>"} 
           />
         <%_ } else { _%>
@@ -37,7 +37,7 @@
             id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
             value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")  ? {value: p.id , label: p.<%= otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
             options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-            onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : options.map((option)=>(option['value'])).join(",") }) }
+            onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
             name={"<%= relationshipFieldName %>"} 
           />
         <%_ } _%>
@@ -47,7 +47,7 @@
               id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
               value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")  ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
               options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : options.map((option)=>(option['value'])).join(",") }) }
+              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
               name={"<%= relationshipFieldName %>"} 
             />
           <%_ } else { _%>
@@ -55,7 +55,7 @@
               id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
               value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")  ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
               options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : options.map((option)=>(option['value'])).join(",") }) }
+              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
               name={"<%= relationshipFieldName %>"} 
             />
           <%_ } _%>
@@ -71,7 +71,7 @@
               id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
               value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>Id.split(",").includes(p.id + "") ? {value: p.id , label: p.<%=otherEntityField%>} : null)) : null} 
               options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : options.map((option)=>(option['value'])).join(",") }) }
+              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
               name={"<%= relationshipFieldName %>"} 
             />
           <%_ } else { _%>
@@ -79,7 +79,7 @@
               id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
               value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")  ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
               options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : options.map((option)=>(option['value'])).join(",") }) }
+              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
               name={"<%= relationshipFieldName %>"} 
             />
           <%_ } _%>
@@ -91,7 +91,7 @@
           id="<%= entityFileName %>-<%= relationshipName %>" isMulti  className={"css-select-control"}
           value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>(this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")  ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
           options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-          onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : options.map((option)=>(option['value'])).join(",") }) }
+          onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
           name={"<%= relationshipFieldName %>"} 
         />
         </div>

@@ -389,7 +389,7 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
             <%_ } _%>
           <%_ } else {  _%>
             <%_ const rel = listFilterLayout[idx].entity _%>
-            const <%= rel.relationshipName %>Request = filters && typeof filters['<%= rel.relationshipName %>Id'] !== "undefined" && filters['<%= rel.relationshipName %>Id'] ? `<%= rel.relationshipName %>.in=${filters['<%= rel.relationshipName %>Id']}&` : '';
+            const <%= rel.relationshipName %>Request = filters && typeof filters['<%= rel.relationshipName %>Id'] !== "undefined" && filters['<%= rel.relationshipName %>Id'] ? `<%= rel.relationshipName %>.in=${filters['<%= rel.relationshipName %>Id']}&<%= rel.relationshipName %>Id.in=${filters['<%= rel.relationshipName %>Id']}&` : '';
             <%_ getAllEntitiesRequests += "${"+rel.relationshipName+"Request}"; _%>
           <%_ } _%>
         <%_ } _%>
@@ -414,7 +414,7 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
           <%_ } _%>
         <%_ } _%>
         <%_ relationships.forEach(rel => { _%>
-          const <%= rel.relationshipName %>Request = filters && typeof filters['<%= rel.relationshipName %>Id'] !== "undefined" && filters['<%= rel.relationshipName %>Id'] ? `<%= rel.relationshipName %>.in=${filters['<%= rel.relationshipName %>Id']}&` : '';
+          const <%= rel.relationshipName %>Request = filters && typeof filters['<%= rel.relationshipName %>Id'] !== "undefined" && filters['<%= rel.relationshipName %>Id'] ? `<%= rel.relationshipName %>.in=${filters['<%= rel.relationshipName %>Id']}&<%= rel.relationshipName %>Id.in=${filters['<%= rel.relationshipName %>Id']}&` : '';
           <%_ getAllEntitiesRequests += "${"+rel.relationshipName+"Request}"; _%>
         <%_ }) _%>
       <%_ } _%>
@@ -485,7 +485,7 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
           <%_ } _%>
         <%_ } else {  _%>
           <%_ const rel = listFilterLayout[idx].entity _%>
-          const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&` : '';
+          const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&<%= rel.relationshipName %>Id.in=${<%= rel.relationshipName %>Id}&` : '';
           <%_ getEntitiesRequests += "${"+rel.relationshipName+"Request}"; _%>
         <%_ } _%>
       <%_ } _%>
@@ -510,7 +510,7 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
         <%_ } _%>
       <%_ } _%>
       <%_ relationships.forEach(rel => { _%>
-        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&` : '';
+        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&<%= rel.relationshipName %>Id.in=${<%= rel.relationshipName %>Id}&` : '';
         <%_ getEntitiesRequests += "${"+rel.relationshipName+"Request}"; _%>
       <%_ }) _%>
     <%_ } _%>
@@ -591,7 +591,7 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
           <%_ } _%>
         <%_ } else {  _%>
           <%_ const rel = listFilterLayout[idx].entity _%>
-          const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&` : '';
+          const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&<%= rel.relationshipName %>Id.in=${<%= rel.relationshipName %>Id}&` : '';
           <%_ getEntitiesExportRequests += "${"+rel.relationshipName+"Request}"; _%>
         <%_ } _%>
       <%_ } _%>
@@ -616,7 +616,7 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
         <%_ } _%>
       <%_ } _%>
       <%_ relationships.forEach(rel => { _%>
-        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&` : '';
+        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&<%= rel.relationshipName %>Id.in=${<%= rel.relationshipName %>Id}&` : '';
         <%_ getEntitiesExportRequests += "${"+rel.relationshipName+"Request}"; _%>
       <%_ }) _%>
     <%_ } _%>

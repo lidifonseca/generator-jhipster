@@ -688,7 +688,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
               breakLinkClassName={'page-link'}
               pageLinkClassName={'page-link'}
               pageCount={this.props.totalItems / this.state.itemsPerPage}
-              initialPage={this.state.activePage}
+              initialPage={this.state.activePage-1}
               breakLabel={'...'}
               marginPagesDisplayed={2}
               pageRangeDisplayed={5}
