@@ -21,24 +21,51 @@ import { Switch } from 'react-router-dom';
 
 import ErrorBoundaryRoute from 'app/shared/error/error-boundary-route';
 
-<%_ if (typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false"){ %>
-    import <%= entityReactName %> from './extended/<%= entityFileName %>';
-<%_ } else { %>
-    import <%= entityReactName %> from './<%= entityFileName %>';
-<%_ } %>
-<%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
-    import <%= entityReactName %>Detail from './extended/<%= entityFileName %>-detail';
-<%_ } else { %>
-    import <%= entityReactName %>Detail from './<%= entityFileName %>-detail';
-<%_ } %>
-<%_ if (!readOnly) { _%>
-  <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
-    import <%= entityReactName %>Update from './extended/<%= entityFileName %>-update';
+
+<%_ if (typeof generator['allViewInOne'] != "undefined" && generator['allViewInOne'] != "false" && generator['allViewInOne'] != false){ %>
+  <%_ if (typeof generator['extendList'] != "undefined" && generator['extendList'] != "false"){ %>
+      import <%= entityReactName %> from './extended/<%= entityFileName %>';
   <%_ } else { %>
-    import <%= entityReactName %>Update from './<%= entityFileName %>-update';
+      import <%= entityReactName %> from './<%= entityFileName %>';
   <%_ } %>
-  import <%= entityReactName %>DeleteDialog from './<%= entityFileName %>-delete-dialog';
+  <%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
+      import <%= entityReactName %>Detail from './extended/<%= entityFileName %>';
+  <%_ } else { %>
+      import <%= entityReactName %>Detail from './<%= entityFileName %>';
+  <%_ } %>
+  <%_ if (!readOnly) { _%>
+    <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
+      import <%= entityReactName %>Update from './extended/<%= entityFileName %>';
+    <%_ } else { %>
+      import <%= entityReactName %>Update from './<%= entityFileName %>';
+    <%_ } %>
+    import <%= entityReactName %>DeleteDialog from './<%= entityFileName %>';
+  <%_ } _%>
+<%_ } else { _%>
+
+    <%_ if (typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false"){ %>
+        import <%= entityReactName %> from './extended/<%= entityFileName %>';
+    <%_ } else { %>
+        import <%= entityReactName %> from './<%= entityFileName %>';
+    <%_ } %>
+    <%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
+        import <%= entityReactName %>Detail from './extended/<%= entityFileName %>-detail';
+    <%_ } else { %>
+        import <%= entityReactName %>Detail from './<%= entityFileName %>-detail';
+    <%_ } %>
+    <%_ if (!readOnly) { _%>
+      <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
+        import <%= entityReactName %>Update from './extended/<%= entityFileName %>-update';
+      <%_ } else { %>
+        import <%= entityReactName %>Update from './<%= entityFileName %>-update';
+      <%_ } %>
+      import <%= entityReactName %>DeleteDialog from './<%= entityFileName %>-delete-dialog';
+    <%_ } _%>
 <%_ } _%>
+
+
+
+
 <%_ if(openModalRoutes.length > 0 ){  %>
     <%_ for(idx in openModalRoutes){  %>
         import <%= _.startCase(openModalRoutes[idx].split("-").join(" ")).split(" ").join("") %>    from '../<%= openModalRoutes[idx] %>/index';

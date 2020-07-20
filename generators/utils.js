@@ -476,8 +476,8 @@ function getEnumInfo(field, clientRootFolder) {
 }
 
 
-
 function analizeJavadoc(generator) {
+    generator.allViewInOne = false;
     generator.faker = faker;
     generator.addSubRelation = [];
     generator.openModalRoutes = [];
@@ -741,7 +741,7 @@ function analizeJavadoc(generator) {
                                                     generator.fields[idx][parameter[0]+element[0]].push(element[1].split("*-*").join(" "));
                                                 }
                                             } else {
-                                                generator.fields[idx][parameter[0]+element[0]] = element[1];
+                                                generator.fields[idx][parameter[0]+element[0]] = element[1] ? element[1].split("*-*").join(" ") : false;
                                             }
                                         }
                                     } else {
@@ -848,7 +848,7 @@ function analizeJavadoc(generator) {
                                                     generator.relationships[idx][parameter[0]+element[0]].push(element[1].split("*-*").join(" "));
                                                 }
                                             } else {
-                                                generator.relationships[idx][parameter[0]+element[0]] = element[1];
+                                                generator.relationships[idx][parameter[0]+element[0]] = element[1] ? element[1].split("*-*").join(" ") : false;
                                             }
                                         }
                                     } else {
@@ -943,6 +943,7 @@ function analizeJavadoc(generator) {
 
     return generator;
 }
+
 
 /**
  * @Deprecated

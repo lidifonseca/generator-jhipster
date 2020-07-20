@@ -14,11 +14,51 @@
   <%_ const relationshipRequired = rel.relationshipRequired; _%>
   <%_ const translationKey = `${i18nKeyPrefix}.${relationshipName}`; _%>
 
-  <%_ const formLayoutListCondition = typeof rel.formLayoutListCondition !== "undefined" ? rel.formLayoutListCondition.map(v=>"v."+v.split("=")[0]+" === "+v.split("=")[1]).join(" && ") : "true" _%>
-  <%_ const formLayoutShowCondition = typeof rel.formLayoutShowCondition !== "undefined" ? rel.formLayoutShowCondition.map(v=>"this.state."+v.split("=")[0]+"SelectValue === "+v.split("=")[1]).join(" && ") : undefined _%>
-  { <%- formLayoutShowCondition ? "("+formLayoutShowCondition+") && " : "" _%> baseFilters !== '<%= relationshipFieldName %>' ?
+  <%_ let formLayoutListCondition = typeof rel.formLayoutListCondition !== "undefined" ? rel.formLayoutListCondition.map(v=>"v."+v.split("=")[0]+" === "+v.split("=")[1]).join(" && ") : "true" _%>
+  <%_ formLayoutListCondition += (typeof rel.formLayoutListConditionExact !== "undefined" ? " && " + rel.formLayoutListConditionExact : "") _%>
+  <%_ let formLayoutShowCondition = typeof rel.formLayoutShowCondition !== "undefined" ? rel.formLayoutShowCondition.map(v=>"this.state."+v.split("=")[0]+"SelectValue === "+v.split("=")[1]).join(" && ") : "true" _%>
+  <%_ formLayoutShowCondition += (typeof rel.formLayoutShowConditionExact !== "undefined" ? " && " + rel.formLayoutShowConditionExact : "") _%>
+  { <%- formLayoutShowCondition !== "true" ? "("+formLayoutShowCondition+") && " : "" _%> baseFilters !== '<%= relationshipFieldName %>' ?
       <Col md="<%= formLayoutSize %>">
-        <%_ if (relationshipType === 'many-to-one' || (relationshipType === 'one-to-one' && ownerSide === true && otherEntityName === 'user')) { _%>
+        <%_ if(rel['formLayoutEmbebed'] === "true"){ %>
+
+          <div className="entityEmbebedList">
+            <<%= otherEntityNameCapitalized %>
+              history={this.props.history}
+              location={{
+                pathname: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/`,
+                search: '',
+                hash: '',
+                state: undefined,
+                key: 'q2tbhd',
+              }}
+              match={{
+                path: `/<%= entityFileName %>/:id<%= entityReactName %>/<%= rel.otherEntityPath %>/:id`,
+                url: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/`,
+                isExact: true,
+                params: { url: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/` },
+              }}
+
+              {...this.props.mapStateToProps<%= rel.relationshipNameCapitalized %>}
+              {...mapDispatchToProps<%= rel.relationshipNameCapitalized %>List}
+
+
+              getEntities={this.<%= relationshipName %>GetEntities}
+              updateEntity={this.<%= relationshipName %>UpdateEntity}
+              getEntity={this.<%= relationshipName %>GetEntity}
+              createEntity={this.<%= relationshipName %>CreateEntity}
+              deleteEntity={this.<%= relationshipName %>DeleteEntity}
+              reset={this.<%= relationshipName %>Reset}
+            
+              <%= relationshipName %>List={this.props.<%= relationshipName %>ListEmbed}
+              totalItems={this.props.<%= relationshipName %>ListEmbed ? this.props.<%= relationshipName %>ListEmbed.length : 0}
+              loading={this.props.loading}
+
+              <%= relationshipName %>Entity={this.props.<%= relationshipName %>Selected}
+            />
+          </div>
+        
+        <%_ } else if (relationshipType === 'many-to-one' || (relationshipType === 'one-to-one' && ownerSide === true && otherEntityName === 'user')) { _%>
           <AvGroup>
             <Row>
               <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">

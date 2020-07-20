@@ -192,7 +192,7 @@ Object.keys(differentRelationships).forEach(key => {
       }
     });
   }
-  if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
+  if (differentRelationships[key]) {
     const uniqueRel = differentRelationships[key][0];
     uniqueRealtionFields.add(uniqueRel.otherEntityNamePlural);
     otherEntityActions.add({

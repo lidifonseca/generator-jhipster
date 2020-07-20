@@ -408,7 +408,7 @@ Object.keys(differentRelationships).forEach(key => {
       }
     });
   }
-  if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
+  if (differentRelationships[key]) {
     const uniqueRel = differentRelationships[key][0];
     uniqueRealtionFields.add(uniqueRel.otherEntityNamePlural);
     otherEntityActions.add({
@@ -678,7 +678,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
     return <>
       <span className="page-header"><%= entityClassPluralHumanized %></span>
         <%_ if(typeof notListFilterLayout === 'undefined') { _%>
-        <Button id="togglerFilter<%= entityReactName %>" className="btn btn-primary float-right jh-create-entity">
+        <Button id="togglerFilter<%= entityReactName %>" color="primary" className="float-right jh-create-entity">
             <Translate contentKey="<%= i18nKeyPrefix %>.home.btn_filter_open">
               Filters
             </Translate>
@@ -730,17 +730,17 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
                 </div>
 
                 <div className="row mb-2 mr-4 justify-content-end">
-                    <Button className="btn btn-success" type="submit">
+                    <Button color="primary" type="submit">
                       <i className="fa fa-filter" aria-hidden={"true"}></i>
                       &nbsp;
                       <Translate contentKey="<%= i18nKeyPrefix %>.home.btn_filter">Filter</Translate>
                     </Button>
                     &nbsp;
-                    <div className="btn btn-secondary hand" onClick={this.cancelCourse}>
+                    <Button color="secondary" onClick={this.cancelCourse}>
                       <FontAwesomeIcon icon="trash-alt" />
                       &nbsp;
                       <Translate contentKey="<%= i18nKeyPrefix %>.home.btn_filter_clean">Clean</Translate>
-                    </div>
+                    </Button>
                   </div>
           
             </AvForm>

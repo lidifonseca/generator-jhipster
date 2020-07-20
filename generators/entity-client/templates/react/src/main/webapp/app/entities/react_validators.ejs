@@ -1,4 +1,5 @@
 <%_ let result = ''; _%>
+<%_ const formLayoutInputMask = typeof field.formLayoutInputMask !== 'undefined' && field.formLayoutInputMask.trim() ? true : false; _%>
 <%_ 
 if (field.fieldValidate === true) {
 	const rules = field.fieldValidateRules;
@@ -7,16 +8,16 @@ if (field.fieldValidate === true) {
     if (rules.includes('required') && field.fieldType !== 'Boolean') {
         validators.push('required: { value: true, errorMessage: translate(\'entity.validation.required\') }');
     }
-    if (rules.includes('minlength')) {
+    if (rules.includes('minlength') && !formLayoutInputMask) {
         validators.push('minLength: { value: ' + field.fieldValidateRulesMinlength + ', errorMessage: translate(\'entity.validation.minlength\', { min: ' + field.fieldValidateRulesMinlength + ' }) }');
     }
-    if (rules.includes('maxlength')) {
+    if (rules.includes('maxlength') && !formLayoutInputMask) {
         validators.push('maxLength: { value: ' + field.fieldValidateRulesMaxlength + ', errorMessage: translate(\'entity.validation.maxlength\', { max: ' + field.fieldValidateRulesMaxlength + ' }) }');
     }
-    if (rules.includes('min')) {
+    if (rules.includes('min') && !formLayoutInputMask) {
         validators.push('min: { value: ' + field.fieldValidateRulesMin + ', errorMessage: translate(\'entity.validation.min\', { min: ' + field.fieldValidateRulesMin + ' }) }');
     }
-    if (rules.includes('max')) {
+    if (rules.includes('max') && !formLayoutInputMask) {
         validators.push('max: { value: ' + field.fieldValidateRulesMax + ', errorMessage: translate(\'entity.validation.max\', { max: ' + field.fieldValidateRulesMax + ' }) }');
     }
     if (rules.includes('pattern')) {

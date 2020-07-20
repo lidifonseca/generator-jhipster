@@ -100,6 +100,7 @@ import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 
 <%_
 let hasRelationshipQuery = false;
+let hasOneToOneNotOwner = false;
 let otherEntityActions = new Set();
 let manyToManyOwners = new Set();
 let relFieldNames = new Set();
@@ -115,6 +116,9 @@ Object.keys(differentRelationships).forEach(key => {
   if (hasAnyRelationshipQuery) {
     hasRelationshipQuery = true;
     differentRelationships[key].forEach(rel => {
+      if(rel.relationshipType ==="one-to-one" && rel.ownerSide  === false && typeof baseFilters !== 'undefined' && baseFilters === rel.relationshipName  ){
+        hasOneToOneNotOwner = true;
+      }
       if (rel.relationshipType === 'many-to-many' && rel.ownerSide === true) {
         manyToManyOwners.add(rel);
       } else {
@@ -122,7 +126,7 @@ Object.keys(differentRelationships).forEach(key => {
       }
     });
   }
-  if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
+  if (differentRelationships[key]) {
     const uniqueRel = differentRelationships[key][0];
     uniqueRealtionFields.add(uniqueRel.otherEntityNamePlural);
     otherEntityActions.add({
@@ -176,7 +180,7 @@ export interface I<%= entityReactName %>State extends I<%= entityReactName %>Bas
 export interface I<%= entityReactName %>State extends I<%= entityReactName %>BaseState, IPaginationBaseState {
   <%_  if (listButtonsInDropdown === true) { _%> dropdownButtons: {}; <%_ } _%>
 };
-<%_ } _%>
+<%_ }  _%>
 
 export class <%= entityReactName %> extends React.Component<I<%= entityReactName %>Props<% if (searchEngine === 'elasticsearch' || pagination !== 'no') { %>, I<%= entityReactName %>State<% } %>> {
   private myFormRef: any;
@@ -488,7 +492,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
       <div id="page-heading">
         <span className="page-header"><%= entityClassPluralHumanized %></span>
           <%_ if(typeof notListFilterLayout === 'undefined') { _%>
-          <Button id="togglerFilter<%= entityReactName %>" className="btn btn-primary float-right jh-create-entity">
+            <Button id="togglerFilter<%= entityReactName %>" color="primary" className="float-right jh-create-entity">
               <%_ if(typeof btnOpenFilter !== 'undefined') { _%>
                 <Translate contentKey="<%= i18nKeyPrefix %>.btnOpenFilter"><%= btnOpenFilter %></Translate>
               <%_ } else { _%>
@@ -587,15 +591,15 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
                 </div>
 
                 <div className="row mb-2 mr-4 justify-content-end">
-                    <Button className="btn btn-success" type="submit">
+                    <Button color="primary" type="submit">
                       <i className="fa fa-filter" aria-hidden={"true"}></i>&nbsp;
                       <Translate contentKey="<%= i18nKeyPrefix %>.btnFilter">Filter</Translate>
                     </Button>
                     &nbsp;
-                    <div className="btn btn-secondary hand" onClick={this.cancelFilters}>
+                    <Button color="secondary" onClick={this.cancelFilters}>
                       <FontAwesomeIcon icon="trash-alt" />&nbsp;
                       <Translate contentKey="<%= i18nKeyPrefix %>.btnCleanFilter">Clean Filter</Translate>                        
-                    </div>
+                    </Button>
                   </div>
           
               </AvForm>
@@ -688,7 +692,6 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
               breakLinkClassName={'page-link'}
               pageLinkClassName={'page-link'}
               pageCount={this.props.totalItems / this.state.itemsPerPage}
-              initialPage={this.state.activePage-1}
               breakLabel={'...'}
               marginPagesDisplayed={2}
               pageRangeDisplayed={5}
@@ -787,7 +790,8 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
   }
 }
 
-export const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) => ({
+
+export const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) => { return {
   <%_ if (Object.keys(importEntities).length > 0){_%>
     <%_ for(const importEntity in importEntities) { _%>
       <%_ if (importEntities[importEntity] == 'Entity'){ _%>
@@ -814,7 +818,7 @@ export const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRoot
   entity: <%= entityInstance %>.entity,
   updateSuccess: <%= entityInstance %>.updateSuccess,
   <%_ } _%>
-});
+}};
 
 export const  mapDispatchToProps = {
   <%_ otherEntityActions.forEach(val => { _%>

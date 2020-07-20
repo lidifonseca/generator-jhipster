@@ -389,7 +389,7 @@
         }
       });
     }
-    if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
+    if (differentRelationships[key]) {
       const uniqueRel = differentRelationships[key][0];
       uniqueRealtionFields.add({"namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName, "otherEntityField": uniqueRel.otherEntityField });
       otherEntityActions.add({
@@ -645,7 +645,7 @@
         </ModalHeader>
               <ModalBody>
                 <Row className="justify-content-center">
-                  <Col md="8">
+                    <Col md="11">
                   { loading ? <p>Loading...</p> :
                   <div>
                     { !isNew ?

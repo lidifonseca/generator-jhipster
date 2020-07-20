@@ -25,17 +25,87 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileName %>.model';
 import { IRootState } from 'app/shared/reducers';
-import { getEntity, deleteEntity } from './<%= entityFileName %>.reducer';
+import { getEntity, deleteEntity, I<%= entityReactName %>BaseState, get<%= entityReactName %>State } from './<%= entityFileName %>.reducer';
 
 export interface I<%= entityReactName %>DeleteDialogProps extends StateProps, DispatchProps, RouteComponentProps<{id: string}>  {}
+export interface I<%= entityReactName %>UpdateState {
+  fieldsBase: I<%= entityReactName %>BaseState;
+}
 
-export class <%= entityReactName %>DeleteDialog extends React.Component<I<%= entityReactName %>DeleteDialogProps> {
+export class <%= entityReactName %>DeleteDialog extends React.Component<I<%= entityReactName %>DeleteDialogProps,
+    I<%= entityReactName %>UpdateState> {
+    constructor(props: Readonly<I<%= entityReactName %>DeleteDialogProps>) {
+      super(props);
+
+      this.state = {
+        fieldsBase: {
+          ...get<%= entityReactName %>State(this.props.location),
+          <%_ if (typeof baseFilters !== 'undefined' && baseFilters) { _%>
+            <%= baseFilters _%>Id: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'],
+            baseFilters: '<%= baseFilters _%>',
+          <%_ } _%>  
+        }
+      }
+    }
+
   componentDidMount() {
     this.props.getEntity(this.props.match.params['id']);
   }
 
   confirmDelete = event => {
-    this.props.deleteEntity(this.props.<%= entityInstance %>Entity.id);
+
+    const {
+      <%_ if (listFilterLayout.length > 0) {  _%>
+       <%_ for (idx in listFilterLayout) { _%>
+         <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
+           <%= listFilterLayout[idx].entity.relationshipName %>Id,
+         <%_ } else { _%>
+           <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
+             <%= listFilterLayout[idx].name %>Start,
+             <%= listFilterLayout[idx].name %>End,
+             <%_ } else { _%>
+               <%= listFilterLayout[idx].name %>,
+           <%_ } _%>
+         <%_ } _%>
+       <%_ } _%>
+     <%_ } else {  _%>
+       <%_ for (idx in fields) { _%>
+         <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
+           <%= fields[idx].fieldName %>Start, 
+           <%= fields[idx].fieldName %>End, 
+         <%_ } else { _%>
+           <%= fields[idx].fieldName %>, 
+         <%_ } _%>
+       <%_ } _%>
+       <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
+     <%_ } _%>
+   } = this.state.fieldsBase;
+
+    this.props.deleteEntity(this.props.<%= entityInstance %>Entity.id,[
+      <%_ if (listFilterLayout.length > 0) {  _%>
+        <%_ for (idx in listFilterLayout) { _%>
+          <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
+            <%= listFilterLayout[idx].entity.relationshipName %>Id,
+          <%_ } else { _%>
+            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
+              <%= listFilterLayout[idx].entity.fieldName %>Start, 
+              <%= listFilterLayout[idx].entity.fieldName %>End, 
+            <%_ } else { _%> 
+              <%= listFilterLayout[idx].entity.fieldName %>,
+            <%_ } _%>
+          <%_ } _%>
+        <%_ } _%>
+      <%_ } else {  _%>
+        <%_ for (idx in fields) { _%> 
+          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
+            <%= fields[idx].fieldName %>Start, <%= fields[idx].fieldName %>End, 
+          <%_ } else { _%> 
+            <%= fields[idx].fieldName %>, 
+          <%_ } _%>
+        <%_ } _%>
+        <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
+      <%_ } _%>
+      ]);
     this.handleClose(event);
   }
 

@@ -27,24 +27,38 @@ import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileNam
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 
 
+
+<%_ if (viewLayout.length > 0) {  _%>
+  <%_ for (idx in viewLayout) {  _%>
+    <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+    <%_ const embebedEntity = viewLayout[idx].entity; _%>
+      import { <%= embebedEntity.relationshipNameCapitalized %>Detail } from '../<%= embebedEntity.otherEntityPath %>/<%= embebedEntity.otherEntityPath %>-detail';
+      import { getEntity as getEntity<%= embebedEntity.otherEntityNameCapitalized %> } from '../<%= embebedEntity.otherEntityPath %>/<%= embebedEntity.otherEntityPath %>.reducer';
+    <%_ } _%>
+  <%_ } _%>
+<%_ } _%>
+  
+
+
 <%_ if (viewTabs.length > 0) { _%>
   import { TabContent, TabPane, Nav, NavItem, NavLink } from 'reactstrap';
   import classnames from 'classnames';
 <%_ } _%>
   
+
+
+<%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
+  import { StatePropsExtended, DispatchPropsExtended } from './extended/<%= entityFileName %>-detail';
+<%_ } _%>
+
+
 export interface I<%= entityReactName %>State {
   fieldsBase: I<%= entityReactName %>BaseState;
   <%_ if (viewTabs.length > 0) { _%>activeTab: number;<%_ } _%>
 }
 
 
-
-<%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
-  import { StatePropsExtended, DispatchPropsExtended } from './extended/<%= entityFileName %>-update';
-<%_ } _%>
-
-
-<%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
+<%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
   export interface I<%= entityReactName %>DetailProps extends StateProps, DispatchProps, StatePropsExtended, DispatchPropsExtended, RouteComponentProps<{id: string}>  {
   }
 <%_ } else { _%>
@@ -136,8 +150,8 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
     const state = this.state;
     return (
       <>
-        <Row>
-            <Col md="8">
+        <Row className="justify-content-center">
+            <Col md="11">
               <h2>
                 <Translate contentKey="<%= i18nKeyPrefix %>.detail.title"><%= entityClass %></Translate> 
                 <%_ if (toStringFields.length > 0) { _%>
@@ -277,17 +291,19 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                   <%_ } _%>
                   </Row>
 
-              <Button tag={Link} to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-                _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
-              } %>"/<%= entityFileName %>?"+this.getFiltersURL()} replace color="info">
-                <FontAwesomeIcon icon="arrow-left" /> <span className="d-none d-md-inline" ><Translate contentKey="<%= i18nKeyPrefix %>.btnBack">Back</Translate></span>
-              </Button>&nbsp;
-              <%_ if (!readOnly) { _%>
-              <Button tag={Link} to={`<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-                _%> /<%= baseFilters %>/${this.state.fieldsBase.<%= baseFilters %>Id }<%_ 
-              } %>/<%= entityFileName %>/${<%=entityInstance %>Entity.id}/edit?+${this.getFiltersURL()}`} replace color="primary">
-                <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnEdit">Edit</Translate></span>
-              </Button>
+                  <div className="footer-details-buttons"> 
+                    <Button tag={Link} to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
+                      _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
+                    } %>"/<%= entityFileName %>?"+this.getFiltersURL()} replace color="info">
+                      <FontAwesomeIcon icon="arrow-left" /> <span className="d-none d-md-inline" ><Translate contentKey="<%= i18nKeyPrefix %>.btnBack">Back</Translate></span>
+                    </Button>&nbsp;
+                    <%_ if (!readOnly) { _%>
+                    <Button tag={Link} to={`<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
+                      _%> /<%= baseFilters %>/${this.state.fieldsBase.<%= baseFilters %>Id }<%_ 
+                    } %>/<%= entityFileName %>/${<%=entityInstance %>Entity.id}/edit?+${this.getFiltersURL()}`} replace color="primary">
+                      <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnEdit">Edit</Translate></span>
+                    </Button>
+                  </div>
               <%_ } _%>
             </Col>
         </Row>
@@ -314,12 +330,25 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
 }
 
 export const mapStateToProps = ({ <%= entityInstance %>, ...storeState }: IRootState) => ({
-  <%= entityInstance %>Entity: <%= entityInstance %>.entity
+  <%= entityInstance %>Entity: <%= entityInstance %>.entity,
+  <%_ if (viewLayout.length > 0) {  _%>
+    <%_ for (idx in viewLayout) {  _%>
+      <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+        <%= viewLayout[idx].entity.otherEntityName %>Entity: storeState.<%= viewLayout[idx].entity.otherEntityName %>.entity,
+      <%_ } _%>
+    <%_ } _%>
+  <%_ } _%>
 });
 
 export const mapDispatchToProps = { 
-  getEntity
-  
+  getEntity,
+  <%_ if (viewLayout.length > 0) {  _%>
+    <%_ for (idx in viewLayout) {  _%>
+      <%_ if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+         getEntity<%= viewLayout[idx].entity.otherEntityNameCapitalized %>,
+      <%_ } _%>
+    <%_ } _%>
+  <%_ } _%>  
 };
 
       export type StateProps = ReturnType<typeof mapStateToProps>;

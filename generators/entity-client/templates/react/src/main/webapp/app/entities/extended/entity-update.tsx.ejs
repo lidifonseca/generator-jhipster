@@ -25,6 +25,9 @@ import {Panel, PanelHeader, PanelBody} from 'app/shared/layout/panel/panel.tsx';
 import { AvForm } from 'availity-reactstrap-validation';
 import { <%= entityReactName %>Update, mapStateToProps, mapDispatchToProps } from '../<%= entityFileName %>-update';
 import { IRootState } from 'app/shared/reducers';
+export interface IUpdateExtendedState {
+  dumystate?: any;
+}
 
   export class <%= entityReactName %>ExtendedUpdate extends <%= entityReactName %>Update {
       renderHeader() {

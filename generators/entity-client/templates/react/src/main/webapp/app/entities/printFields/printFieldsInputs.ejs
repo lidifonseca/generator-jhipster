@@ -17,8 +17,8 @@
         <Row>
           <%_ if (typeof field.formLayoutType !== "undefined" && field.formLayoutType === "HtmlEditor") { _%>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
-              <Label className={"mt-2" <%_ if(rulesValidate.includes('required')){ %> + (this.state.cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>  ==="" 
-                  ? " text-danger" : "")<% } %>} id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>"
+              <Label className={"mt-2" <%_ if(rulesValidate.includes('required')){ %> + (this.state.<%= fieldName %>SelectValue === "" ? " text-danger" : "")<% } %>} 
+                  id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>"
                 >
                 <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
                   <%= fieldNameHumanized %>
@@ -50,14 +50,17 @@
                 ? " is-touched is-pristine av-invalid is-invalid" : "")<% } %>}  
               value={this.state.cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %> }  
               <%_ if(formLayoutCepBr == "cep"){ _%>
+                tag={InputMask}
+                mask="99999-999"
                 onBlur={inputVal => {
                   viacepRequest( inputVal.target.value, (cepRequest: any)=>{this.setState(cepRequest)});
+                  this.setState({<%= fieldName %>SelectValue: inputVal.target.value});    
                   this.setState({cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>: inputVal.target.value ? inputVal.target.value : ""}); 
                 }}
               <%_ } else { _%>
                 onBlur={inputVal => this.setState({cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>: inputVal.target.value ? inputVal.target.value : ""}) }  
               <%_ } _%>
-              onChange={inputVal => this.setState({cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>: inputVal.target.value}) }  
+              onChange={inputVal => {this.setState({cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>: inputVal.target.value}); this.setState({<%= fieldName %>SelectValue: inputVal.target.value}); } } 
               />
             </Col>
           <%_ }  else if (fieldType === 'Boolean') { _%>
@@ -187,7 +190,7 @@
                         <br />
                       </div>
                       ) : null}
-                      <input id="file_<%= fieldName %>" type="file" ref={this.<%= fields[idx].fieldName %>FileInput} onChange={this.onBlobChange(<%= isAnImage %>, '<%= fieldName %>', this.<%= fields[idx].fieldName %>FileInput
+                      <input id="file_<%= fieldName %>" type="file" ref={this.<%= fieldName %>FileInput} onChange={this.onBlobChange(<%= isAnImage %>, '<%= fieldName %>', this.<%= fieldName %>FileInput
                         )} <% if (isAnImage) { %>accept="image/*" <% } %> />
                       <AvInput onChange={evt => this.setState({ <%= fieldName %>SelectValue: evt.target.value })} type="hidden"  name="<%= fieldName %>" value={<%= fieldName %>}  />
                     </Col>

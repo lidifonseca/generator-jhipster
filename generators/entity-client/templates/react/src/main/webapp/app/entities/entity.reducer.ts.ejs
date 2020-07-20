@@ -22,7 +22,7 @@ Object.keys(differentRelationships).forEach(key => {
       }
     });
   }
-  if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
+  if (differentRelationships[key]) {
     const uniqueRel = differentRelationships[key][0];
     uniqueRealtionFields.add({"namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName });
     otherEntityActions.add({
@@ -69,6 +69,19 @@ import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util'
 <%_ } _%>
 import { I<%= entityReactName %>, defaultValue } from 'app/shared/model/<%= entityModelFileName %>.model';
 
+
+
+<%_ if (viewLayout.length > 0) {  _%>
+  <%_ for (idx in viewLayout) {  _%>
+    <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+    <%_ const embebedEntity = viewLayout[idx].entity; _%>
+      import { I<%= embebedEntity.relationshipNameCapitalized %>, defaultValue as defaultValue<%= embebedEntity.relationshipNameCapitalized %> } from 'app/shared/model/<%= embebedEntity.otherEntityPath %>.model';    
+    <%_ } _%>
+  <%_ } _%>
+<%_ } _%>
+
+
+
 export declare type ICrudPutAction<T> = (data?: T, listFiltersPage?) => IPayload<T> | IPayloadResult<T>;
 export const ACTION_TYPES = {
   <%_ if (searchEngine === 'elasticsearch') { _%>
@@ -106,7 +119,19 @@ const initialState = {
   <%_ if (pagination !== 'no') { _%>
   totalItems: 0,
   <%_ } _%>
-  updateSuccess: false
+  updateSuccess: false,
+
+  <%_ if (viewLayout.length > 0) {  _%>
+    <%_ for (idx in viewLayout) {  _%>
+      <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+      <%_ const embebedEntity = viewLayout[idx].entity; _%>
+        <%= embebedEntity.relationshipName %>ListEmbed: [] as ReadonlyArray<I<%= embebedEntity.relationshipNameCapitalized %>>,
+        <%= embebedEntity.relationshipName %>ListAllEmbed: [] as ReadonlyArray<I<%= embebedEntity.relationshipNameCapitalized %>>,
+        <%= embebedEntity.relationshipName %>Selected: defaultValue<%= embebedEntity.relationshipNameCapitalized %>,
+      <%_ } _%>
+    <%_ } _%>
+  <%_ } _%>
+
 };
 
 export type <%= entityReactName %>State =  Readonly<typeof initialState>;
@@ -143,6 +168,7 @@ export interface I<%= entityReactName %>BaseState {
 
 
 export interface I<%= entityReactName %>UpdateState {
+  functionEmbebed?: any[];
   fieldsBase: I<%= entityReactName %>BaseState;
   <%_ for (idx in fields) { _%>   
       <%= fields[idx].fieldName %>SelectValue?: any;
@@ -291,8 +317,79 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
     <%_ } _%>
     case ACTION_TYPES.RESET:
       return {
-        ...initialState
+        ...initialState,
+        <%_ if (viewLayout.length > 0) {  _%>
+          <%_ for (idx in viewLayout) {  _%>
+            <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+            <%_ const embebedEntity = viewLayout[idx].entity; _%>
+              <%= embebedEntity.relationshipName %>ListEmbed: state.<%= embebedEntity.relationshipName %>ListEmbed,
+              <%= embebedEntity.relationshipName %>ListAllEmbed: state.<%= embebedEntity.relationshipName %>ListAllEmbed,
+              <%= embebedEntity.relationshipName %>Selected: state.<%= embebedEntity.relationshipName %>Selected,
+            <%_ } _%>
+          <%_ } _%>
+        <%_ } _%>
       };
+
+
+      <%_ if (viewLayout.length > 0) {  _%>
+        <%_ for (idx in viewLayout) {  _%>
+          <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+          <%_ const embebedEntity = viewLayout[idx].entity; _%>
+          
+
+        case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_GET_ENTITIES':
+          return {
+            ...state,
+            <%= embebedEntity.relationshipName %>ListEmbed: state.<%= embebedEntity.relationshipName %>ListAllEmbed
+          };
+        case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_CREATE_ENTITY':
+          return {
+            ...state,
+            <%= embebedEntity.relationshipName %>ListAllEmbed: [
+              ...state.<%= embebedEntity.relationshipName %>ListAllEmbed,
+              action.payload
+            ]
+          };
+        case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_SET_ENTITIES':
+          return {
+            ...state,
+            <%= embebedEntity.relationshipName %>ListAllEmbed: action.payload
+          };
+        case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_UPDATE_ENTITY': {
+          const <%= embebedEntity.relationshipName %>ListAllEmbed = [
+            ...state.<%= embebedEntity.relationshipName %>ListAllEmbed
+          ];
+          state.<%= embebedEntity.relationshipName %>ListAllEmbed.map((v,i:any)=>{
+            if(v.id===action.payload.id) {
+              <%= embebedEntity.relationshipName %>ListAllEmbed[i] = action.payload;
+            }
+          });
+          return {
+            ...state,
+            <%= embebedEntity.relationshipName %>ListAllEmbed,
+            <%= embebedEntity.relationshipName %>Selected: {}        
+          };
+        }
+        case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_RESET':
+          return {
+            ...state,
+            <%= embebedEntity.relationshipName %>Selected: {},
+            <%= embebedEntity.relationshipName %>ListEmbed: []
+          };
+        case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_GET_ENTITY':
+          return {
+            ...state,
+            <%= embebedEntity.relationshipName %>Selected: state.<%= embebedEntity.relationshipName %>ListAllEmbed.filter(v=>v.id===action.payload).pop()
+          };
+        case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_DELETE_ENTITY':
+          return {
+            ...state,
+            <%= embebedEntity.relationshipName %>ListAllEmbed: state.<%= embebedEntity.relationshipName %>ListAllEmbed.filter(v=>v.id!==action.payload)
+          };
+          <%_ } _%>
+        <%_ } _%>
+      <%_ } _%>
+
     case ACTION_TYPES.SHOW_MODAL: 
     {
       const openModal = state.openModal;
@@ -479,6 +576,9 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
             }
             <%_ getEntitiesRequests += "${"+field.fieldName+"StartRequest}"; _%>
             <%_ getEntitiesRequests += "${"+field.fieldName+"EndRequest}"; _%>
+          <%_ } else if (field.fieldIsEnum === true){ _%>
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.equals=${<%= field.fieldName %>}&` : '';
+            <%_ getEntitiesRequests += "${"+field.fieldName+"Request}"; _%>
           <%_ } else { _%>
             const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.contains=${<%= field.fieldName %>}&` : '';
             <%_ getEntitiesRequests += "${"+field.fieldName+"Request}"; _%>
@@ -504,6 +604,9 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
           }
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
+        <%_ } else if (fields[idx].fieldIsEnum === true){ _%>
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&` : '';
+          <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"Request}"; _%>
         <%_ } else { _%>
           const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&` : '';
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"Request}"; _%>
@@ -585,6 +688,9 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
             }
             <%_ getEntitiesExportRequests += "${"+field.fieldName+"StartRequest}"; _%>
             <%_ getEntitiesExportRequests += "${"+field.fieldName+"EndRequest}"; _%>
+          <%_ } else if (field.fieldIsEnum === true){ _%>
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.equals=${<%= field.fieldName %>}&` : '';
+            <%_ getEntitiesRequests += "${"+field.fieldName+"Request}"; _%>
           <%_ } else { _%>
             const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.contains=${<%= field.fieldName %>}&` : '';
             <%_ getEntitiesExportRequests += "${"+field.fieldName+"Request}"; _%>
@@ -610,6 +716,9 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
           }
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
+        <%_ } else if (fields[idx].fieldIsEnum === true){ _%>
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&` : '';
+          <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"Request}"; _%>
         <%_ } else { _%>
           const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&` : '';
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"Request}"; _%>
@@ -666,14 +775,17 @@ export const updateEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, li
   return result;
 };
 
-export const deleteEntity: ICrudDeleteAction<I<%= entityReactName %>> = id => async dispatch => {
+export const deleteEntity: any = (id, listFiltersPage) => async dispatch => {
   const requestUrl = `${apiUrl}/${id}`;
   const result = await dispatch({
     type: ACTION_TYPES.DELETE_<%= entityActionName %>,
     payload: axios.delete(requestUrl)
   });
   <%_ if (pagination !== 'infinite-scroll') { _%>
-  dispatch(getEntities());
+    if(listFiltersPage !== false && listFiltersPage['reloadList'] !== false){
+      await dispatch(reset());
+      dispatch(getEntities(...listFiltersPage));
+    }
   <%_ } _%>
   return result;
 };
@@ -790,3 +902,71 @@ export const getEntityFiltersURL = (state, offset = null) => {
   <%_ } _%>
   ''
 };
+
+
+<%_ if (viewLayout.length > 0) {  _%>
+  <%_ for (idx in viewLayout) {  _%>
+    <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+    <%_ const embebedEntity = viewLayout[idx].entity; _%>
+      export const <%= embebedEntity.relationshipName %>Reset: any = (values) => ({
+        payload: values,
+        type: '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_RESET',
+      });
+
+      export const <%= embebedEntity.relationshipName %>GetEntities: any = (values) => ({
+        payload: values,
+        type: '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_GET_ENTITIES',
+      });
+
+      export const <%= embebedEntity.relationshipName %>SetEntities: any = values => async dispatch => {
+        const result = await dispatch({
+          payload: values,
+          type: '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_SET_ENTITIES',
+        });
+        dispatch(<%= embebedEntity.relationshipName %>GetEntities());
+        return result;
+      };
+
+      export const <%= embebedEntity.relationshipName %>CreateEntity: ICrudPutAction<I<%= embebedEntity.relationshipNameCapitalized %>> = (entity, listFiltersPage) => async dispatch => {
+        const result = await dispatch({
+          payload: {id: ((new Date().getTime()) * Math.random()).toString(16).split(".").join("-"), ...entity},
+          type: '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_CREATE_ENTITY',
+        });
+        if (listFiltersPage !== false && listFiltersPage['reloadList'] !== false) {
+          await dispatch(<%= embebedEntity.relationshipName %>Reset());
+          dispatch(<%= embebedEntity.relationshipName %>GetEntities(...listFiltersPage));
+        }
+        return result;
+      };
+
+      export const <%= embebedEntity.relationshipName %>UpdateEntity: ICrudPutAction<I<%= embebedEntity.relationshipNameCapitalized %>> = (entity, listFiltersPage) => async dispatch => {
+        const result = await dispatch({
+          payload: entity,
+          type: '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_UPDATE_ENTITY',
+        });
+        if (listFiltersPage !== false && listFiltersPage['reloadList'] !== false) {
+          await dispatch(<%= embebedEntity.relationshipName %>Reset());
+          dispatch(<%= embebedEntity.relationshipName %>GetEntities(...listFiltersPage));
+        }
+        return result;
+      };
+      export const <%= embebedEntity.relationshipName %>GetEntity: any = (values) => ({
+        payload: values,
+        type: '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_GET_ENTITY',
+      });
+
+      export const <%= embebedEntity.relationshipName %>DeleteEntity: any = (id, listFiltersPage) => async dispatch => {
+        const result = await dispatch({
+          payload: id,
+          type: '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_DELETE_ENTITY',
+        });
+        if (listFiltersPage !== false && listFiltersPage['reloadList'] !== false) {
+          await dispatch(<%= embebedEntity.relationshipName %>Reset());
+          dispatch(<%= embebedEntity.relationshipName %>GetEntities(...listFiltersPage));
+        }
+        return result;
+      };
+
+    <%_ } _%>
+  <%_ } _%>
+<%_ } _%>

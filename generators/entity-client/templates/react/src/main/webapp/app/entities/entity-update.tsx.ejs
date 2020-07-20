@@ -60,6 +60,7 @@ import classnames from 'classnames';
 <%_
 let hasRelationshipQuery = false;
 let otherEntityActions = new Set();
+let hasOneToOneNotOwner = false;
 let manyToManyOwners = new Set();
 let relFieldNames = new Set();
 let uniqueRealtionFields = new Set();
@@ -74,6 +75,9 @@ Object.keys(differentRelationships).forEach(key => {
   if (hasAnyRelationshipQuery) {
     hasRelationshipQuery = true;
     differentRelationships[key].forEach(rel => {
+      if(rel.relationshipType ==="one-to-one" && rel.ownerSide  === false && typeof baseFilters !== 'undefined' && baseFilters === rel.relationshipName  ){
+        hasOneToOneNotOwner = true;
+      }
       if (rel.relationshipType === 'many-to-many') {
         manyToManyOwners.add(rel);
       } else {
@@ -81,7 +85,7 @@ Object.keys(differentRelationships).forEach(key => {
       }
     });
   }
-  if (differentRelationships[key].some(rel => rel.relationshipType !== 'one-to-many')) {
+  if (differentRelationships[key]) {
     const uniqueRel = differentRelationships[key][0];
     uniqueRealtionFields.add({...uniqueRel, "otherEntityFieldCapitalized": uniqueRel.otherEntityFieldCapitalized, "relationshipFieldName": uniqueRel.relationshipFieldName, "namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName, "otherEntityField": uniqueRel.otherEntityField });
     otherEntityActions.add({
@@ -111,7 +115,7 @@ import { getAllEntities as get<%= upperFirstCamelCase(uniqueRel.otherEntityNameP
   }
 }); _%>
 import {
-I<%= entityReactName %>UpdateState,
+I<%= entityReactName %>UpdateState as IBaseUpdateState,
 getEntity,
 get<%= entityReactName %>State,
 I<%= entityReactName %>BaseState, 
@@ -120,7 +124,22 @@ createEntity,
 <%_ if (fieldsContainBlob) { _%>
 setBlob,
 <%_ } _%>
-reset
+reset,
+<%_ if (viewLayout.length > 0) {  _%>
+  <%_ for (idx in viewLayout) {  _%>
+    <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+    <%_ const embebedEntity = viewLayout[idx].entity; _%>
+      <%= embebedEntity.relationshipName %>SetEntities,
+      <%= embebedEntity.relationshipName %>GetEntities,
+      <%= embebedEntity.relationshipName %>UpdateEntity,
+      <%= embebedEntity.relationshipName %>Reset,
+      <%= embebedEntity.relationshipName %>GetEntity,
+      <%= embebedEntity.relationshipName %>CreateEntity,
+      <%= embebedEntity.relationshipName %>DeleteEntity,
+    <%_ } _%>
+  <%_ } _%>
+<%_ } _%>
+
 } from './<%= entityFileName %>.reducer';
 import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileName %>.model';
 import { convertDateFromServer, convertDateTimeToServer } from 'app/shared/util/date-utils';
@@ -128,17 +147,27 @@ import { convertDateFromServer, convertDateTimeToServer } from 'app/shared/util/
 import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
 <%_ } _%>
 
+<%_ if (viewLayout.length > 0) {  _%>
+  <%_ for (idx in viewLayout) {  _%>
+    <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+    <%_ const embebedEntity = viewLayout[idx].entity; _%>
+      import { mapStateToProps as mapStateToProps<%= embebedEntity.relationshipNameCapitalized %>, mapDispatchToProps as mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>, <%= embebedEntity.relationshipNameCapitalized %> } from 'app/entities/<%= embebedEntity.otherEntityPath %>/<%= embebedEntity.otherEntityPath %>';   
+    <%_ } _%>
+  <%_ } _%>
+<%_ } _%>
 
 
   <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
-    import { StatePropsExtended, DispatchPropsExtended } from './extended/<%= entityFileName %>-update';
+    import { StatePropsExtended, DispatchPropsExtended, IUpdateExtendedState } from './extended/<%= entityFileName %>-update';
   <%_ } _%>
   
   
   <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
     export interface I<%= entityReactName %>UpdateProps extends StateProps, DispatchProps, StatePropsExtended, DispatchPropsExtended, RouteComponentProps<{url: string}> {}
+    export interface I<%= entityReactName %>UpdateState extends IBaseUpdateState, IUpdateExtendedState {}
   <%_ } else { _%>
     export interface I<%= entityReactName %>UpdateProps extends StateProps, DispatchProps, RouteComponentProps<{id: string}>{}
+    export interface I<%= entityReactName %>UpdateState extends IBaseUpdateState {}
   <%_ } _%>
   
 
@@ -149,12 +178,31 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
     <%_ } _%>
     constructor(props: Readonly<I<%= entityReactName %>UpdateProps>) {
       super(props);
+
+
+      <%_ if (viewLayout.length > 0) {  _%>
+        <%_ for (idx in viewLayout) {  _%>
+          <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+          <%_ const embebedEntity = viewLayout[idx].entity; _%>
+            this.<%= embebedEntity.relationshipName %>UpdateEntity = this.<%= embebedEntity.relationshipName %>UpdateEntity.bind(this);
+            this.<%= embebedEntity.relationshipName %>GetEntities = this.<%= embebedEntity.relationshipName %>GetEntities.bind(this);
+            this.<%= embebedEntity.relationshipName %>Reset = this.<%= embebedEntity.relationshipName %>Reset.bind(this);
+            this.<%= embebedEntity.relationshipName %>GetEntity = this.<%= embebedEntity.relationshipName %>GetEntity.bind(this);
+            this.<%= embebedEntity.relationshipName %>CreateEntity = this.<%= embebedEntity.relationshipName %>CreateEntity.bind(this);
+            this.<%= embebedEntity.relationshipName %>DeleteEntity = this.<%= embebedEntity.relationshipName %>DeleteEntity.bind(this);
+          <%_ } _%>
+        <%_ } _%>
+      <%_ } _%>
+
+
+
     <%_ for (idx in fields) { %>
       <%_  if (['byte[]', 'ByteBuffer'].includes(fields[idx].fieldType)) {  %>
         this.<%= fields[idx].fieldName %>FileInput = React.createRef();
       <%_ } %>
     <%_ } _%>
       this.state = {
+        functionEmbebed: [],
       <% uniqueRealtionFields.forEach(rel => { %> 
       <%_ if (typeof baseFilters !== 'undefined' && baseFilters == rel.name) { _%>
         <%= rel.name %>SelectValue: parseInt(this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'], 10),
@@ -182,7 +230,11 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       <%_ relFieldNames.forEach(val => { _%>
         <%= val.relationshipFieldName + val.otherEntityFieldCapitalized %>: null,
       <%_ }) _%>
-      isNew: !this.props.match.params || !this.props.match.params['id'],
+      <%_ if (hasOneToOneNotOwner) { %> 
+        isNew: false,
+      <% } else { %> 
+        isNew: !this.props.match.params || !this.props.match.params['id'],
+      <% } %> 
       };
       }
       <%_ if (formTabs.length > 0) { _%>
@@ -200,9 +252,15 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                   <% const field = formLayout[idx].entity; _%>
                   <% const rulesValidate = field.fieldValidateRules ? field.fieldValidateRules : ""; _%>
                   <%_ if(rulesValidate.includes('required') && field.fieldIsEnum === false) { %> 
-                    if (!this.state.<%= field.fieldName %>SelectValue) {
-                      toast.error(translate('<%= i18nKeyPrefix %>.formTabs.required', {fieldName: translate('generadorApp.patient.<%= field.fieldName %>')})); return false;
-                    }
+                    <%_ if(fields[idx].formLayoutCepBr) { _%>
+                      if (!this.state.cepRequest<%= fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %>) {
+                        toast.error(translate('generadorApp.validators.required', {fieldName: translate('generadorApp.<%= entityInstance %>.<%= field.fieldName %>')})); return false;
+                      }
+                    <%_ } else { _%>
+                      if (!this.state.<%= field.fieldName %>SelectValue) {
+                        toast.error(translate('generadorApp.validators.required', {fieldName: translate('generadorApp.<%= entityInstance %>.<%= field.fieldName %>')})); return false;
+                      }
+                    <%_ } _%>
                   <%_ } _%>
                 <%_ } _%>
               <%_ } _%>
@@ -212,10 +270,59 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
         }
 
       <%_ } _%>
+
+
+      <%_ if (viewLayout.length > 0) {  _%>
+        <%_ for (idx in viewLayout) {  _%>
+          <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+          <%_ const embebedEntity = viewLayout[idx].entity; _%>
+            <%= embebedEntity.relationshipName %>UpdateEntity = (...values) => {
+              values[0]['<%= entityInstance %>']= (!this.state.isNew ? {id: this.props.match.params['id']} : "is_new");
+              if(!this.state.isNew) {
+                this.props['updateEntity<%= embebedEntity.relationshipNameCapitalized %>'](...values)
+              }
+              return this.props.<%= embebedEntity.relationshipName %>UpdateEntity(...values);
+            }
+            <%= embebedEntity.relationshipName %>GetEntities = (...values) => {
+              return this.props.<%= embebedEntity.relationshipName %>GetEntities(...values);
+            }
+            <%= embebedEntity.relationshipName %>Reset = (...values) => {
+              return this.props.<%= embebedEntity.relationshipName %>Reset(...values);
+            }
+            <%= embebedEntity.relationshipName %>GetEntity = (...values) => {
+              return this.props.<%= embebedEntity.relationshipName %>GetEntity(...values);
+            }
+            <%= embebedEntity.relationshipName %>CreateEntity = (...values) => {
+              values[0]['<%= entityInstance %>']= (!this.state.isNew ? {id: this.props.match.params['id']} : "is_new");
+              if(!this.state.isNew) {
+                this.props['createEntity<%= embebedEntity.relationshipNameCapitalized %>'](...values)
+              }
+              return this.props.<%= embebedEntity.relationshipName %>CreateEntity(...values);
+            }
+            <%= embebedEntity.relationshipName %>DeleteEntity = (...values) => {
+              if(!this.state.isNew) {
+                this.props['deleteEntity<%= embebedEntity.relationshipNameCapitalized %>'](...values)
+              }
+              return this.props.<%= embebedEntity.relationshipName %>DeleteEntity(...values);
+            }
+          <%_ } _%>
+        <%_ } _%>
+      <%_ } _%>
+
+
       componentDidUpdate (prevProps) {
       if (prevProps.updateSuccess !== this.props.updateSuccess && prevProps.updateSuccess) {
         this.handleClose();
       }
+      <%_ if (hasOneToOneNotOwner) { %> 
+        if ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id && this.props.<%= entityInstance %>Entity.id > 0)  {
+          if ( this.props.<%= entityInstance %>Entity.id > 0 )  {
+            this.setState({ isNew: false})
+          } else {
+            this.setState({ isNew: true})
+          }
+        }
+      <% } %> 
       <% uniqueRealtionFields.forEach(rel => { %> 
         <% if(rel.relationshipType === "many-to-many") { %> 
           // data-type-rel -> tipo-1 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
@@ -223,34 +330,71 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
            ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
            ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>) 
          ) {
-          this.setState({
-            <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
-              f => (this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %> ? (this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null): [])
-            ).join(',') : null,
-          })
+            <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
+              <%_ const embebedEntity = viewLayout[idx].entity; _%>
+              this.setState({<%= rel.name %>SelectValue: this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>});
+              this.props.<%= embebedEntity.relationshipName %>SetEntities(this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>);
+            <%_ } else { _%>
+              this.setState({
+                <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
+                  f => (this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %> ? (this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null): [])
+                ).join(',') : null,
+              })
+            <%_ } _%>
         }
-      <% } else { %>
+      <% } else if(rel.relationshipType === "one-to-many") { %> 
+        // data-type-rel -> tipo-2 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
+      if ( 
+         ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
+         ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>) 
+       ) {
+        <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
+          <%_ const embebedEntity = viewLayout[idx].entity; _%>
+          this.setState({<%= rel.name %>SelectValue: this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>});
+          this.props.<%= embebedEntity.relationshipName %>SetEntities(this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>);
+        <%_ } else { _%>
+            this.setState({
+              <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
+                f => (this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> ? (this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null): [])
+              ).join(',') : null,
+            })
+        <% } %>
+
+      }
+    <% } else { %>
         <% if ( rel.ownerSide ) { %>
-          // data-type-rel -> tipo-2 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
+          // data-type-rel -> tipo-3 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
           if ( 
             ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
             ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null  && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id) 
           ) {
-          this.setState({
-            <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
-              f => this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> &&  this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id === f.id ? f.id : null 
-            ) : null,
-          })
+            <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
+              <%_ const embebedEntity = viewLayout[idx].entity; _%>
+              this.setState({<%= rel.name %>SelectValue: this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>});
+              this.props.<%= embebedEntity.relationshipName %>SetEntities(this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>);
+            <%_ } else { _%>
+              this.setState({
+                <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
+                  f => this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> &&  this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id === f.id ? f.id : null 
+                ) : null,
+              })
+            <% } %>
           }
         <% } else { %>
-          // data-type-rel -> tipo-2 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
+          // data-type-rel -> tipo-4 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
           if ( 
             ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
             ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null  && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id) 
           ) {
-          this.setState({
-            <%= rel.name %>SelectValue:  this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> ? this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id : null 
-          })
+            <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
+              <%_ const embebedEntity = viewLayout[idx].entity; _%>
+              this.setState({<%= rel.name %>SelectValue: this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>});
+              this.props.<%= embebedEntity.relationshipName %>SetEntities(this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>);
+            <%_ } else { _%>
+              this.setState({
+                <%= rel.name %>SelectValue:  this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> ? this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id : null 
+              })
+           <% } %>
           }
         <% } %>
         <% } %>
@@ -261,6 +405,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
             if (( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id ) ||
               ( this.props.<%= entityInstance %>Entity.<%= fields[idx].fieldName %> && this.state.cepRequest<%= fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %> === null )) {
                 this.setState({ cepRequest<%= fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %>:  this.props.<%= entityInstance %>Entity.<%= fields[idx].fieldName %>})
+                // this.setState({ <%= fields[idx].fieldName %>SelectValue: this.props.<%= entityInstance %>Entity.<%= fields[idx].fieldName %> })
               }
         <%_ } _%>
         if (( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id ) ||
@@ -276,7 +421,9 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       if (!this.state.isNew) {
       this.props.getEntity(this.props.match.params['id']);
       }
-      <%_ } else { _%>
+      <%_ } else if (hasOneToOneNotOwner) { %> 
+        this.props.getEntity(parseInt(this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'], 10));
+      <%_ } else { %>
       if (this.state.isNew) {
       this.props.reset();
       } else {
@@ -308,6 +455,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
         return url;
       };
       saveEntity = (event: any, errors: any, values: any) => {
+        <%_ if (hasOneToOneNotOwner) { %>errors = errors.filter(v=>v!=="id");<%_ } %>
       <%_ for (idx in fields) {
         const fieldType = fields[idx].fieldType;
         const fieldName = fields[idx].fieldName;
@@ -340,7 +488,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       const { <%= entityInstance %>Entity } = this.props;
       const entity = {
       ...<%= entityInstance %>Entity,
-      ...values,
+      ...values,<%_ if (hasOneToOneNotOwner) { %> id:  parseInt(this.state.fieldsBase.<%= baseFilters %>Id, 10), <%_ } %>
       <% uniqueRealtionFields.forEach(rel => { %><%= rel.relationshipType !== 'many-to-many' ? rel.relationshipFieldName : rel.otherEntityNamePlural %>, <% }) %>
       <%_ for (idx in fields) { _%>
         <%_ if(fields[idx].formLayoutCepBr) { _%>
@@ -385,8 +533,18 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
        <%_ } _%>
      } = this.state.fieldsBase;
 
+     <%_ if (viewLayout.length > 0) {  _%>
+      <%_ for (idx in viewLayout) {  _%>
+        <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+        <%_ const embebedEntity = viewLayout[idx].entity; _%>
+         const <%= embebedEntity.relationshipName %>ListAllEmbed = this.props.<%= embebedEntity.relationshipName %>ListAllEmbed;
+        <%_ } _%>
+      <%_ } _%>
+    <%_ } _%>
+
       if (this.state.isNew) {
-      this.props.createEntity(entity, [
+        new Promise(resolve => {
+          resolve(this.props.createEntity(entity, [
         <%_ if (listFilterLayout.length > 0) {  _%>
           <%_ for (idx in listFilterLayout) { _%>
             <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
@@ -410,7 +568,27 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
           <%_ } _%>
           <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
         <%_ } _%>
-        ]);
+          ]) 
+        );
+      }).then(resultEntity => {
+   
+
+        const idEntity = resultEntity['value']['data'] && resultEntity['value']['data']['id'] ? resultEntity['value']['data']['id'] : -1;
+        <%_ if (viewLayout.length > 0) {  _%>
+          <%_ for (idx in viewLayout) {  _%>
+            <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+            <%_ const embebedEntity = viewLayout[idx].entity; _%>
+                if(idEntity){
+                  <%= embebedEntity.relationshipName %>ListAllEmbed.map((v)=>{
+                    v['id'] = null;
+                    v['<%= entityInstance %>'] = {id:idEntity};
+                      this.props['createEntity<%= embebedEntity.relationshipNameCapitalized %>'](v);
+                  });
+                }
+            <%_ } _%>
+          <%_ } _%>
+        <%_ } _%>
+      });
       } else {
       this.props.updateEntity(entity, [
         <%_ if (listFilterLayout.length > 0) {  _%>
@@ -554,6 +732,20 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       <%_ } _%>
       <%_ } _%>
       const baseFilters = this.state.fieldsBase && this.state.fieldsBase['baseFilters'] ? this.state.fieldsBase['baseFilters'] : null;
+
+      <%_ if (viewLayout.length > 0) {  _%>
+        <%_ for (idx in viewLayout) {  _%>
+          <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+          <%_ const embebedEntity = viewLayout[idx].entity; _%>
+            const mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List: any = {};
+            Object.keys(mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>).map(v => {mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List[v] = () => {
+              if(!this.state.functionEmbebed.includes(v + '<%= embebedEntity.relationshipNameCapitalized %>')){
+                this.setState({functionEmbebed: [...this.state.functionEmbebed, v + '<%= embebedEntity.relationshipNameCapitalized %>']},this.props[v + '<%= embebedEntity.relationshipNameCapitalized %>']);
+              }
+            } });
+          <%_ } _%>
+        <%_ } _%>
+      <%_ } _%>
 
       <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
         let <%= baseFilters %>BaseFilter = null; 
@@ -853,7 +1045,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       }
       }
 
-      export  const mapStateToProps = (storeState: IRootState) => ({
+      export  const mapStateToProps = (storeState: IRootState) => { return {
       <%_ otherEntityActions.forEach(val => { _%>
       <%= val.instance %>: storeState.<%= val.reducer %>.<%= val.entity === 'User' ? val.instance : 'entities' %>,
       <%_ }) _%>
@@ -861,7 +1053,39 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       loading: storeState.<%= entityInstance %>.loading,
       updating: storeState.<%= entityInstance %>.updating,
       updateSuccess: storeState.<%= entityInstance %>.updateSuccess,
-      });
+
+      <%_ if (viewLayout.length > 0) {  _%>
+
+        <%_ let firstEmbedRel = true; _%>
+        <%_ for (idx in viewLayout) {  _%>
+          <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+            <%_ const embebedEntity = viewLayout[idx].entity; _%>
+            <%_ if (firstEmbedRel) { _%>
+              <%= entityInstance %>s: storeState.<%= entityInstance %>.entities,
+              <%_ firstEmbedRel = false; _%>
+            <%_ } _%>
+            <%= embebedEntity.relationshipName %>ListAllEmbed: storeState.<%= entityInstance %>.<%= embebedEntity.relationshipName %>ListAllEmbed,
+            <%= embebedEntity.relationshipName %>ListEmbed: storeState.<%= entityInstance %>.<%= embebedEntity.relationshipName %>ListEmbed,
+            <%= embebedEntity.relationshipName %>Selected: storeState.<%= entityInstance %>.<%= embebedEntity.relationshipName %>Selected,
+            mapStateToProps<%= embebedEntity.relationshipNameCapitalized %>: mapStateToProps<%= embebedEntity.relationshipNameCapitalized %>(storeState),
+
+          <%_ } _%>
+        <%_ } _%>
+      <%_ } _%>
+
+      }};
+
+      <%_ if (viewLayout.length > 0) {  _%>
+        <%_ for (idx in viewLayout) {  _%>
+          <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+            <%_ const embebedEntity = viewLayout[idx].entity; _%>
+            const mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List = {};
+            Object.keys(mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>).map(v => {
+              mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List[v+"<%= embebedEntity.relationshipNameCapitalized %>"] = mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>[v]; 
+            });
+          <%_ } _%>
+        <%_ } _%>
+      <%_ } _%>
 
       export const mapDispatchToProps = {
       <%_ otherEntityActions.forEach(val => { _%>
@@ -873,7 +1097,25 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       setBlob,
       <%_ } _%>
       createEntity,
-      reset
+      reset,
+
+      <%_ if (viewLayout.length > 0) {  _%>
+        <%_ for (idx in viewLayout) {  _%>
+          <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+          <%_ const embebedEntity = viewLayout[idx].entity; _%>
+          ...mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List,    
+            <%= embebedEntity.relationshipName %>UpdateEntity,
+            <%= embebedEntity.relationshipName %>GetEntities,
+            <%= embebedEntity.relationshipName %>SetEntities,
+            <%= embebedEntity.relationshipName %>Reset,
+            <%= embebedEntity.relationshipName %>GetEntity,
+            <%= embebedEntity.relationshipName %>CreateEntity,
+            <%= embebedEntity.relationshipName %>DeleteEntity,
+          <%_ } _%>
+        <%_ } _%>
+      <%_ } _%>
+
+
       };
 
       export type StateProps = ReturnType<typeof mapStateToProps>;
