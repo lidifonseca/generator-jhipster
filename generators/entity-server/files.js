@@ -177,7 +177,7 @@ const serverFiles = {
             condition: generator =>
                 generator.jpaMetamodelFiltering &&
                 !fs.existsSync(
-                    `src/main/java/${generator.packageFolder}/service/dto/extended/${generator.entityClass}ExtendedResource.java`
+                    `src/main/java/${generator.packageFolder}/service/dto/extended/${generator.entityClass}ExtendedCriteria.java`
                 ),
             path: SERVER_MAIN_SRC_DIR,
             templates: [
