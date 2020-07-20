@@ -364,20 +364,20 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       <% } else if(rel.relationshipType === "one-to-many" && !rel.ownerSide) { %> 
         // data-type-rel -> tipo-2.1 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
         if ( 
-          ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
-          ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null  && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id) 
-        ) {
-          <%_ if(rel['viewLayoutEmbebed'] === "true") { _%>
-            <%_ const embebedEntity = viewLayout[idx].entity; _%>
-            this.setState({<%= rel.name %>SelectValue: this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>});
-            this.props.<%= embebedEntity.relationshipName %>SetEntities(this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>);
-          <%_ } else { _%>
-            this.setState({
-              <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
-                f => this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> &&  this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id === f.id ? f.id : null 
-              ) : null,
-            })
-          <% } %>
+           ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
+           ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>) 
+         ) {
+            <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
+              <%_ const embebedEntity = viewLayout[idx].entity; _%>
+              this.setState({<%= rel.name %>SelectValue: this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>});
+              this.props.<%= embebedEntity.relationshipName %>SetEntities(this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>);
+            <%_ } else { _%>
+              this.setState({
+                <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
+                  f => (this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %> ? (this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>.map(p => (p !== null ? p.id : "")).includes(f.id) ? f.id : null): [])
+                ).join(',') : null,
+              })
+            <%_ } _%>
       }
     <% } else { %>
         <% if ( rel.ownerSide ) { %>
