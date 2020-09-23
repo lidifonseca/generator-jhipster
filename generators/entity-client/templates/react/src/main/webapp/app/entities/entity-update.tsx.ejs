@@ -19,17 +19,17 @@ import { connect } from 'react-redux';
 import Select from 'react-select';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import InputMask from "react-input-mask";
-import ReactQuill from 'react-quill'; 
+import ReactQuill from 'react-quill';
 import { quillEditorModules, quillEditorFormats } from 'app/shared/util/entity-utils';
-import 'react-quill/dist/quill.snow.css'; 
+import 'react-quill/dist/quill.snow.css';
 import { toast } from 'react-toastify';
 <%_ let baseFiltersModal = false; _%>
 <%_  if(this.generator.baseFiltersAttributes && this.generator.baseFiltersAttributes['window'] === "modal") { _%>
 <%_ baseFiltersModal = true; _%>
 import { Modal as Panel, ModalHeader as PanelHeader, ModalBody as PanelBody, ModalFooter as PanelFooter } from 'reactstrap';
-<%_ } else { _%> 
+<%_ } else { _%>
 import {Panel, PanelHeader, PanelBody, PanelFooter} from 'app/shared/layout/panel/panel.tsx';
-<%_ } _%> 
+<%_ } _%>
 import { AvFeedback, AvForm, AvGroup, AvInput<% if (fieldsIsReactAvField) { %>, AvField <% } %> } from
 'availity-reactstrap-validation';
 import {
@@ -118,7 +118,7 @@ import {
 I<%= entityReactName %>UpdateState as IBaseUpdateState,
 getEntity,
 get<%= entityReactName %>State,
-I<%= entityReactName %>BaseState, 
+I<%= entityReactName %>BaseState,
 updateEntity,
 createEntity,
 <%_ if (fieldsContainBlob) { _%>
@@ -151,7 +151,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
   <%_ for (idx in viewLayout) {  _%>
     <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
     <%_ const embebedEntity = viewLayout[idx].entity; _%>
-      import { mapStateToProps as mapStateToProps<%= embebedEntity.relationshipNameCapitalized %>, mapDispatchToProps as mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>, <%= embebedEntity.relationshipNameCapitalized %> } from 'app/entities/<%= embebedEntity.otherEntityPath %>/<%= embebedEntity.otherEntityPath %>';   
+      import { mapStateToProps as mapStateToProps<%= embebedEntity.relationshipNameCapitalized %>, mapDispatchToProps as mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>, <%= embebedEntity.relationshipNameCapitalized %> } from 'app/entities/<%= embebedEntity.otherEntityPath %>/<%= embebedEntity.otherEntityPath %>';
     <%_ } _%>
   <%_ } _%>
 <%_ } _%>
@@ -160,8 +160,8 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
   <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
     import { StatePropsExtended, DispatchPropsExtended, IUpdateExtendedState } from './extended/<%= entityFileName %>-update';
   <%_ } _%>
-  
-  
+
+
   <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
     export interface I<%= entityReactName %>UpdateProps extends StateProps, DispatchProps, StatePropsExtended, DispatchPropsExtended, RouteComponentProps<{url: string}> {}
     export interface I<%= entityReactName %>UpdateState extends IBaseUpdateState, IUpdateExtendedState {}
@@ -169,7 +169,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
     export interface I<%= entityReactName %>UpdateProps extends StateProps, DispatchProps, RouteComponentProps<{id: string}>{}
     export interface I<%= entityReactName %>UpdateState extends IBaseUpdateState {}
   <%_ } _%>
-  
+
 
   export class <%= entityReactName %>Update extends React.Component<I<%= entityReactName %>UpdateProps,
     I<%= entityReactName %>UpdateState> {
@@ -203,17 +203,17 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
     <%_ } _%>
       this.state = {
         functionEmbebed: [],
-      <% uniqueRealtionFields.forEach(rel => { %> 
+      <% uniqueRealtionFields.forEach(rel => { %>
       <%_ if (typeof baseFilters !== 'undefined' && baseFilters == rel.name) { _%>
         <%= rel.name %>SelectValue: parseInt(this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'], 10),
-      <%_ }else{ _%> 
-        <%= rel.name %>SelectValue: null, 
-      <%_ } _%> 
+      <%_ }else{ _%>
+        <%= rel.name %>SelectValue: null,
+      <%_ } _%>
       <% }) %>
       <%_ for (idx in fields) { _%>
         <%= typeof fields[idx].formLayoutCepBr !== 'undefined' && fields[idx].formLayoutCepBr.trim() ? "cepRequest" + fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() + " : null," : "" %>
       <%_ } _%>
-      <%_ for (idx in fields) { _%>   
+      <%_ for (idx in fields) { _%>
           <%= fields[idx].fieldName %>SelectValue: null,
       <%_ } _%>
       fieldsBase: {
@@ -221,7 +221,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
         <%_ if (typeof baseFilters !== 'undefined' && baseFilters) { _%>
           <%= baseFilters _%>Id: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'],
           baseFilters: '<%= baseFilters _%>',
-        <%_ } _%>  
+        <%_ } _%>
       },
       <%_ if (formTabs.length > 0) { _%>activeTab: 0,<%_ } _%>
       <%_ manyToManyOwners.forEach(val => { _%>
@@ -230,11 +230,11 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       <%_ relFieldNames.forEach(val => { _%>
         <%= val.relationshipFieldName + val.otherEntityFieldCapitalized %>: null,
       <%_ }) _%>
-      <%_ if (hasOneToOneNotOwner) { %> 
+      <%_ if (hasOneToOneNotOwner) { %>
         isNew: false,
-      <% } else { %> 
+      <% } else { %>
         isNew: !this.props.match.params || !this.props.match.params['id'],
-      <% } %> 
+      <% } %>
       };
       }
       <%_ if (formTabs.length > 0) { _%>
@@ -251,7 +251,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                 <%_ if(formTabs[iTabs] === formLayout[idx].entity['formTab'] && formLayout[idx].type === "field") { _%>
                   <% const field = formLayout[idx].entity; _%>
                   <% const rulesValidate = field.fieldValidateRules ? field.fieldValidateRules : ""; _%>
-                  <%_ if(rulesValidate.includes('required') && field.fieldIsEnum === false) { %> 
+                  <%_ if(rulesValidate.includes('required') && field.fieldIsEnum === false) { %>
                     <%_ if(fields[idx].formLayoutCepBr) { _%>
                       if (!this.state.cepRequest<%= fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %>) {
                         toast.error(translate('generadorApp.validators.required', {fieldName: translate('generadorApp.<%= entityInstance %>.<%= field.fieldName %>')})); return false;
@@ -314,7 +314,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       if (prevProps.updateSuccess !== this.props.updateSuccess && prevProps.updateSuccess) {
         this.handleClose();
       }
-      <%_ if (hasOneToOneNotOwner) { %> 
+      <%_ if (hasOneToOneNotOwner) { %>
         if ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id && this.props.<%= entityInstance %>Entity.id > 0)  {
           if ( this.props.<%= entityInstance %>Entity.id > 0 )  {
             this.setState({ isNew: false})
@@ -322,13 +322,13 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
             this.setState({ isNew: true})
           }
         }
-      <% } %> 
-      <% uniqueRealtionFields.forEach(rel => { %> 
-        <% if(rel.relationshipType === "many-to-many") { %> 
+      <% } %>
+      <% uniqueRealtionFields.forEach(rel => { %>
+        <% if(rel.relationshipType === "many-to-many") { %>
           // data-type-rel -> tipo-1 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
-        if ( 
+        if (
            ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
-           ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>) 
+           ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>)
          ) {
             <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
               <%_ const embebedEntity = viewLayout[idx].entity; _%>
@@ -342,11 +342,11 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
               })
             <%_ } _%>
         }
-      <% } else if(rel.relationshipType === "one-to-many" && rel.ownerSide) { %> 
+      <% } else if(rel.relationshipType === "one-to-many" && rel.ownerSide) { %>
         // data-type-rel -> tipo-2 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
-      if ( 
+      if (
          ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
-         ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>) 
+         ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>)
        ) {
         <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
           <%_ const embebedEntity = viewLayout[idx].entity; _%>
@@ -361,11 +361,11 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
         <% } %>
 
       }
-      <% } else if(rel.relationshipType === "one-to-many" && !rel.ownerSide) { %> 
+      <% } else if(rel.relationshipType === "one-to-many" && !rel.ownerSide) { %>
         // data-type-rel -> tipo-2.1 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
-        if ( 
+        if (
            ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
-           ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>) 
+           ( this.props.<%= rel.namePlural %>.length > 0 && this.state.<%= rel.name %>SelectValue === null && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldNamePlural %>)
          ) {
             <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
               <%_ const embebedEntity = viewLayout[idx].entity; _%>
@@ -382,9 +382,9 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
     <% } else { %>
         <% if ( rel.ownerSide ) { %>
           // data-type-rel -> tipo-3 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
-          if ( 
+          if (
             ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
-            ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null  && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id) 
+            ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null  && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id)
           ) {
             <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
               <%_ const embebedEntity = viewLayout[idx].entity; _%>
@@ -393,16 +393,16 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
             <%_ } else { _%>
               this.setState({
                 <%= rel.name %>SelectValue:  this.props.<%= rel.namePlural %> ? this.props.<%= rel.namePlural %>.map(
-                  f => this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> &&  this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id === f.id ? f.id : null 
+                  f => this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> &&  this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id === f.id ? f.id : null
                 ) : null,
               })
             <% } %>
           }
         <% } else { %>
           // data-type-rel -> tipo-4 <%= rel.relationshipType %> <%= rel.ownerSide ? "owner-side" : "other-side" %>
-          if ( 
+          if (
             ( prevProps.<%= entityInstance %>Entity && prevProps.<%= entityInstance %>Entity.id !==  this.props.<%= entityInstance %>Entity.id) ||
-            ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null  && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id) 
+            ( this.props.<%= rel.namePlural %> && this.state.<%= rel.name %>SelectValue === null  && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id)
           ) {
             <%_  if(rel['viewLayoutEmbebed'] === "true"){ _%>
               <%_ const embebedEntity = viewLayout[idx].entity; _%>
@@ -410,7 +410,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
               this.props.<%= embebedEntity.relationshipName %>SetEntities(this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>);
             <%_ } else { _%>
               this.setState({
-                <%= rel.name %>SelectValue:  this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> ? this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id : null 
+                <%= rel.name %>SelectValue:  this.props.<%= entityInstance %>Entity && this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %> ? this.props.<%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.id : null
               })
            <% } %>
           }
@@ -439,7 +439,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       if (!this.state.isNew) {
       this.props.getEntity(this.props.match.params['id']);
       }
-      <%_ } else if (hasOneToOneNotOwner) { %> 
+      <%_ } else if (hasOneToOneNotOwner) { %>
         this.props.getEntity(parseInt(this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'], 10));
       <%_ } else { %>
       if (this.state.isNew) {
@@ -469,7 +469,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
         let url = '_back=1' + (offset !== null ? '&offset=' + offset : '');
         Object.keys(fieldsBase).map((key)=>{
           url += '&'+key+'=' + fieldsBase[key];
-        }); 
+        });
         return url;
       };
       saveEntity = (event: any, errors: any, values: any) => {
@@ -484,7 +484,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       <%_ } _%>
 
       <% uniqueRealtionFields.forEach(rel => { %>
-        <% if(rel.relationshipType === 'many-to-many') { %>          
+        <% if(rel.relationshipType === 'many-to-many') { %>
           const <%= rel.otherEntityNamePlural %> = [];  // <%= rel.relationshipType %> -- <%= rel.ownerSide ? "ownerSide=true" : "ownerSide=false" %>
           this.props.<%= rel.otherEntityNamePlural %>.forEach(e => { if(this.state.<%= rel.name %>SelectValue && this.state.<%= rel.name %>SelectValue.split(",").indexOf(e.id+"") !== -1) { <%= rel.otherEntityNamePlural %>.push(e)}});
         <% } else { %>
@@ -493,9 +493,9 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
         <% } %>
       <% }) %>
 
-      <%_ for (idx in fields) { _%> 
+      <%_ for (idx in fields) { _%>
         <% const rulesValidate = fields[idx].fieldValidateRules ? fields[idx].fieldValidateRules : ""; _%>
-        <%_ if(rulesValidate.includes('required') && fields[idx].formLayoutCepBr ){ %> 
+        <%_ if(rulesValidate.includes('required') && fields[idx].formLayoutCepBr ){ %>
           if (!this.state.cepRequest<%- fields[idx].formLayoutCepBr.slice(0, 1).toUpperCase() + fields[idx].formLayoutCepBr.slice(1).toLowerCase() %>) {
             errors.push(translate('entity.validation.required'));
           }
@@ -530,7 +530,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
            <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
              <%= listFilterLayout[idx].entity.relationshipName %>Id,
            <%_ } else { _%>
-             <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
+             <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
                <%= listFilterLayout[idx].name %>Start,
                <%= listFilterLayout[idx].name %>End,
                <%_ } else { _%>
@@ -540,11 +540,11 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
          <%_ } _%>
        <%_ } else {  _%>
          <%_ for (idx in fields) { _%>
-           <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
-             <%= fields[idx].fieldName %>Start, 
-             <%= fields[idx].fieldName %>End, 
+           <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
+             <%= fields[idx].fieldName %>Start,
+             <%= fields[idx].fieldName %>End,
            <%_ } else { _%>
-             <%= fields[idx].fieldName %>, 
+             <%= fields[idx].fieldName %>,
            <%_ } _%>
          <%_ } _%>
          <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
@@ -568,28 +568,28 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
             <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
               <%= listFilterLayout[idx].entity.relationshipName %>Id,
             <%_ } else { _%>
-              <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
-                <%= listFilterLayout[idx].entity.fieldName %>Start, 
-                <%= listFilterLayout[idx].entity.fieldName %>End, 
-              <%_ } else { _%> 
+              <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
+                <%= listFilterLayout[idx].entity.fieldName %>Start,
+                <%= listFilterLayout[idx].entity.fieldName %>End,
+              <%_ } else { _%>
                 <%= listFilterLayout[idx].entity.fieldName %>,
               <%_ } _%>
             <%_ } _%>
           <%_ } _%>
         <%_ } else {  _%>
-          <%_ for (idx in fields) { _%> 
-            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
-              <%= fields[idx].fieldName %>Start, <%= fields[idx].fieldName %>End, 
-            <%_ } else { _%> 
-              <%= fields[idx].fieldName %>, 
+          <%_ for (idx in fields) { _%>
+            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
+              <%= fields[idx].fieldName %>Start, <%= fields[idx].fieldName %>End,
+            <%_ } else { _%>
+              <%= fields[idx].fieldName %>,
             <%_ } _%>
           <%_ } _%>
           <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
         <%_ } _%>
-          ]) 
+          ])
         );
       }).then(resultEntity => {
-   
+
 
         const idEntity = resultEntity['value']['data'] && resultEntity['value']['data']['id'] ? resultEntity['value']['data']['id'] : -1;
         <%_ if (viewLayout.length > 0) {  _%>
@@ -614,20 +614,20 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
             <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
               <%= listFilterLayout[idx].entity.relationshipName %>Id,
             <%_ } else { _%>
-              <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
-                <%= listFilterLayout[idx].entity.fieldName %>Start, 
-                <%= listFilterLayout[idx].entity.fieldName %>End, 
-              <%_ } else { _%> 
+              <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
+                <%= listFilterLayout[idx].entity.fieldName %>Start,
+                <%= listFilterLayout[idx].entity.fieldName %>End,
+              <%_ } else { _%>
                 <%= listFilterLayout[idx].entity.fieldName %>,
               <%_ } _%>
             <%_ } _%>
           <%_ } _%>
         <%_ } else {  _%>
-          <%_ for (idx in fields) { _%> 
-            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
-              <%= fields[idx].fieldName %>Start, <%= fields[idx].fieldName %>End, 
-            <%_ } else { _%> 
-              <%= fields[idx].fieldName %>, 
+          <%_ for (idx in fields) { _%>
+            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
+              <%= fields[idx].fieldName %>Start, <%= fields[idx].fieldName %>End,
+            <%_ } else { _%>
+              <%= fields[idx].fieldName %>,
             <%_ } _%>
           <%_ } _%>
           <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
@@ -638,8 +638,8 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       }
 
       handleClose = () => {
-      this.props.history.push(<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-        _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
+      this.props.history.push(<%_ if (typeof baseFilters !== 'undefined' && baseFilters) {
+        _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_
       } %>"/<%= entityFileName %>?"+this.getFiltersURL());
       }
 
@@ -670,12 +670,12 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       const baseFilters = this.state.fieldsBase && this.state.fieldsBase['baseFilters'] ? this.state.fieldsBase['baseFilters'] : null;
 
       <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-        let <%= baseFilters %>BaseFilter = null; 
+        let <%= baseFilters %>BaseFilter = null;
         <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.fieldsBase.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
       <%_ } _%>
-      
+
       return (
-        <> 
+        <>
         <div id="page-heading">
           <span className="page-header ml-3">
               {this.state.isNew ? (
@@ -683,7 +683,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
               ) : (
                 <Translate contentKey="<%= i18nKeyPrefix %>.home.editLabel">Edit a <%= entityClass %></Translate>
               )}
-            
+
           </span>
 
 
@@ -692,8 +692,8 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
             <FontAwesomeIcon icon="save" />&nbsp;
             <Translate contentKey="<%= i18nKeyPrefix %>.btnSave">Save</Translate>
           </Button>
-          <Button tag={Link} id="cancel-save" to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-            _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
+          <Button tag={Link} id="cancel-save" to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) {
+            _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_
           } %>"/<%= entityFileName %>?"+this.getFiltersURL()} replace color="info"
             className="float-right jh-create-entity">
             <FontAwesomeIcon icon="arrow-left" />&nbsp;
@@ -721,7 +721,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
         <%_ } _%>
         <li className="breadcrumb-item active"><%= entityClassPluralHumanized %> edit</li>
       </ol>
-      
+
         </>
       )
       }
@@ -766,13 +766,13 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       <%_ } _%>
 
       <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-        let <%= baseFilters %>BaseFilter = null; 
+        let <%= baseFilters %>BaseFilter = null;
         <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.fieldsBase.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
       <%_ } _%>
-      
+
       return (
-        <> 
-    
+        <>
+
         <Row className="justify-content-center">
           <Col md="11">
           { loading ? <p>Loading...</p> :
@@ -790,7 +790,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                   <AvInput id="<%= entityFileName %>-id" type="hidden" className="form-control" name="id" required readOnly />
                 </Col>
               </Row>
-            </AvGroup> 
+            </AvGroup>
             : null
             }
             <%_ if (formTabs.length === 0) { _%>
@@ -804,10 +804,10 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                           <%_ }_%>
                       <%_ } _%>
                   <%_ } else { _%>
-                      <%_ for (idx in fields) { _%> 
+                      <%_ for (idx in fields) { _%>
                           <%- include('printFields/printFieldsInputs', {field: fields[idx]}); -%>
                       <%_ } _%>
-                      <%_ relationships.forEach(rel => { _%> 
+                      <%_ relationships.forEach(rel => { _%>
                           <%- include('printFields/printRelationshipsInputs', {rel: rel}); -%>
                       <%_ }) _%>
                   <%_ } _%>
@@ -844,7 +844,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                       <h2 id="<%= i18nKeyPrefix %>.home.formTabs_<%= idx %>">
                         <Translate contentKey="<%= i18nKeyPrefix %>.formTabs.<%= formTabs[iTabs] %>">
                           <%= formTabs[iTabs] %>
-                        </Translate>                        
+                        </Translate>
                       </h2>
                       </Col>
                     </Row> : null }
@@ -872,7 +872,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                               <%_ } _%>
                             <%_ }) _%>
                       <%_ } _%>
-                    </Row> 
+                    </Row>
 
                     <%_ if(Number.parseInt(iTabs, 10) + 1 < formTabs.length + (defaultFormTab ? 1 : 0)  ) { _%>
                     { isNew ?
@@ -909,9 +909,9 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                       this.tabsNext(<%= Number.parseInt(iTabs, 10) - 1 %>); }}
                       >
 
-                      <span className="d-sm-none"> 
+                      <span className="d-sm-none">
                         <Translate contentKey="<%= i18nKeyPrefix %>.formTabs.btn<%= formTabs[Number.parseInt(iTabs, 10) - 1] %>">
-                          <%= formTabs[Number.parseInt(iTabs, 10) - 1] %> 
+                          <%= formTabs[Number.parseInt(iTabs, 10) - 1] %>
                         </Translate>
                       </span>
                       <span className="d-sm-block d-none">
@@ -949,12 +949,12 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                           <%_ }  _%>
                         <%_ } _%>
                 <%_ } else { _%>
-                  <%_ for (idx in fields) { _%> 
+                  <%_ for (idx in fields) { _%>
                     <%_ if(!fields[idx]['formTab'] || fields[idx]['formTab'] === "default") {  _%>
                       <%- include('printFields/printFieldsInputs', {field: fields[idx]}); -%>
                     <%_ } _%>
                   <%_ } _%>
-                  <%_ relationships.forEach(rel => { _%> 
+                  <%_ relationships.forEach(rel => { _%>
                     <%_ if(!rel['formTab'] || rel['formTab'] === "default") {  _%>
                       <%- include('printFields/printRelationshipsInputs', {rel: rel}); -%>
                     <%_ } _%>
@@ -975,7 +975,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                 <Button color="info" className={"float-right jh-create-entity "}
                                onClick={() => { this.tabsNext(<%= formTabs.length -1 %>); }}
                                >
-                  <span className=" d-sm-none"> 
+                  <span className=" d-sm-none">
                     <Translate contentKey="<%= i18nKeyPrefix %>.formTabs.btn<%= formTabs[formTabs.length - 1] %>">
                       <%= formTabs[formTabs.length - 1] %>
                     </Translate>
@@ -1033,10 +1033,10 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
       const baseFilters = this.state.fieldsBase && this.state.fieldsBase['baseFilters'] ? this.state.fieldsBase['baseFilters'] : null;
 
       <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-        let <%= baseFilters %>BaseFilter = null; 
+        let <%= baseFilters %>BaseFilter = null;
         <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.fieldsBase.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
       <%_ } _%>
-      
+
       return (
         <div>
             <AvForm model={isNew ? {
@@ -1046,7 +1046,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
                 <%_ } _%>
               <%_ } _%>
             } : {
-              ...<%= entityInstance %>Entity, 
+              ...<%= entityInstance %>Entity,
               <%_ if (formTabs.length > 0) { _%>activeTab: 0,<%_ } _%>
             } } onSubmit={this.saveEntity}>
           <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
@@ -1099,7 +1099,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
             <%_ const embebedEntity = viewLayout[idx].entity; _%>
             const mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List = {};
             Object.keys(mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>).map(v => {
-              mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List[v+"<%= embebedEntity.relationshipNameCapitalized %>"] = mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>[v]; 
+              mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List[v+"<%= embebedEntity.relationshipNameCapitalized %>"] = mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>[v];
             });
           <%_ } _%>
         <%_ } _%>
@@ -1121,7 +1121,7 @@ import { mapIdList, viacepRequest } from 'app/shared/util/entity-utils';
         <%_ for (idx in viewLayout) {  _%>
           <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
           <%_ const embebedEntity = viewLayout[idx].entity; _%>
-          ...mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List,    
+          ...mapDispatchToProps<%= embebedEntity.relationshipNameCapitalized %>List,
             <%= embebedEntity.relationshipName %>UpdateEntity,
             <%= embebedEntity.relationshipName %>GetEntities,
             <%= embebedEntity.relationshipName %>SetEntities,
