@@ -1,6 +1,6 @@
 package <%= packageName %>.repository.extended;
 
-import com.mycompany.myapp.repository.<%= asEntity(entityClass) %>Repository;
+import <%= packageName %>.repository.<%= asEntity(entityClass) %>Repository;
 <%_ if (fieldsContainOwnerManyToMany) { _%>
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
