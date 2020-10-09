@@ -1061,8 +1061,8 @@ export const hideModal = (view) => ({
 
 
 export const getUrlBack = (location): string => {
-  const url = new URL(`http://localhost${location.search}`); // using a dummy url for parsing
-  let urlBack = url.searchParams.get('urlBack') || '';
+  const _urlBase = new URL(`http://localhost${location.search}`); // using a dummy url for parsing
+  let urlBack = _urlBase.searchParams.get('urlBack') || '';
   urlBack = urlBack.trim();
   urlBack = (urlBack.startsWith("/") ? urlBack.slice(1) : urlBack);
   urlBack = (urlBack.endsWith("/") ? urlBack.slice(0, -1) : urlBack);
@@ -1070,34 +1070,34 @@ export const getUrlBack = (location): string => {
 };
 
 export const get<%= entityReactName %>State = (location): I<%= entityReactName %>BaseState => {
-  const url = new URL(`http://localhost${location.search}`); // using a dummy url for parsing
-  const baseFilters = url.searchParams.get('baseFilters') || '';
-  const offset: any = url.searchParams.get('offset') || 0;
+  const _urlBase = new URL(`http://localhost${location.search}`); // using a dummy url for parsing
+  const baseFilters = _urlBase.searchParams.get('baseFilters') || '';
+  const offset: any = _urlBase.searchParams.get('offset') || 0;
 
   <%_ if (listFilterLayout.length > 0) {  _%>
     <%_ for (idx in listFilterLayout) { _%>
       <%_ if (listFilterLayout[idx].type !== 'relationship' ) {  _%>
         <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
-          const <%= listFilterLayout[idx].entity.fieldName %>Start = url.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>Start') || '';
-          const <%= listFilterLayout[idx].entity.fieldName %>End = url.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>End') || '';
+          const <%= listFilterLayout[idx].entity.fieldName %>Start = _urlBase.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>Start') || '';
+          const <%= listFilterLayout[idx].entity.fieldName %>End = _urlBase.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>End') || '';
         <%_ } else { _%>
-          const <%= listFilterLayout[idx].entity.fieldName %> = url.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>') || '';
+          const <%= listFilterLayout[idx].entity.fieldName %> = _urlBase.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>') || '';
         <%_ } _%>
       <%_ } else { _%>
-          const <%= listFilterLayout[idx].entity.relationshipName %>Id = url.searchParams.get('<%= listFilterLayout[idx].entity.relationshipName %>') || '';
+          const <%= listFilterLayout[idx].entity.relationshipName %>Id = _urlBase.searchParams.get('<%= listFilterLayout[idx].entity.relationshipName %>') || '';
       <%_ } _%>
     <%_ } _%>
   <%_ } else {  _%>
     <%_ for (idx in fields) { _%>
       <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
-        const <%= fields[idx].fieldName %>Start = url.searchParams.get('<%= fields[idx].fieldName %>_start') || '';
-        const <%= fields[idx].fieldName %>End = url.searchParams.get('<%= fields[idx].fieldName %>_end') || '';
+        const <%= fields[idx].fieldName %>Start = _urlBase.searchParams.get('<%= fields[idx].fieldName %>_start') || '';
+        const <%= fields[idx].fieldName %>End = _urlBase.searchParams.get('<%= fields[idx].fieldName %>_end') || '';
       <%_ } else { _%>
-          const <%= fields[idx].fieldName %> = url.searchParams.get('<%= fields[idx].fieldName %>') || '';
+          const <%= fields[idx].fieldName %> = _urlBase.searchParams.get('<%= fields[idx].fieldName %>') || '';
       <%_ } _%>
     <%_ } _%>
     <%_ relationships.forEach(rel => { _%>
-      const <%= rel.relationshipName %>Id = url.searchParams.get('<%= rel.relationshipName %>') || '';
+      const <%= rel.relationshipName %>Id = _urlBase.searchParams.get('<%= rel.relationshipName %>') || '';
     <%_ }) _%>
   <%_ } _%>
   return {
