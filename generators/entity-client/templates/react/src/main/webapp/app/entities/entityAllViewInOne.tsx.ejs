@@ -1803,7 +1803,7 @@ _%>
                                   <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/edit?${getEntityFiltersURL(state, (this.state.itemsPerPage * this.state.activePage) + i)}`} color="primary" size="sm">
                                     <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnEdit">Edit</Translate></span>
                                   </Button>
-                                  <Button onClick={() => this.deleteEntity(<%=entityInstance %>)}> color="danger" size="sm">
+                                  <Button onClick={() => this.deleteEntity(<%=entityInstance %>)} color="danger" size="sm">
                                     <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnDelete">Delete</Translate></span>
                                   </Button>
                                 <%_ } _%>
