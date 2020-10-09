@@ -1999,7 +1999,8 @@ module.exports = class extends PrivateBase {
                 const blockTemplate = blockTemplates[j];
                 if (!blockTemplate.condition || blockTemplate.condition(_this)) {
                     const path = blockTemplate.path || '';
-                    blockTemplate.templates.forEach(templateObj => {
+                    const templates = (typeof blockTemplate.templates === 'function') ? blockTemplate.templates(_this) : blockTemplate.templates; 
+                    templates.forEach(templateObj => {
                         let templatePath = path;
                         let method = 'template';
                         let useTemplate = false;
