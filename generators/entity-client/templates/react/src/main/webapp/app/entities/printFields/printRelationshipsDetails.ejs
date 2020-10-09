@@ -12,33 +12,32 @@ const otherEntityFieldCapitalized = rel.otherEntityFieldCapitalized;
 const otherEntityField = rel.otherEntityField;
 
 if(rel['viewLayoutEmbebed'] === "true"){ %>
-
-  { <%= entityFileName %>Entity.<%= rel.relationshipFieldName %> ? <%= entityFileName %>Entity.<%= rel.relationshipFieldName %>.map((v,i) =>          
+  { <%= entityInstance %>Entity.<%= rel.relationshipFieldName %> ? <%= entityInstance %>Entity.<%= rel.relationshipFieldName %>.map((v,i) =>          
     <div key={i} className="entityEmbebed">
       <<%= rel.relationshipNameCapitalized %>Detail
         history= {this.props.history}
         location = {{pathname: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/${v.id}`, search: "", hash: "", state: undefined, key: "q2tbhd"}}
         match = {{path: `/<%= entityFileName %>/:id<%= entityReactName %>/<%= rel.otherEntityPath %>/:id`, url: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/${v.id}`, isExact: true, params: {id: ''+v.id}}}
-        <%= rel.otherEntityName %>Entity={v} 
-        getEntity={this.props.getEntity<%= rel.otherEntityNameCapitalized %>} 
+        <%= rel.otherEntityName %>Entity={convertEntityBuffers<%= rel.otherEntityNameCapitalized %>(v)} 
+        getEntity={(): any => {}}
       />
     </div>
   ) : <> </> }
 
 <%_ } else if (relationshipType === 'many-to-one'
-|| (relationshipType === 'one-to-one' && ownerSide === true)
-|| (relationshipType === 'many-to-many' && ownerSide === true)) { _%>
+          || (relationshipType === 'one-to-one' && ownerSide === true)
+          || (relationshipType === 'many-to-many' && ownerSide === true)) { _%>
 
-    <Col md="<%= viewLayoutSize %>">
+    <Col className="view-detail-row <%= entityFileName %>-<%=relationshipFieldName%>-detail" md="<%= viewLayoutSize %>">
       <Row>
-        <Col md="<%= viewLayoutLabel == 'top' ? 12 : 3  %>">
+        <Col className="view-detail-label-<%= viewLayoutLabel %> <%= entityFileName %>-<%=relationshipFieldName%>-detail-label" md="<%= viewLayoutLabel == 'top' ? 12 : 3  %>">
           <dt>
           <Translate contentKey="<%= i18nKeyPrefix %>.<%= relationshipName %>">
             <%= relationshipNameHumanized %>
           </Translate>
           </dt>
         </Col>
-        <Col md="<%= viewLayoutLabel == 'top' ? 12 : 9  %>">
+        <Col className="view-detail-value-<%= viewLayoutLabel %> <%= entityFileName %>-<%=relationshipFieldName%>-detail-value" md="<%= viewLayoutLabel == 'top' ? 12 : 9  %>">
           <dd>
             <%_ if (otherEntityName === 'user') { _%>
                 <%_ if (relationshipType === 'many-to-many') { _%>

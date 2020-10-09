@@ -16,63 +16,53 @@ _%>
               <%= fieldNameHumanized %>
             </Translate>
           </Label>
-          <AvInput
+          <Select
             id="<%= entityFileName %>-<%= fieldName %>"
-            type="select"
-            className="form-control"
+            className={'css-select-control'}
+            value={this.state.<%= fieldName %> === 0 ? { value: 0, label: translate("<%= angularAppName %>.<%= fieldType %>_filter_without") } 
+              : (this.state.<%= fieldName %> === 1 ? { value: 1, label: translate("<%= angularAppName %>.<%= fieldType %>_filter_with") } 
+                : { value: "", label: translate("<%= i18nKeyPrefix %>.<%= fieldName %>_filter_all") } ) } 
+            options={[
+              { value: "", label: translate("<%= i18nKeyPrefix %>.<%= fieldName %>_filter_all") },
+              { value: 1, label: translate("<%= i18nKeyPrefix %>.<%= fieldName %>_filter_with") },
+              { value: 0, label: translate("<%= i18nKeyPrefix %>.<%= fieldName %>_filter_without") },
+            ]}
+            onChange={(options: any) => this.setState({ <%= fieldName %>: options['value'] })}
             name="<%= fieldName %>"
-            value={this.state.<%= fieldName %> ? (this.state.<%= fieldName %>) : null }
-          >
-            <option value={""}>
-              <%_ if (enableTranslation) { _%>
-                {translate("<%= i18nKeyPrefix %>.<%= fieldName %>_filter_all", "All <%= fieldNameHumanized %>")}
-              <%_ } else { _%>
-                All <%= fieldNameHumanized %> 
-              <%_ } _%>
-            </option>
-            <option value={1}>
-            <%_ if (enableTranslation) { _%>
-              {translate("<%= i18nKeyPrefix %>.<%= fieldName %>_filter_with", "With <%= fieldNameHumanized %>")}
-            <%_ } else { _%>
-              With <%= fieldNameHumanized %>
-            <%_ } _%>
-            </option>
-            <option value={0}>
-            <%_ if (enableTranslation) { _%>
-              {translate("<%= i18nKeyPrefix %>.<%= fieldName %>_filter_without", "Without <%= fieldNameHumanized %>")}
-            <%_ } else { _%>
-              Without <%= fieldNameHumanized %>
-            <%_ } _%>
-            </option>
-    
-          </AvInput>
-
+          />
         <%_ } else if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
-          <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>_start">
+          <Label id="<%= fieldName %>Start" for="<%= entityFileName %>-<%= fieldName %>_start">
             <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>_start">
               <%= fieldNameHumanized %> (start)
             </Translate>
           </Label>
-          <AvInput
-            id="<%= entityFileName %>-<%= fieldName %>"
-            type="date"
-            className="form-control"
-            name="<%= fieldName %>[start]"
-            placeholder={"YYYY-MM-DD"}
-            value={this.state.<%= fieldName %>Start ? convertDateFromServer(this.state.<%= fieldName %>Start) : null }
+          <DatePicker
+            onChange={value => this.setState({ <%= fieldName %>Start: value })}
+            id="<%= fieldName %>Start"
+            className="form-control react-datepicker"
+            name="<%= fieldName %>Start"
+            dateFormat="dd/MM/yyyy"
+            selected={this.state.<%= fieldName %>Start ? moment(this.state.<%= fieldName %>Start).toDate() : null}
+            locale="pt"
           />
-          <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>_end">
+        </Row>
+      </Col>
+      : null }
+      { this.state.baseFilters !== '<%= fieldName %>' ? <Col md="<%= listFilterLayoutSize %>">
+        <Row className="mr-1 mt-1">    
+          <Label id="<%= fieldName %>End" for="<%= entityFileName %>-<%= fieldName %>_end">
             <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>_end">
               <%= fieldNameHumanized %> (end)
             </Translate>
           </Label>
-          <AvInput
-            id="<%= entityFileName %>-<%= fieldName %>"
-            type="date"
-            className="form-control"
-            name="<%= fieldName %>[end]"
-            placeholder={"YYYY-MM-DD"}
-            value={this.state.<%= fieldName %>End ? convertDateFromServer(this.state.<%= fieldName %>End) : null }
+          <DatePicker
+            onChange={value => this.setState({ <%= fieldName %>End: value })}
+            id="<%= fieldName %>End"
+            className="form-control react-datepicker"
+            name="<%= fieldName %>End"
+            dateFormat="dd/MM/yyyy"
+            selected={this.state.<%= fieldName %>End ? moment(this.state.<%= fieldName %>End).toDate() : null}
+            locale="pt"
           />
         <%_ } else if (fieldType === 'LocalDate') { _%>
         <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
@@ -90,34 +80,32 @@ _%>
             <%= fieldNameHumanized %>
           </Translate>
         </Label>
-        <AvInput
+        <Select
           id="<%= entityFileName %>-<%= fieldName %>"
-          type="select"
-          className="form-control"
+          className={'css-select-control'}
+          value={this.state.<%= fieldName %> ? { value: this.state.<%= fieldName %>, label: translate("<%= angularAppName %>.<%= fieldType %>."+this.state.<%= fieldName %>) } : { value: "", label: translate("<%= i18nKeyPrefix %>.<%= fieldName %>") } }
+          options={[
+            { value: "", label: translate("<%= i18nKeyPrefix %>.<%= fieldName %>") },
+            <%_ for (key in values) { const value = values[key]; _%>
+            { value: "<%= value %>", label: translate("<%= angularAppName %>.<%= fieldType %>.<%= value %>") },
+          <%_ } _%>]}
+          onChange={(options: any) => this.setState({ <%= fieldName %>: options['value'] })}
           name="<%= fieldName %>"
-          value={this.state.<%= fieldName %> ? (this.state.<%= fieldName %>) : null }
-        >
-        <%_
-          const enumPrefix = angularAppName + '.'+ fieldType;
-          for (key in values) {
-              const value = values[key];
-        _%>
-          <option value="<%= value %>">
-          <%_ if (enableTranslation) { _%>
-            {translate("<%= enumPrefix %>.<%= value %>")}
-          <%_ } else { _%>
-            <%= value %>
-          <%_ } _%>
-          </option>
-        <%_ } _%>
-        </AvInput>
-        <%_ } else if (['Integer', 'Long', 'Float', 'Double'].includes(fieldType)) { _%>
+        />
+        <%_ } else if (['Float', 'Double'].includes(fieldType)) { _%>
         <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
           <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
             <%= fieldNameHumanized %>
           </Translate>
         </Label>
         <AvInput type="string" name="<%= fieldName %>" id="<%= entityFileName %>-<%= fieldName %>"  value={this.state.<%= fieldName %>}   />
+        <%_ } else if (['Integer', 'Long'].includes(fieldType)) { _%>
+        <Label id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+          <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+            <%= fieldNameHumanized %>
+          </Translate>
+        </Label>
+        <AvInput type="number" name="<%= fieldName %>" id="<%= entityFileName %>-<%= fieldName %>"  value={this.state.<%= fieldName %>}   />
         <%_ } else if (['byte[]', 'ByteBuffer', 'Blob', 'TextBlob'].includes(fieldType)) { _%>
           <%_ const fieldBlobType = field.fieldTypeBlobContent; _%>
           <%_ if (fieldBlobType !== 'text') {  _%>

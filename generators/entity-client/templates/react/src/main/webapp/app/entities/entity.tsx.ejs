@@ -1,17 +1,20 @@
 /* eslint complexity: ["error", 300] */
 import React from 'react';
+import axios from 'axios';
 <%_ if (pagination === 'infinite-scroll') { _%>
 import InfiniteScroll from 'react-infinite-scroller';
 <%_ } _%>
 import { convertDateFromServer, convertDateTimeToServer } from 'app/shared/util/date-utils';
+import { getFilterFromSelect, getFormFromSelect, getListAxios, getValueRecursive , showFieldsSelectAsync } from 'app/shared/util/entity-utils';
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import SelectAsync from 'react-select/async';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import InputMask from "react-input-mask";
 import { Button, <% if (searchEngine === 'elasticsearch') { %>InputGroup, <% } %>Col, Row, Table, Label, UncontrolledTooltip, 
 <%_ if (typeof notListFilterLayout === 'undefined') {  _%>
   UncontrolledCollapse,
-<%_ } _%> CardHeader, CardBody,
+<%_ } _%> CardHeader, CardBody, Modal, ModalHeader, ModalBody, ModalFooter,
 <%_  if (listButtonsInDropdown === true) { _%> Dropdown, DropdownToggle,  DropdownMenu,  DropdownItem, <%_ } _%> UncontrolledAlert } from 'reactstrap';
 import { AvForm, div, AvInput, AvField } from 'availity-reactstrap-validation';
 import {
@@ -20,7 +23,7 @@ import {
   openFile,
     <%_ } _%>
   <%_ } _%>
-  Translate, translate<% if (searchEngine === 'elasticsearch') { %>, ICrudSearchAction<% } %>,
+  <% if (searchEngine === 'elasticsearch') { %> ICrudSearchAction, <% } %>
   ICrudGetAllAction, TextFormat
   <%_ if (pagination !== 'no') { _%>
   , getSortState, IPaginationBaseState
@@ -28,6 +31,7 @@ import {
   , JhiItemCount
   <%_ }} _%>
 } from 'react-jhipster';
+import { Translate, translate } from 'app/config/translate-component';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ReactPaginate from 'react-paginate';
 
@@ -70,17 +74,23 @@ import ReactPaginate from 'react-paginate';
     <%_ if (importEntities[importEntity] == 'Entity'){ _%>
       import {getEntity as getEntity<%= importEntity %>, updateEntity as update<%= importEntity %>} from '../<%= importEntityPathName %>/<%= importEntityPathName %>.reducer';
     <%_ } else if (importEntities[importEntity] == 'List') { _%>
-      import {getAllEntities as getEntities<%= importEntity %>, updateEntity as update<%= importEntity %>} from '../<%= importEntityPathName %>/<%= importEntityPathName %>.reducer';
+      import {updateEntity as update<%= importEntity %>} from '../<%= importEntityPathName %>/<%= importEntityPathName %>.reducer';
     <%_ } else { _%>
-      import {getAllEntities as getEntities<%= importEntity %>, getEntity as getEntity<%= importEntity %>, updateEntity as update<%= importEntity %>} from '../<%= importEntityPathName %>/<%= importEntityPathName %>.reducer';
+      import {getEntity as getEntity<%= importEntity %>, updateEntity as update<%= importEntity %>} from '../<%= importEntityPathName %>/<%= importEntityPathName %>.reducer';
     <%_ } _%>
   <%_ } _%>
 <%_ } _%>
 
 
+<%_ for (idx in componentList) {  _%>
+  import <%= componentList[idx].name %> from './components/<%= componentList[idx].name %>';
+<%_ } _%>
+
 import { IRootState } from 'app/shared/reducers';
 import {
   updateEntity,
+  deleteEntity,
+  getUrlBack,
   get<%= entityReactName %>State, I<%= entityReactName %>BaseState, getEntityFiltersURL,
   <%_ if (searchEngine === 'elasticsearch') { _%>
   getSearchEntities,
@@ -149,55 +159,73 @@ import { getUsers } from 'app/modules/administration/user-management/user-manage
 _%>
 import { I<%= uniqueRel.otherEntityAngularName %> } from 'app/shared/model/<%= uniqueRel.otherEntityModelName %>.model';
   <%_ } _%>
-import { getAllEntities as get<%= upperFirstCamelCase(uniqueRel.otherEntityNamePlural) %> } from 'app/entities/<%= uniqueRel.otherEntityPath %>/<%= uniqueRel.otherEntityFileName %>.reducer';
 <%_ }
   }
 }); _%>
 
 <%_ if (typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false"){ %>
-  import { StatePropsExtended, DispatchPropsExtended } from './extended/<%= entityFileName %>';
+  import { StatePropsExtended, DispatchPropsExtended, IExtendedState, IExtendedProps } from './extended/<%= entityFileName %>';
 <%_ } _%>
+
+import DatePicker, { registerLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { pt } from 'date-fns/esm/locale';
+import moment from 'moment';
+
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+registerLocale('pt', pt);
+const MySwal = withReactContent(Swal);
 
 
 <%_ if (typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false"){ %>
-  export interface I<%= entityReactName %>Props extends StateProps, DispatchProps, StatePropsExtended, DispatchPropsExtended, RouteComponentProps<{url: string}> {}
+  export interface I<%= entityReactName %>Props extends StateProps, DispatchProps, StatePropsExtended, DispatchPropsExtended, IExtendedProps, RouteComponentProps<{url: string}> {}
+  export interface I<%= entityReactName %>StateAux extends I<%= entityReactName %>BaseState, IExtendedState {}
 <%_ } else { _%>
   export interface I<%= entityReactName %>Props extends StateProps, DispatchProps, RouteComponentProps<{url: string}> {}
+  export interface I<%= entityReactName %>StateAux extends I<%= entityReactName %>BaseState {}
 <%_ } _%>
 
 
 <% if (searchEngine === 'elasticsearch' && pagination !== 'no') { _%>
-export interface I<%= entityReactName %>State extends I<%= entityReactName %>BaseState, IPaginationBaseState {
+export interface I<%= entityReactName %>State extends I<%= entityReactName %>StateAux, IPaginationBaseState {
   search: string;
   <%_  if (listButtonsInDropdown === true) { _%> dropdownButtons: {}; <%_ } _%>
 }
 <%_ } else if (searchEngine === 'elasticsearch') { _%>
-export interface I<%= entityReactName %>State extends I<%= entityReactName %>BaseState {
+export interface I<%= entityReactName %>State extends I<%= entityReactName %>StateAux {
   search: string;
   <%_  if (listButtonsInDropdown === true) { _%> dropdownButtons: {}; <%_ } _%>
 }
 <%_ } else if (pagination !== 'no') { _%>
-export interface I<%= entityReactName %>State extends I<%= entityReactName %>BaseState, IPaginationBaseState {
+export interface I<%= entityReactName %>State extends I<%= entityReactName %>StateAux, IPaginationBaseState {
   <%_  if (listButtonsInDropdown === true) { _%> dropdownButtons: {}; <%_ } _%>
 };
 <%_ }  _%>
 
 export class <%= entityReactName %> extends React.Component<I<%= entityReactName %>Props<% if (searchEngine === 'elasticsearch' || pagination !== 'no') { %>, I<%= entityReactName %>State<% } %>> {
-  private myFormRef: any;
+  protected myFormRef: any;
 
   constructor(props: I<%= entityReactName %>Props) {
     super(props);
     <%_ if (searchEngine === 'elasticsearch' || pagination !== 'no') { _%>
       this.state = {
+        listCheckedModalSuperSelectID: [],
+        listCheckedModalSuperSelectFilters: {},
+        modalSuperSelect: '',
+        listCheckedID: [],
+        isCheckedAll: false,
         <%_  if (listButtonsInDropdown === true) { _%> dropdownButtons: {}, <%_ } _%>
         <%_ if (searchEngine === 'elasticsearch') { _%>
         search: '',
         <%_ } _%>
         <%_ if (pagination !== 'no') { _%>
         ...getSortState(this.props.location, ITEMS_PER_PAGE),
+        urlBack: getUrlBack(this.props.location),
         ...get<%= entityReactName %>State(this.props.location)
         <%_ if (typeof baseFilters !== 'undefined' && baseFilters) { _%>
-          , <%= baseFilters _%>Id: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>']
+          , <%= baseFilters _%>Id:  [{ value: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'], label: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'] } ]
           , baseFilters: '<%= baseFilters _%>' 
         <%_ } _%>
         <%_ } _%>
@@ -215,6 +243,254 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
   <%_ } _%>
 
 
+  handleInputModalSuperSelectChange(selected, multiple) {
+    let listCheckedModalSuperSelectID: any = multiple ? this.state.listCheckedModalSuperSelectID : [];
+    if (listCheckedModalSuperSelectID.map(v => v['value'] + '').includes(selected.value + '')) {
+      listCheckedModalSuperSelectID = listCheckedModalSuperSelectID.filter(v => v['value'] + '' !== selected.value + '');
+    } else {
+      listCheckedModalSuperSelectID.push(selected);
+    }
+    this.setState({ listCheckedModalSuperSelectID: multiple ? listCheckedModalSuperSelectID : listCheckedModalSuperSelectID[0] });
+  }
+
+  handleInputAllModalSuperSelectThisItens(evt, listChecked, label) {
+    if (evt.target.checked) {
+      this.setState({ listCheckedModalSuperSelectID: listChecked.data.map(v => ({...v, value: v.id, label: v[label] })) });
+    } else {
+      this.setState({ listCheckedModalSuperSelectID: [] });
+    }
+  }
+   
+  renderModalSuperSelect(entity, listEntity, template, stateField, multiple, showFields?, order?, filtersBase={}) {
+    return (
+      <>
+        <Button
+          color="secondary"
+          className="super-select-button"
+          onClick={async () => {
+            if (this.state[stateField]) {
+              this.setState({
+                listCheckedModalSuperSelectID: this.state[stateField],
+                listCheckedModalSuperSelectFilters: {},
+                modalSuperSelect: entity,
+                listCheckedModalSuperEntities: await getListAxios(listEntity, filtersBase, 0, 100, order ? order : 'id,asc'),
+              });
+            } else {
+              this.setState({
+                listCheckedModalSuperSelectFilters: {},
+                modalSuperSelect: entity,
+                listCheckedModalSuperEntities: await getListAxios(listEntity, filtersBase, 0, 100, order ? order : 'id,asc'),
+              });
+            }
+          }}
+        >
+          <FontAwesomeIcon icon="filter" />
+          &nbsp;
+        </Button>
+        {this.state.modalSuperSelect === entity ? (
+          <Modal
+            size="xl"
+            isOpen={true}
+            toggle={() =>
+              this.setState({ listCheckedModalSuperSelectID: [], listCheckedModalSuperSelectFilters: {}, modalSuperSelect: '' })
+            }
+          >
+            <ModalHeader
+              toggle={() =>
+                this.setState({ listCheckedModalSuperSelectID: [], listCheckedModalSuperSelectFilters: {}, modalSuperSelect: '' })
+              }
+            >
+              <Translate contentKey={'generadorApp.' + entity + '-modal-super-select-title'}> Select Entity</Translate>
+            </ModalHeader>
+            <ModalBody>
+              <div style={{ height: '500px', overflow: 'auto' }}>
+                <Table id={'filter-table-list-' + entity} responsive className={'table-hover table-striped mt-4 table-responsive-css'}>
+                  <thead>
+                    <tr>
+                      <th className={'align-middle text-center'} style={{ width: '4%' }}>
+                        <input
+                          type={multiple ? 'checkbox' : 'hidden'}
+                          onChange={evt =>
+                            this.handleInputAllModalSuperSelectThisItens(evt, this.state.listCheckedModalSuperEntities, showFields)
+                          }
+                        />
+                      </th>
+                      {Object.keys(template).map((v, i) => (
+                        <th key={'list-' + entity + '-' + i}>
+                          <AvField
+                            name={'list-' + entity + '-' + i}
+                            type="text"
+                            style={v === 'id' ? { width: '60px' } : {}}
+                            onChange={async evt => {
+                              const listCheckedModalSuperSelectFilters = this.state.listCheckedModalSuperSelectFilters;
+                              listCheckedModalSuperSelectFilters[i] = evt.target.value;
+
+                              const _filters = {...filtersBase};
+                              Object.keys(listCheckedModalSuperSelectFilters).map((v2, k) => {
+                                if (listCheckedModalSuperSelectFilters[v2])
+                                  _filters[template[v2] + '.contains'] = listCheckedModalSuperSelectFilters[v2];
+                              });
+
+                              this.setState({
+                                listCheckedModalSuperSelectFilters,
+                                listCheckedModalSuperEntities: await getListAxios(listEntity, _filters, 0, 100, order ? order : 'id,asc'),
+                              });
+                            }}
+                            value={this.state.listCheckedModalSuperSelectFilters[i] ? this.state.listCheckedModalSuperSelectFilters[i] : ''}
+                            placeholder={translate(
+                              template[v] === 'id' ? 'generadorApp.' + entity + '.field_id' : 'generadorApp.' + entity + '.' + template[v]
+                            )}
+                          />
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {this.state.listCheckedModalSuperEntities &&
+                      this.state.listCheckedModalSuperEntities.data.map((ent, i) => (
+                        <tr key={i}>
+                          <td className={'align-middle text-center'}>
+                            <input
+                              type={multiple ? 'checkbox' : 'radio'}
+                              checked={
+                                multiple
+                                  ? this.state.listCheckedModalSuperSelectID.map(v => v['value'] + '').includes(ent['id'] + '')
+                                  : this.state.listCheckedModalSuperSelectID['value'] + '' === ent['id'] + ''
+                              }
+                              onChange={() =>
+                                this.handleInputModalSuperSelectChange(
+                                  {
+                                    ...ent,
+                                    value: ent['id'],
+                                    label: showFields
+                                      .map(field => getValueRecursive(ent, field.split('.')))
+                                      .filter(field => field)
+                                      .join(' | '),
+                                  },
+                                  multiple
+                                )
+                              }
+                            />
+                          </td>
+                          {template &&
+                            template.map((field, j) => {
+                              if (!field.includes('.')) {
+                                return <td key={'list-' + entity + '-' + field}>{ent[field]}</td>;
+                              } else {
+                                let valAux = ent;
+                                field.split('.').map(subField => {
+                                  if (Array.isArray(valAux)) {
+                                    valAux = valAux
+                                      .map(arrField => (arrField[subField] ? arrField[subField] : false))
+                                      .filter(filt => filt !== false)
+                                      .join(' | ');
+                                  } else {
+                                    valAux = valAux[subField] ? valAux[subField] : '';
+                                  }
+                                });
+                                return <td key={'list-' + entity + '-' + field}>{valAux}</td>;
+                              }
+                            })}
+                        </tr>
+                      ))}
+                  </tbody>
+                </Table>
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                color="secondary"
+                onClick={() =>
+                  this.setState({ listCheckedModalSuperSelectID: [], listCheckedModalSuperSelectFilters: {}, modalSuperSelect: '' })
+                }
+              >
+                <FontAwesomeIcon icon="ban" />
+                &nbsp;
+                <Translate contentKey={'generadorApp.' + entity + '.btnCancel'}>Cancel</Translate>
+              </Button>
+              <Button
+                id={'jhi-confirm-delete-' + entity}
+                color="primary"
+                onClick={() => {
+                  const newState = {
+                    listCheckedModalSuperSelectID: [],
+                    listCheckedModalSuperSelectFilters: {},
+                    modalSuperSelect: '',
+                  };
+                  newState[stateField] = this.state.listCheckedModalSuperSelectID;
+                  this.setState(newState);
+                }}
+              >
+                <FontAwesomeIcon icon="filter" />
+                &nbsp;
+                <Translate contentKey={'generadorApp.' + entity + '.btnFilter'}>Filter</Translate>
+              </Button>
+            </ModalFooter>
+          </Modal>
+        ) : (
+          <> </>
+        )}
+      </>
+    );
+  }
+
+
+  handleInputChange(id) {
+    const listCheckedID = this.state.listCheckedID;
+    if(listCheckedID.includes(id)){
+      this.removeAllArrayItem(listCheckedID, id);
+      this.setState({ isCheckedAll: false });
+    } else {
+      listCheckedID.push(id);
+    }
+    this.setState({ listCheckedID });
+  }
+
+  handleInputAllChange() {
+    this.setState({ isCheckedAll: !this.state.isCheckedAll });
+    this.setState({ listCheckedID: this.props.<%=entityInstance %>List.map((<%=entityInstance %>) => <%=entityInstance %>.id) });
+  }
+  handleInputAllThisItens() {
+    if(this.state.listCheckedID.length === this.state.itemsPerPage || this.state.listCheckedID.length === this.props.totalItems){
+      this.setState({ listCheckedID: [] });
+      this.setState({ isCheckedAll: false });
+    } else {
+      this.setState({ listCheckedID: this.props.<%=entityInstance %>List.map((<%=entityInstance %>) => <%=entityInstance %>.id) });
+    }
+  }
+
+  removeAllArrayItem(arr, value) {
+    let i = 0;
+    while (i < arr.length) {
+      if (arr[i] === value) {
+        arr.splice(i, 1);
+      } else {
+        ++i;
+      }
+    }
+    return arr;
+  }
+  removeEntitySelected() {
+    if (!this.state.isCheckedAll) {
+      // this.saveEntityFild(this.state.listCheckedID, interesse, formSemInteresse);
+    } else {
+      // const {estado, activePage, itemsPerPage, sort, order, activeTab, comarca, advogados, pesquisa, numeroProcesso, assunto, distribuicaoInicial, distribuicaoFinal, valorInicial, valorFinal, moeda, cnpj, valorAtualizadoInicial, valorAtualizadoFinal, vara, movimentacao, incluirMovimentacoesAll, movimentacaoInicial, movimentacaoFinal} = this.state;
+      // this.props.updateInteresseAllEntity(estado, activePage - 1, itemsPerPage, `${sort},${order}`, activeTab, comarca, numeroProcesso, advogados,  pesquisa, assunto, distribuicaoInicial, distribuicaoFinal, valorInicial, valorFinal, moeda, cnpj, valorAtualizadoInicial, valorAtualizadoFinal, vara, movimentacao, incluirMovimentacoesAll, movimentacaoInicial, movimentacaoFinal, interesse, formSemInteresse);
+    }
+    this.setState({ listCheckedID: [] });
+  }
+
+  saveEntityMany = () => {
+    if (!this.state.isCheckedAll) {
+      // this.saveEntityFild(this.state.listCheckedID, interesse, formSemInteresse);
+    } else {
+      // const {estado, activePage, itemsPerPage, sort, order, activeTab, comarca, advogados, pesquisa, numeroProcesso, assunto, distribuicaoInicial, distribuicaoFinal, valorInicial, valorFinal, moeda, cnpj, valorAtualizadoInicial, valorAtualizadoFinal, vara, movimentacao, incluirMovimentacoesAll, movimentacaoInicial, movimentacaoFinal} = this.state;
+      // this.props.updateInteresseAllEntity(estado, activePage - 1, itemsPerPage, `${sort},${order}`, activeTab, comarca, numeroProcesso, advogados,  pesquisa, assunto, distribuicaoInicial, distribuicaoFinal, valorInicial, valorFinal, moeda, cnpj, valorAtualizadoInicial, valorAtualizadoFinal, vara, movimentacao, incluirMovimentacoesAll, movimentacaoInicial, movimentacaoFinal, interesse, formSemInteresse);
+    }
+    this.setState({ listCheckedID: [] });
+  };
+
+
   componentDidMount() {
     <%_ if (pagination !== 'no') { _%>
       <%_ if (pagination === 'infinite-scroll') { _%>
@@ -225,11 +501,30 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
     <%_ } else { _%>
     this.props.getEntities();
     <%_ } _%>
-
-    <%_ otherEntityActions.forEach(val => { _%>
-      this.props.<%= val.action %>();
-    <%_ }) _%>
   }
+
+  deleteEntity(<%= entityInstance %>Entity) {
+    MySwal.fire({
+      title: <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>,
+      html: <Translate contentKey="<%= i18nKeyPrefix %>.delete.question" interpolate={{ id: <%= entityInstance %>Entity.id }}>Are you sure you want to delete this <%= entityClass %>?</Translate>,
+      icon: 'warning',
+      showConfirmButton: true,
+      showCancelButton: true,
+      confirmButtonColor: '#e70015',
+      cancelButtonText: <> <FontAwesomeIcon icon="ban" />&nbsp; <Translate contentKey="<%= i18nKeyPrefix %>.btnCancel">Cancel</Translate></>,
+      confirmButtonText: <>  <FontAwesomeIcon icon="trash" />&nbsp;<Translate contentKey="<%= i18nKeyPrefix %>.btnDelete">Delete</Translate></>,
+    }).then(async response => {
+      if (response.isConfirmed) {
+        await this.props.deleteEntity(<%= entityInstance %>Entity.id, {reloadList: false});
+        this.getEntities();
+        MySwal.fire({
+          title: <Translate contentKey="entity.delete.title.confirmed">Confirmed delete operation</Translate>,
+          icon: 'success'
+        })
+      }
+    });
+  }
+  
 
   cancelFilters = () => {
     this.setState(
@@ -389,9 +684,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
     this.props.getEntities(
       <%_ if (listFilterLayout.length > 0) {  _%>
         <%_ for (idx in listFilterLayout) { _%>
-          <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
-            <%= listFilterLayout[idx].entity.relationshipName %>Id,
-          <%_ } else { _%>
+          <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>getFilterFromSelect(<%= listFilterLayout[idx].entity.relationshipName %>Id, '<%= listFilterLayout[idx].entity.relationshipType %>'),<%_ } else { _%>
             <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
               <%= listFilterLayout[idx].entity.fieldName %>Start, 
               <%= listFilterLayout[idx].entity.fieldName %>End, 
@@ -408,7 +701,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
             <%= fields[idx].fieldName %>, 
           <%_ } _%>
         <%_ } _%>
-        <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
+        <%_ relationships.forEach(rel => { _%>getFilterFromSelect(<%= rel.relationshipName %>Id, '<%= rel.relationshipType %>'),<%_ }) _%>
       <%_ } _%>
       activePage - 1, itemsPerPage, `${sort},${order}`);
     <%_ } _%>
@@ -445,29 +738,27 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
     } = this.state;
     this.props.updateEntity(
       entity, [
-      <%_ if (listFilterLayout.length > 0) {  _%>
-        <%_ for (idx in listFilterLayout) { _%>
-          <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
-            <%= listFilterLayout[idx].entity.relationshipName %>Id,
-          <%_ } else { _%>
-            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
-              <%= listFilterLayout[idx].entity.fieldName %>Start, 
-              <%= listFilterLayout[idx].entity.fieldName %>End, 
-            <%_ } else { _%> 
-              <%= listFilterLayout[idx].entity.fieldName %>,
+        <%_ if (listFilterLayout.length > 0) {  _%>
+          <%_ for (idx in listFilterLayout) { _%>
+            <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>getFilterFromSelect(<%= listFilterLayout[idx].entity.relationshipName %>Id, '<%= listFilterLayout[idx].entity.relationshipType %>'),<%_ } else { _%>
+              <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
+                <%= listFilterLayout[idx].entity.fieldName %>Start, 
+                <%= listFilterLayout[idx].entity.fieldName %>End, 
+              <%_ } else { _%> 
+                <%= listFilterLayout[idx].entity.fieldName %>,
+              <%_ } _%>
             <%_ } _%>
           <%_ } _%>
-        <%_ } _%>
-      <%_ } else {  _%>
-        <%_ for (idx in fields) { _%> 
-          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
-            <%= fields[idx].fieldName %>Start, <%= fields[idx].fieldName %>End, 
-          <%_ } else { _%> 
-            <%= fields[idx].fieldName %>, 
+        <%_ } else {  _%>
+          <%_ for (idx in fields) { _%> 
+            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
+              <%= fields[idx].fieldName %>Start, <%= fields[idx].fieldName %>End, 
+            <%_ } else { _%> 
+              <%= fields[idx].fieldName %>, 
+            <%_ } _%>
           <%_ } _%>
+          <%_ relationships.forEach(rel => { _%>getFilterFromSelect(<%= rel.relationshipName %>Id, '<%= rel.relationshipType %>'),<%_ }) _%>
         <%_ } _%>
-        <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
-      <%_ } _%>
       activePage - 1, itemsPerPage, `${sort},${order}`]);
   };
 
@@ -478,10 +769,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
       <% uniqueRealtionFields.forEach(rel => {%> <%= rel %>,<% }) %> 
       <%=entityInstance %>List, match<% if (pagination === 'pagination' || pagination === 'pager') { %>,
       totalItems<% } %>} = this.props;
-    <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-      let <%= baseFilters %>BaseFilter = null; 
-      <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
-    <%_ } _%>
+    
 
     const props = this.props;
     const state = this.state;
@@ -490,7 +778,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
     return (
       <>
       <div id="page-heading">
-        <span className="page-header"><%= entityClassPluralHumanized %></span>
+        <span className="page-header"><Translate contentKey="<%= i18nKeyPrefix %>.home.title"><%= entityClassPluralHumanized %></Translate></span>
           <%_ if(typeof notListFilterLayout === 'undefined') { _%>
             <Button id="togglerFilter<%= entityReactName %>" color="primary" className="float-right jh-create-entity">
               <%_ if(typeof btnOpenFilter !== 'undefined') { _%>
@@ -507,9 +795,9 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
           <%_ if (typeof listTopButtons !== "undefined")  { _%>
             <%_ for (idx in listTopButtons) { _%>
               <%_ const attrib = listTopButtons[idx].attributes; _%>
-                <Button className="float-right jh-create-entity" tag={<%=attrib['tag'] %>} to={<%=attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>">
+                <Button className="float-right jh-create-entity" tag={<%=attrib['tag'] %>} to={<%-attrib['to'] %>} color="<%-attrib['color'] %>" size="<%-attrib['size'] %>">
                   <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> <span className="d-none d-md-inline">
-                    <Translate contentKey="<%= i18nKeyPrefix %>.listTopButtons.<%=listTopButtons[idx].name %>"><%=attrib['text'] %></Translate></span>
+                    <Translate contentKey="<%= i18nKeyPrefix %>.listTopButtons.<%-listTopButtons[idx].name %>"><%-attrib['text'] %></Translate></span>
                 </Button>
             <%_ } _%>
           <%_ } else { _%>
@@ -534,12 +822,8 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
             <li className="breadcrumb-item"><Link to="/"><Translate contentKey="global.menu.home">Home</Translate></Link></li>
             <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
               <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>"}><%= _.startCase((baseFilters+"s")) %></Link></li>
-              <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state[this.state.baseFilters]}>{
-                <%_ if (typeof baseFiltersAttributes !== 'undefined' && typeof baseFiltersAttributes['showField']!== 'undefined') { %>
-                  <%= baseFilters %>BaseFilter ? <%= baseFilters %>BaseFilter.<%= baseFiltersAttributes['showField'] %> : this.state[this.state.baseFilters+"Id"]
-                <% } else {%>
-                  this.state[this.state.baseFilters]
-                <% }%>
+              <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state[this.state.baseFilters] ? this.state[this.state.baseFilters+"Id"].label : ""}>{
+                  this.state[this.state.baseFilters+"Id"] ? this.state[this.state.baseFilters+"Id"].label : "" 
               }</Link></li>
             <%_ } _%>
             <li className="breadcrumb-item active"><Translate contentKey="<%= i18nKeyPrefix %>.home.title"><%= entityClassPluralHumanized %></Translate></li>
@@ -557,10 +841,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
       <% uniqueRealtionFields.forEach(rel => {%> <%= rel %>,<% }) %> 
       <%=entityInstance %>List, match<% if (pagination === 'pagination' || pagination === 'pager') { %>,
       totalItems<% } %>} = this.props;
-    <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-      let <%= baseFilters %>BaseFilter = null; 
-      <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
-    <%_ } _%>
+    
 
     const props = this.props;
     const state = this.state;
@@ -619,10 +900,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
       <% uniqueRealtionFields.forEach(rel => {%> <%= rel %>,<% }) %> 
       <%=entityInstance %>List, match<% if (pagination === 'pagination' || pagination === 'pager') { %>,
       totalItems<% } %>} = this.props;
-    <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-      let <%= baseFilters %>BaseFilter = null; 
-      <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
-    <%_ } _%>
+    
 
     const props = this.props;
     const state = this.state;
@@ -657,10 +935,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
       <% uniqueRealtionFields.forEach(rel => {%> <%= rel %>,<% }) %> 
       <%=entityInstance %>List, match<% if (pagination === 'pagination' || pagination === 'pager') { %>,
       totalItems<% } %>} = this.props;
-    <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-      let <%= baseFilters %>BaseFilter = null; 
-      <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
-    <%_ } _%>
+    
 
     const props = this.props;
     const state = this.state;
@@ -715,17 +990,14 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
       <% uniqueRealtionFields.forEach(rel => {%> <%= rel %>,<% }) %> 
       <%=entityInstance %>List, match<% if (pagination === 'pagination' || pagination === 'pager') { %>,
       totalItems<% } %>} = this.props;
-    <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
-      let <%= baseFilters %>BaseFilter = null; 
-      <%= baseFilters %>s.map((p)=>{ if(p.id === parseInt(this.state.<%= baseFilters %>Id, 10)) <%= baseFilters %>BaseFilter = p });
-    <%_ } _%>
+    
 
     const props = this.props;
     const state = this.state;
     const sortFunction = this.sort;
 
     return (
-      <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
+      <Panel className="<%= entityFileName %> <%= entityFileName %>-list-table" <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
         <% if ((typeof hideHeader) === 'undefined') { %>
           <PanelHeader>
             { this.renderHeader() }
@@ -821,9 +1093,6 @@ export const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRoot
 }};
 
 export const  mapDispatchToProps = {
-  <%_ otherEntityActions.forEach(val => { _%>
-    <%= val.action %>,
-  <%_ }) _%>
  <%_ if (searchEngine === 'elasticsearch') { _%>
  getSearchEntities,
  <%_ } _%>
@@ -845,6 +1114,7 @@ export const  mapDispatchToProps = {
   <%_ } _%>
 <%_ } _%>
 
+ deleteEntity,
  updateEntity,
  reset
 };

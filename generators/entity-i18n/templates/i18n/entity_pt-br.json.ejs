@@ -20,6 +20,16 @@ let helpBlocks = 0; %>
 {
     "<%= angularAppName %>": {
         "<%= entityTranslationKey %>" : {
+            "listSelectedButtons": {
+                "clearSelect":"Limpar Seleção",
+                "selectAll":"Selecionar os {{totalItems}} <%= entityClassPluralHumanizedPt %>",
+                "allItensAreSelected":"Os {{totalItems}} <%= entityClassPluralHumanizedPt %> nesta página estão selecionados.",
+                "allItensAreSelectedThisPage":"Todos os {{itemsPerPage}} <%= entityClassPluralHumanizedPt %> nesta página estão selecionados.",
+                "allItensAreSelectedAllPages":"Todas os {{totalItems}} <%= entityClassPluralHumanizedPt %> estão selecionados.",
+                <% if (typeof listSelectedButtons !== "undefined") { for (idx in listSelectedButtons) { %>
+                    "<%= listSelectedButtons[idx].name %>": "<%= listSelectedButtons[idx].attributes && listSelectedButtons[idx].attributes.text ? listSelectedButtons[idx].attributes.text : listSelectedButtons[idx].name  
+                %>",<% } } %>
+            },
             "listTopButtons": {
                 <% if (typeof listTopButtons !== "undefined") { for (idx in listTopButtons) { %>
                     "<%= listTopButtons[idx].name %>": "<%= listTopButtons[idx].attributes && listTopButtons[idx].attributes.text ? listTopButtons[idx].attributes.text : listTopButtons[idx].name  
@@ -57,8 +67,9 @@ let helpBlocks = 0; %>
             "updated": "Um <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> foi atualizado com o identificador {{ param }}",
             "deleted": "Um <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> foi excluído com o identificador {{ param }}",<% } %>
             "delete": {
-                "question": "Tem certeza de que deseja excluir <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %> {{ id }}?"
+                "question": "Tem certeza de que deseja excluir?"
             },
+            "field_id": "ID",
             "btnNewItem": "<%= typeof btnNewItemPt !== 'undefined' ? btnNewItemPt : ("Criar novo "  + (typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized) ) %>",
             "btnFilter": "<%= typeof btnFilterPt !== 'undefined' ? btnFilterPt : "Filtrar" %>",
             "btnOpenFilter": "<%= typeof btnOpenFilterPt !== 'undefined' ? btnOpenFilterPt : "Filtrar" %>",
@@ -75,7 +86,9 @@ let helpBlocks = 0; %>
             "createdBy" : "Criado por",
             "lastModifiedBy" : "Modificado por",
             <% for (idx in fields) { %>
-                <%_ if (fields[idx].fieldType === 'Boolean') { _%>
+                <%_ if (['byte[]', 'ByteBuffer'].includes(fields[idx].fieldType)) { _%>
+                    "upload_<%= fields[idx].fieldName %>": "Subir <%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized  %>",
+                <%_ } else if (fields[idx].fieldType === 'Boolean') { _%>
                     "<%= fields[idx].fieldName %>_filter_all": "Indiferente",
                     "<%= fields[idx].fieldName %>_filter_with": "Ativo",
                     "<%= fields[idx].fieldName %>_filter_without": "Inativo",
@@ -83,10 +96,16 @@ let helpBlocks = 0; %>
             <% } %>
             "detail": {
                 "title": "<%= typeof entityClassHumanizedPt !== 'undefined' ? entityClassHumanizedPt : entityClassHumanized %>"
-            }<% for (idx in fields) {
+            }<% for (idx in fields) { %>
+                <% if (idx in fields) { 
+                    %>,"<%= fields[idx].fieldName %>_start": "<%= fields[idx].fieldNameHumanizedPt %> (Inicio)"
+                      ,"<%= fields[idx].fieldName %>_end": "<%= fields[idx].fieldNameHumanizedPt %> (Fim)"<%
+                 } %>
+                <% } %><% for (idx in fields) {
             if (typeof fields[idx].clean_javadoc !== 'undefined') ++helpBlocks; %>,
             "<%= fields[idx].fieldName %>": "<%= fields[idx].fieldNameHumanizedPt ? fields[idx].fieldNameHumanizedPt  : fields[idx].fieldNameHumanized %>"<% } %><% for (idx in relationships) { %>,
             "<%= relationships[idx].relationshipName %>_empty": "Sem <%= relationships[idx].relationshipNameHumanized %>",
+            "<%= relationships[idx].relationshipName %>-modal-super-select-title": "Selecione...",
             "<%= relationships[idx].relationshipName %>": "<%= relationships[idx].relationshipNameHumanized %>"<% } if (helpBlocks > 0) { %>,
             "help": {<% for (idx in fields) {
                 if (fields[idx].clean_javadoc) {

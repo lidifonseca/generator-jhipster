@@ -20,26 +20,26 @@ import React from 'react';
 import { Switch } from 'react-router-dom';
 
 import ErrorBoundaryRoute from 'app/shared/error/error-boundary-route';
-
-
 <%_ if (typeof generator['allViewInOne'] != "undefined" && generator['allViewInOne'] != "false" && generator['allViewInOne'] != false){ %>
   <%_ if (typeof generator['extendList'] != "undefined" && generator['extendList'] != "false"){ %>
       import <%= entityReactName %> from './extended/<%= entityFileName %>';
   <%_ } else { %>
       import <%= entityReactName %> from './<%= entityFileName %>';
   <%_ } %>
-  <%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
-      import <%= entityReactName %>Detail from './extended/<%= entityFileName %>';
-  <%_ } else { %>
-      import <%= entityReactName %>Detail from './<%= entityFileName %>';
+
+  <%_ if (typeof generator['notViewDetails'] == "undefined" ||  generator['notViewDetails'] == "false") { _%>
+    <%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
+        import <%= entityReactName %>Detail from './extended/<%= entityFileName %>-detail';
+    <%_ } else { %>
+        import <%= entityReactName %>Detail from './<%= entityFileName %>-detail';
+    <%_ } %>
   <%_ } %>
   <%_ if (!readOnly) { _%>
     <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
-      import <%= entityReactName %>Update from './extended/<%= entityFileName %>';
+      import <%= entityReactName %>Update from './extended/<%= entityFileName %>-update';
     <%_ } else { %>
       import <%= entityReactName %>Update from './<%= entityFileName %>';
     <%_ } %>
-    import <%= entityReactName %>DeleteDialog from './<%= entityFileName %>';
   <%_ } _%>
 <%_ } else { _%>
 
@@ -48,10 +48,12 @@ import ErrorBoundaryRoute from 'app/shared/error/error-boundary-route';
     <%_ } else { %>
         import <%= entityReactName %> from './<%= entityFileName %>';
     <%_ } %>
-    <%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
-        import <%= entityReactName %>Detail from './extended/<%= entityFileName %>-detail';
-    <%_ } else { %>
-        import <%= entityReactName %>Detail from './<%= entityFileName %>-detail';
+    <%_ if (typeof generator['notViewDetails'] == "undefined" ||  generator['notViewDetails'] == "false") { _%>
+      <%_ if (typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false"){ %>
+          import <%= entityReactName %>Detail from './extended/<%= entityFileName %>-detail';
+      <%_ } else { %>
+          import <%= entityReactName %>Detail from './<%= entityFileName %>-detail';
+      <%_ } %>
     <%_ } %>
     <%_ if (!readOnly) { _%>
       <%_ if (typeof generator['extendForm'] != "undefined" &&  generator['extendForm'] != "false"){ %>
@@ -59,7 +61,6 @@ import ErrorBoundaryRoute from 'app/shared/error/error-boundary-route';
       <%_ } else { %>
         import <%= entityReactName %>Update from './<%= entityFileName %>-update';
       <%_ } %>
-      import <%= entityReactName %>DeleteDialog from './<%= entityFileName %>-delete-dialog';
     <%_ } _%>
 <%_ } _%>
 
@@ -84,12 +85,11 @@ const Routes = ({ match }) => (
       <ErrorBoundaryRoute exact path={`${match.path}/new`} component={<%= entityReactName %>Update} />
       <ErrorBoundaryRoute exact path={`${match.path}/:id/edit`} component={<%= entityReactName %>Update} />
       <%_ } _%>
-      <ErrorBoundaryRoute exact path={`${match.path}/:id`} component={<%= entityReactName %>Detail}  />
+      <%_ if (typeof generator['notViewDetails'] == "undefined" ||  generator['notViewDetails'] == "false") { _%>
+        <ErrorBoundaryRoute exact path={`${match.path}/:id`} component={<%= entityReactName %>Detail}  />
+      <%_ } _%>
       <ErrorBoundaryRoute path={match.path} component={<%= entityReactName %>} />
     </Switch>
-    <%_ if (!readOnly) { _%>
-      <ErrorBoundaryRoute path={`${match.path}/:id/delete`} component={<%= entityReactName %>DeleteDialog} />
-        <%_ } _%>
         
     <%_ if(openModalRoutes.length > 0 ){  %>
       <Switch>

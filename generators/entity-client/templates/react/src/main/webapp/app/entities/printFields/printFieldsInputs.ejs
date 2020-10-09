@@ -8,8 +8,14 @@
 <% const fieldType =  field.fieldType; _%>
 <% const fieldName =  field.fieldName; _%>
 <% const fieldNameHumanized =  field.fieldNameHumanized; _%>
-<% const formLayoutShowCondition = typeof field.formLayoutShowCondition !== "undefined" ? field.formLayoutShowCondition.map(v=>"this.state."+v.split("=")[0]+"SelectValue === "+v.split("=")[1]).join(" && ") : undefined; _%>
-{ <%- formLayoutShowCondition ? "("+formLayoutShowCondition+") && " : "" _%> baseFilters !== '<%= fieldName %>' ?
+<% let prevAux = '' _%>
+<%_ let formLayoutShowCondition = typeof field.formLayoutShowCondition !== "undefined" 
+        ? field.formLayoutShowCondition.map(v=> (v.indexOf('.') > 0 ? (v.substring(0,v.indexOf('.'))+"SelectValue"+v.substring(v.indexOf('.'))) : v.split("=")[0]+"SelectValue="+v.split("=")[1]) 
+                                       .split(".").map( el => { el = prevAux + el; prevAux = el+'.'; return el} ).join(" && "))
+                                       .map(v=> v.split(" && ").map(v1=>"this.state."+v1).join(" && "))
+                                       .map(v=>v.split("=")[0]+" === "+v.split("=")[1]).join(" && ") : "true" _%>
+<%_ formLayoutShowCondition += (typeof field.formLayoutShowConditionExact !== "undefined" ? " && " + field.formLayoutShowConditionExact : "") _%>
+{ <%- formLayoutShowCondition !== "true" ? "("+formLayoutShowCondition+") && " : "" _%> baseFilters !== '<%= fieldName %>' ?
   <Col md="<%= formLayoutSize %>"
     <%_ if (formLayoutClassName.length > 0) { _%>className="<%= formLayoutClassName.map(v=>v+'-container').join(" ") %>"<%_ } _%>
     >
@@ -34,6 +40,30 @@
                 formats={quillEditorFormats}
               />
             </Col>
+          <%_ } else if (typeof field.formLayoutType !== "undefined" && field.formLayoutType === "Currency") { _%>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+              <Label className={"mt-2" <%_ if(rulesValidate.includes('required')){ %> + (this.state.<%= fieldName %>SelectValue === "" ? " text-danger" : "")<% } %>} 
+                  id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>"
+                >
+                <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                  <%= fieldNameHumanized %>
+                </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
+              </Label>
+            </Col>
+
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+              <CurrencyInput
+                onChange={(maskedvalue,floatvalue,event) => this.setState({ <%= fieldName %>SelectValue: floatvalue })}
+                decimalSeparator=","
+                thousandSeparator=""
+                prefix="R$ "
+                allowNegative={true}
+                value={this.state.<%= fieldName %>SelectValue ? this.state.<%= fieldName %>SelectValue : 0}
+                id="<%= entityFileName %>-<%= fieldName %>"
+                name="<%= fieldName %>"
+                className={'form-control'}
+              />
+            </Col>
           <%_ } else if (formLayoutCepBr) { _%>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
               <Label className={"mt-2" <%_ if(rulesValidate.includes('required')){ %> + (this.state.cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %>  ==="" 
@@ -50,8 +80,6 @@
                 ? " is-touched is-pristine av-invalid is-invalid" : "")<% } %>}  
               value={this.state.cepRequest<%- formLayoutCepBr.slice(0, 1).toUpperCase() + formLayoutCepBr.slice(1).toLowerCase() %> }  
               <%_ if(formLayoutCepBr == "cep"){ _%>
-                tag={InputMask}
-                mask="99999-999"
                 onBlur={inputVal => {
                   viacepRequest( inputVal.target.value, (cepRequest: any)=>{this.setState(cepRequest)});
                   this.setState({<%= fieldName %>SelectValue: inputVal.target.value});    
@@ -83,7 +111,7 @@
                 <label htmlFor={'<%= fieldName %>_checkbox'} />
               </div>
             </Col>
-          <%_ } else if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
+          <%_ } else if (['Instant', 'ZonedDateTime'].includes(fieldType)) { _%>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
               <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
                 <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
@@ -92,10 +120,17 @@
               </Label>
             </Col>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-            <AvInput onChange={evt => this.setState({ <%= fieldName %>SelectValue: evt.target.value })} validate={{ <%- include('../react_validators') -%> }}  id="<%= entityFileName %>-<%= fieldName %>" type="date" className="form-control"
-                name="<%= fieldName %>" placeholder={"YYYY-MM-DD"} value={isNew ? null :
-                convertDateFromServer(this.props.<%= entityInstance %>Entity.<%= fieldName %>)}
-                 />
+              <DatePicker
+                 autoComplete="off"
+                 onChange={value => this.setState({ <%= fieldName %>SelectValue: value })}
+                 id="<%= fieldName %>"
+                 validate={{ <%- include('../react_validators') -%> }} 
+                 className="form-control react-datepicker"
+                 name="<%= fieldName %>"
+                 dateFormat="dd/MM/yyyy"
+                 selected={this.state.<%= fieldName %>SelectValue ? moment(this.state.<%= fieldName %>SelectValue).toDate() : null}
+                 locale="pt"
+               />
             </Col>
           <%_ } else if (fieldType === 'LocalDate') { _%>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
@@ -106,8 +141,17 @@
               </Label>
             </Col>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-              <AvField onChange={evt => this.setState({ <%= fieldName %>SelectValue: evt.target.value })} id="<%= entityFileName %>-<%= fieldName %>" type="date" className="form-control" name="<%= fieldName %>"
-                 />
+              <DatePicker
+                 autoComplete="off"
+                 onChange={value => this.setState({ <%= fieldName %>SelectValue: value })}
+                 id="<%= fieldName %>"
+                 validate={{ <%- include('../react_validators') -%> }} 
+                 className="form-control react-datepicker"
+                 name="<%= fieldName %>"
+                 dateFormat="dd/MM/yyyy"
+                 selected={this.state.<%= fieldName %>SelectValue ? moment(this.state.<%= fieldName %>SelectValue).toDate() : null}
+                 locale="pt"
+               />
             </Col>
           <%_
         } else if ( field.fieldIsEnum) {
@@ -121,24 +165,18 @@
             </Label>
           </Col>
           <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-          <AvInput onChange={evt => this.setState({ <%= fieldName %>SelectValue: evt.target.value })} validate={{ <%- include('../react_validators') -%> }} id="<%= entityFileName %>-<%= fieldName %>" type="select" className="form-control"
-            name="<%= fieldName %>" value={(!isNew && <%= entityInstance %>Entity.<%= fieldName%>) || '<%= values[0] %>' }>
-            <%_
-            const enumPrefix = angularAppName + '.'+ fieldType;
-            for (key in values) {
-                const value = values[key];
-          _%>
-            <option value="<%= value %>">
-              <%_ if (enableTranslation) { _%>
-              {translate("<%= enumPrefix %>.<%= value %>")}
-              <%_ } else { _%>
-              <%= value %>
-              <%_ } _%>
-            </option>
-            <%_ } _%>
-          </AvInput>
+          <Select
+            id="<%= entityFileName %>-<%= fieldName %>"
+            className={'css-select-control'}
+            value={{ value: this.state.<%= fieldName %>SelectValue, label: translate("<%= angularAppName %>.<%= fieldType %>."+this.state.<%= fieldName %>SelectValue) }}
+            options={[<%_ for (key in values) { const value = values[key]; _%>
+              { value: "<%= value %>", label: translate("<%= angularAppName %>.<%= fieldType %>.<%= value %>") },
+            <%_ } _%>]}
+            onChange={(options: any) => this.setState({ <%= fieldName %>SelectValue: options['value'] })}
+            name="<%= fieldName %>"
+          />
           </Col>
-          <%_ } else if (['Integer', 'Long', 'Float', 'Double'].includes(fieldType)) { _%>
+          <%_ } else if (['Float', 'Double'].includes(fieldType)) { _%>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
               <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
                 <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
@@ -147,7 +185,39 @@
               </Label>
             </Col>
             <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-                <AvField onChange={evt => this.setState({ <%= fieldName %>SelectValue: evt.target.value })} id="<%= entityFileName %>-<%= fieldName %>" type="string" className="form-control" name="<%= fieldName %>" /> 
+                <CurrencyInput
+                  onChange={(maskedvalue,floatvalue,event) => this.setState({ <%= fieldName %>SelectValue: floatvalue })}
+                  decimalSeparator=","
+                  thousandSeparator=""
+                  prefix=""
+                  allowNegative={true}
+                  value={this.state.<%= fieldName %>SelectValue ? this.state.<%= fieldName %>SelectValue : 0}
+                  id="<%= entityFileName %>-<%= fieldName %>"
+                  name="<%= fieldName %>"
+                  className={'form-control'}
+                />
+            </Col>
+          <%_ } else if (['Integer', 'Long'].includes(fieldType)) { _%>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
+              <Label className="mt-2" id="<%= fieldName %>Label" for="<%= entityFileName %>-<%= fieldName %>">
+                <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
+                  <%= fieldNameHumanized %>
+                </Translate><%= (rulesValidate.includes('required') && rulesValidate.fieldType !== 'Boolean') ? "(*)" : "" %>
+              </Label>
+            </Col>
+            <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
+              <CurrencyInput
+                onChange={(maskedvalue,floatvalue,event) => this.setState({ <%= fieldName %>SelectValue: floatvalue })}
+                decimalSeparator=""
+                thousandSeparator=""
+                precision={0}
+                prefix=""
+                allowNegative={true}
+                value={this.state.<%= fieldName %>SelectValue ? this.state.<%= fieldName %>SelectValue : 0}
+                id="<%= entityFileName %>-<%= fieldName %>"
+                name="<%= fieldName %>"
+                className={'form-control'}
+              />
             </Col>
           <%_ } else if (['byte[]', 'ByteBuffer'].includes(fieldType)) {
 
@@ -168,7 +238,6 @@
                       </Label>
                     </Col>
                     <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-                      <br />
                       {(<%= fieldName %> || <%= fieldName %>Base64)  ? (
                       <div>
                         <Row>
@@ -190,8 +259,21 @@
                         <br />
                       </div>
                       ) : null}
-                      <input id="file_<%= fieldName %>" type="file" ref={this.<%= fieldName %>FileInput} onChange={this.onBlobChange(<%= isAnImage %>, '<%= fieldName %>', this.<%= fieldName %>FileInput
-                        )} <% if (isAnImage) { %>accept="image/*" <% } %> />
+                      
+                      <input 
+                        className="file_input"
+                        id="file_<%= fieldName %>" 
+                        type="file" 
+                        ref={el => (this.<%= fieldName %>FileInput = el)}
+                        onChange={this.onBlobChange(false, '<%= fieldName %>', this.<%= fieldName %>FileInput)}
+                        accept="*"
+                      />
+
+                      <label htmlFor="file_<%= fieldName %>" className="file_btn_open">
+                        <FontAwesomeIcon icon="upload" />
+                        <Translate contentKey="<%= i18nKeyPrefix %>.upload_<%= fieldName %>">Upload <%= fieldNameHumanized %> </Translate>
+                      </label>
+
                       <AvInput onChange={evt => this.setState({ <%= fieldName %>SelectValue: evt.target.value })} type="hidden"  name="<%= fieldName %>" value={<%= fieldName %>}  />
                     </Col>
                   </Row>
@@ -206,7 +288,7 @@
             </Label>
           </Col>
           <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-            <AvInput onChange={evt => this.setState({ <%= fieldName %>SelectValue: evt.target.value })} validate={{ <%- include('../react_validators') -%> }} id="<%= entityFileName %>-<%= fieldName %>" type="textarea" name="<%= fieldName %>"  />
+            <AvInput onChange={evt => this.setState({ <%= fieldName %>SelectValue: evt.target.value })} validate={{ <%- include('../react_validators') -%> }} id="<%= entityFileName %>-<%= fieldName %>" type="textarea" name="<%= fieldName %>" />
           </Col>
         <%_ } _%>
       <%_ } else { _%>

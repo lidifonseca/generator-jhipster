@@ -1,0 +1,49 @@
+/* eslint complexity: ["error", 200] */
+
+import React from 'react';
+import { Switch, RouteComponentProps } from 'react-router-dom';
+import { hasAnyAuthority } from 'app/shared/auth/private-route';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import ErrorBoundaryRoute from 'app/shared/error/error-boundary-route';
+
+import PageNotFound from 'app/shared/error/page-not-found';
+import { connect } from 'react-redux';
+import { IRootState } from 'app/shared/reducers';
+import AuditEntity from './audit-entity';
+import WhiteLabel from '../shared/white-label';
+import PageForbidden from 'app/shared/error/page-not-have-permisstion';
+
+/* jhipster-needle-add-route-import - JHipster will add routes here */
+
+export interface IEntityProps extends StateProps, DispatchProps, RouteComponentProps<{ url: string }> {}
+const component = [
+  { name: 'audit-entity', component: AuditEntity },
+  { name: 'white-label', component: WhiteLabel },
+  /* jhipster-needle-add-route-path - JHipster will add routes here */
+];
+const Routes = (props: IEntityProps) => (
+  <div>
+    <Switch>
+      {component.map((v, i) =>
+        hasAnyAuthority(props.userAccount, [v.name]) ? (
+          <ErrorBoundaryRoute key={i} path={`${props.match.url + v.name}`} component={v.component} />
+        ) : (
+          <ErrorBoundaryRoute key={i} path={`${props.match.url + v.name}`} component={PageForbidden} />
+        )
+      )}
+      <ErrorBoundaryRoute component={PageNotFound} />
+    </Switch>
+  </div>
+);
+
+const mapStateToProps = ({ authentication }: IRootState) => ({
+  userAccount: authentication.account,
+});
+
+const mapDispatchToProps = {};
+
+type StateProps = ReturnType<typeof mapStateToProps>;
+type DispatchProps = typeof mapDispatchToProps;
+
+export default connect(mapStateToProps, mapDispatchToProps)(Routes);

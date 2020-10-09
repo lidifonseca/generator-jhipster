@@ -20,16 +20,19 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router-dom';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
-import { Translate, ICrudGetAction, ICrudDeleteAction } from 'react-jhipster';
+import { getSortState, ICrudGetAction, ICrudDeleteAction } from 'react-jhipster';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import { Translate, translate } from 'app/config/translate-component';
 import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileName %>.model';
 import { IRootState } from 'app/shared/reducers';
-import { getEntity, deleteEntity, I<%= entityReactName %>BaseState, get<%= entityReactName %>State } from './<%= entityFileName %>.reducer';
+import { getEntity, deleteEntity, I<%= entityReactName %>BaseState,
+  getUrlBack, get<%= entityReactName %>State } from './<%= entityFileName %>.reducer';
 
 export interface I<%= entityReactName %>DeleteDialogProps extends StateProps, DispatchProps, RouteComponentProps<{id: string}>  {}
 export interface I<%= entityReactName %>UpdateState {
   fieldsBase: I<%= entityReactName %>BaseState;
+  urlBack?: string;
 }
 
 export class <%= entityReactName %>DeleteDialog extends React.Component<I<%= entityReactName %>DeleteDialogProps,
@@ -39,7 +42,9 @@ export class <%= entityReactName %>DeleteDialog extends React.Component<I<%= ent
 
       this.state = {
         fieldsBase: {
+          ...getSortState(this.props.location, ITEMS_PER_PAGE),
           ...get<%= entityReactName %>State(this.props.location),
+          urlBack: getUrlBack(this.props.location),
           <%_ if (typeof baseFilters !== 'undefined' && baseFilters) { _%>
             <%= baseFilters _%>Id: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'],
             baseFilters: '<%= baseFilters _%>',

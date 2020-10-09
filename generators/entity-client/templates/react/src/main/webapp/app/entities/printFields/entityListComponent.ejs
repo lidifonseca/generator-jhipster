@@ -1,9 +1,77 @@
+<>
+<%_ if (typeof listSelectedButtons !== "undefined")  { _%>
+{
+  this.state.listCheckedID.length > 0 ?
+    (
+      <div className="clasificar-all" style={{textAlign: "center"}}>
+        {
+          this.state.listCheckedID.length === this.state.itemsPerPage || this.state.listCheckedID.length === this.props.totalItems
+          ? 
+          <div className="alert alert-warning pull-left" style={{color: "black", padding: "13px 100px"}}>
+            {
+              !this.state.isCheckedAll
+                ?
+                this.props.totalItems < 20
+                  ?
+                  <>
+                  <Translate contentKey="generadorApp.quote.listSelectedButtons.allItensAreSelected" interpolate={{ totalItems: this.props.totalItems }}>
+                    Os {this.props.totalItems} <%= entityClassPluralHumanized %> nesta página estão selecionadas.
+                  </Translate>&nbsp;
+                    <span style={{color: "blue", cursor:"pointer"}} onClick={()=>this.handleInputAllChange()}>
+                      <Translate contentKey="generadorApp.quote.listSelectedButtons.clearSelect">Limpar Seleção</Translate>
+                    </span>
+                  </>
+                  :
+                  <>
+                  <Translate contentKey="generadorApp.quote.listSelectedButtons.allItensAreSelectedThisPage" interpolate={{ itemsPerPage: this.state.itemsPerPage }}>
+                    Todos os {this.state.itemsPerPage} <%= entityClassPluralHumanized %> nesta página estão selecionadas.
+                  </Translate>&nbsp;
+                    <span style={{color: "blue", cursor:"pointer"}} onClick={()=>this.handleInputAllChange()}>
+                      <Translate contentKey="generadorApp.quote.listSelectedButtons.selectAll" interpolate={{ totalItems: this.props.totalItems }}>Selecionar os {this.props.totalItems} <%= entityClassPluralHumanized %></Translate>
+                    </span>
+                  </>
+                : <>
+                  <Translate contentKey="generadorApp.quote.listSelectedButtons.allItensAreSelectedAllPages" interpolate={{ totalItems: this.props.totalItems }}>
+                    Todas os {this.props.totalItems} <%= entityClassPluralHumanized %> estão selecionadas.
+                  </Translate>&nbsp;
+                  <span style={{color: "blue", cursor:"pointer"}} onClick={()=>this.handleInputAllChange()}>
+                    <Translate contentKey="generadorApp.quote.listSelectedButtons.clearSelect">Limpar Seleção</Translate>
+                  </span>
+                  </>
+              }
+            </div>
+          : <></>
+        }
+          <div className={"pull-right"}>
+            <%_ for (idx in listSelectedButtons) { _%>
+              <%_ const attrib = listSelectedButtons[idx].attributes; _%>
+                <Button className="float-right jh-create-entity" 
+                  <%- attrib['onClick'] ? ( "onClick={" + attrib['onClick']   + "}" ) : ""%> <%- attrib['tag'] ? ( "tag={"   + attrib['tag']   + "}" ) : ""%> <%- attrib['to'] ? ( "to={"    + attrib['to']    + "}" ) : ""%> <%- attrib['color'] ? ( "color='" + attrib['color'] + "'" ) : ""%> <%- attrib['size'] ? ( "size='"  + attrib['size']  + "'") : "" %>
+                >
+                  <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> <span className="d-none d-md-inline">
+                    <Translate contentKey="<%= i18nKeyPrefix %>.listSelectedButtons.<%=listSelectedButtons[idx].name %>"><%=attrib['text'] %></Translate></span>
+                </Button>
+            <%_ } _%>
+          </div>
+      </div>
+    )
+  : <> </>
+}
+<%_ } _%>
 <Table id="<%= entityFileName %>-table-list" responsive aria-describedby="<%= entityFileName %>-heading"  className={'table-hover table-striped mt-4 table-responsive-css'}>
-    <thead className={"thead-light"}>
+  <thead className={"thead-light"}>
       <tr>
+        <%_ if (typeof listSelectedButtons !== "undefined" && listSelectedButtons.length > 0)  { _%>
+          <th className={"align-middle text-center"} style={{width: '4%'}}>
+            <input type="checkbox"
+            checked={this.state.listCheckedID.length === this.state.itemsPerPage || this.state.listCheckedID.length === this.props.totalItems}
+            onChange={()=>this.handleInputAllThisItens()}
+            />
+          </th>
+        <%_ } _%>
         <%_ if (typeof listTableHideId == "undefined" ||  listTableHideId == "false"){ _%>
           <th<% if (pagination !== 'no') { %> className="hand" onClick={sortFunction('id')} <%_ } _%>>
-            <Translate contentKey="global.field.id">ID</Translate>
+            <Translate contentKey="<%= i18nKeyPrefix %>.field_id">ID</Translate>
             <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
           </th>
         <%_ } _%>
@@ -17,13 +85,18 @@
                 </Translate>
                 <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
               </th> : null }
-            <%_ } else { _%>
+            <%_ } else if(listTableLayout[idx].type == 'relationship'){  _%>
               { state.baseFilters !== '<%= listTableLayout[idx].name %>' ?
               <th<% if (pagination !== 'no') { %> <% } %>>
                   <Translate contentKey="<%= `${i18nKeyPrefix}.${listTableLayout[idx].entity.relationshipName}` %>">
                     <%= listTableLayout[idx].entity.relationshipNameHumanized %></Translate>
                     <% if (pagination !== 'no') { %> <FontAwesomeIcon icon="sort" /><% } %>
               </th> : null }
+            <%_ } else { _%>
+              <th>
+                  <Translate contentKey="<%= `${i18nKeyPrefix}.${listTableLayout[idx].entity.name}` %>">
+                    <%= listTableLayout[idx].name %></Translate>
+              </th>
             <%_ } _%>
           <%_ } _%>
         <%_ } else {  _%>
@@ -58,11 +131,19 @@
     <tbody>
       <tr></tr>
       {
-        <%= entityInstance %>List.map((<%=entityInstance %>, i) => (
+        <%= entityInstance %>List.filter(v=>(typeof v.deletedAt === "undefined" || v.deletedAt === null)).map((<%=entityInstance %>, i) => (
         <tr key={`entity-${i}`}>
+        <%_ if (typeof listSelectedButtons !== "undefined" && listSelectedButtons.length > 0)  { _%>
+          <td className={"align-middle text-center"}>
+            <input type="checkbox"
+              checked={this.state.listCheckedID.includes(<%=entityInstance %>.id)}
+              onChange={()=>this.handleInputChange(<%=entityInstance %>.id)}
+            />
+          </td>
+        <%_ } _%>
           <%_ if (typeof listTableHideId == "undefined" ||  listTableHideId == "false"){ _%>
             <td>
-              <b className="visible-xs"><Translate contentKey="global.field.id">ID</Translate></b>
+              <b className="visible-xs"><Translate contentKey="<%= i18nKeyPrefix %>.field_id">ID</Translate></b>
               <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}`} color="link" size="sm">
                 {<%= entityInstance %>.id}
               </Button>
@@ -72,8 +153,10 @@
             <%_ for (idx in listTableLayout) { _%>
               <%_ if(listTableLayout[idx].type == 'field'){  _%>
                 <%- include('printFieldsTable', {field: listTableLayout[idx].entity}); -%>
-              <%_ } else {  _%>
+              <%_ } else if(listTableLayout[idx].type == 'relationship'){  _%>
                 <%- include('printRelationshipsTable', {rel: listTableLayout[idx].entity}); -%>
+              <%_ } else {  _%>
+                <<%- listTableLayout[idx].name %> baseState={this.state} <%=entityInstance %>={<%=entityInstance %>} />
               <%_ } _%>
             <%_ } _%>
           <%_ } else {  _%>
@@ -92,14 +175,14 @@
             <%_  if (listButtonsInDropdown !== true) { _%>
               <div className="btn-group flex-btn-group-container">
               <%_ if (listButtons.length === 0) { _%>
-                  <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}?${getEntityFiltersURL(state)}`} color="info" size="sm">
+                  <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}?${getEntityFiltersURL(state, (this.state.itemsPerPage * this.state.activePage) + i)}`} color="info" size="sm">
                     <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline" ><Translate contentKey="<%= i18nKeyPrefix %>.btnView">View</Translate></span>
                   </Button>
                   <%_ if (!readOnly) { _%>
-                    <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/edit?${getEntityFiltersURL(state)}`} color="primary" size="sm">
+                    <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/edit?${getEntityFiltersURL(state, (this.state.itemsPerPage * this.state.activePage) +  i)}`} color="primary" size="sm">
                       <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnEdit">Edit</Translate></span>
                     </Button>
-                    <Button tag={Link} to={`${match.url}/${<%=entityInstance %>.id}/delete?${getEntityFiltersURL(state)}`} color="danger" size="sm">
+                    <Button onClick={() => this.deleteEntity(<%=entityInstance %>)}> color="danger" size="sm">
                       <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnDelete">Delete</Translate></span>
                     </Button>
                   <%_ } _%>
@@ -107,7 +190,13 @@
                   <%_ for (idx in listButtons) { _%>
                     <%_ const attrib = listButtons[idx].attributes; _%>
                     <%_  if (attrib.inDropdown !== 'true') { _%>
-                      <Button tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>">
+                      <Button 
+                      <%- attrib['onClick'] ? ( "onClick={" + attrib['onClick'].split("getEntityFiltersURL(state)").join("getEntityFiltersURL(state, (this.state.itemsPerPage * (this.state.activePage-1)) + i)")   + "}" ) : ""%> 
+                      <%- attrib['tag'] ? ( "tag={"   + attrib['tag']   + "}" ) : ""%> 
+                      <%- attrib['to'] ? ( "to={"    + attrib['to'].split("getEntityFiltersURL(state)").join("getEntityFiltersURL(state, (this.state.itemsPerPage * (this.state.activePage-1)) + i)")    + "}" ) : ""%> 
+                      <%- attrib['color'] ? ( "color='" + attrib['color'] + "'" ) : ""%> 
+                      <%- attrib['size'] ? ( "size='"  + attrib['size']  + "'") : "" %>
+                  >
                         <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> 
                         <%_ if (attrib['text']){ %>
                           <span className="d-none d-md-inline">
@@ -124,7 +213,13 @@
               <%_ for (idx in listButtons) { _%>
                 <%_ const attrib = listButtons[idx].attributes; _%>
                 <%_  if (attrib.inDropdown !== 'true') { _%>
-                  <Button tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>">
+                  <Button 
+                      <%- attrib['onClick'] ? ( "onClick={" + attrib['onClick']   + "}" ) : ""%> 
+                      <%- attrib['tag'] ? ( "tag={"   + attrib['tag']   + "}" ) : ""%> 
+                      <%- attrib['to'] ? ( "to={"    + attrib['to']    + "}" ) : ""%> 
+                      <%- attrib['color'] ? ( "color='" + attrib['color'] + "'" ) : ""%> 
+                      <%- attrib['size'] ? ( "size='"  + attrib['size']  + "'") : "" %>
+                  >
                     <FontAwesomeIcon icon="<%=attrib['icon'] %>" />
                     <%_ if (attrib['text']){ %>
                       <span className="d-none d-md-inline">
@@ -144,7 +239,13 @@
                   <%_ for (idx in listButtons) { _%>
                     <%_ const attrib = listButtons[idx].attributes; _%>
                     <%_  if (attrib.inDropdown === 'true') { _%>
-                      <DropdownItem tag={<%=attrib['tag'] %>} to={<%- attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>" >
+                      <DropdownItem 
+                      <%- attrib['onClick'] ? ( "onClick={" + attrib['onClick']   + "}" ) : ""%> 
+                      <%- attrib['tag'] ? ( "tag={"   + attrib['tag']   + "}" ) : ""%> 
+                      <%- attrib['to'] ? ( "to={"    + attrib['to']    + "}" ) : ""%> 
+                      <%- attrib['color'] ? ( "color='" + attrib['color'] + "'" ) : ""%> 
+                      <%- attrib['size'] ? ( "size='"  + attrib['size']  + "'") : "" %>
+                   >
                         <FontAwesomeIcon icon="<%=attrib['icon'] %>" /> 
                         <%_ if (attrib['text']){ %>
                           <span className="d-none d-md-inline">
@@ -164,3 +265,4 @@
       }
     </tbody>
   </Table>
+  </>

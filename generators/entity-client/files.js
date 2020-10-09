@@ -173,7 +173,18 @@ const angularFiles = {
 const reactFiles = {
     client: [
         {
-            condition: generator => !generator.allViewInOne && !generator.embedded && typeof generator['personalizeView'] == 'undefined' || generator['personalizeView'] == 'default' ,
+            condition: generator => true,
+            path: REACT_DIR,
+            templates: generator => generator.componentList.filter(v=>!fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/components/${v.name}.tsx`)).map(v=>{
+                return {
+                    file: 'entities/components/viewComponent.tsx',
+                    method: 'processJsx',
+                    renameTo: generator => `entities/${generator.entityFolderName}/components/${v.name}.tsx`
+                }
+            })
+        },
+        {
+            condition: generator => typeof ((typeof generator['notViewDetails'] == "undefined" ||  generator['notViewDetails'] == "false")) && !generator.allViewInOne && !generator.embedded && typeof generator['personalizeView'] == 'undefined' || generator['personalizeView'] == 'default' ,
             path: REACT_DIR,
             templates: [
                 {
@@ -181,6 +192,12 @@ const reactFiles = {
                     method: 'processJsx',
                     renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}-detail.tsx`
                 },
+            ]
+        },
+        {
+            condition: generator => !generator.allViewInOne && !generator.embedded && typeof generator['personalizeView'] == 'undefined' || generator['personalizeView'] == 'default' ,
+            path: REACT_DIR,
+            templates: [
                 {
                     file: 'entities/entity.tsx',
                     method: 'processJsx',
@@ -240,7 +257,7 @@ const reactFiles = {
             ]
         },
         { 
-            condition: generator => ((typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/extended/${generator.entityFileName}-detail.tsx`)),
+            condition: generator => (typeof generator['notViewDetails'] == "undefined" ||  generator['notViewDetails'] == "false") && ((typeof generator['extendView'] != "undefined" &&  generator['extendView'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/extended/${generator.entityFileName}-detail.tsx`)),
             path: REACT_DIR,
             templates: [
                 {
@@ -261,6 +278,17 @@ const reactFiles = {
                 },
             ]
         },
+        {
+            condition: generator => ((typeof generator['extendReducer'] != "undefined" &&  generator['extendReducer'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/extended/${generator.entityFileName}.reducer.ts`)),
+            path: REACT_DIR,
+            templates: [
+                {
+                    file: 'entities/extended/entity.reducer.ts',
+                    method: 'processJsx',
+                    renameTo: generator => `entities/${generator.entityFolderName}/extended/${generator.entityFileName}.reducer.ts`
+                },
+            ]
+        },
         { 
             condition: generator => ((typeof generator['extendList'] != "undefined" &&  generator['extendList'] != "false") && !fs.existsSync(`src/main/webapp/app/entities/${generator.entityFolderName}/extended/${generator.entityFileName}.tsx`)),
             path: REACT_DIR,
@@ -277,11 +305,6 @@ const reactFiles = {
             path: REACT_DIR,
             templates: [
                 {
-                    file: 'entities/entity-delete-dialog.tsx',
-                    method: 'processJsx',
-                    renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}-delete-dialog.tsx`
-                },
-                {
                     file: 'entities/entity-update.tsx',
                     method: 'processJsx',
                     renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}-update.tsx`
@@ -289,7 +312,7 @@ const reactFiles = {
             ]
         },
         {
-            condition: generator => generator.allViewInOne,
+            condition: generator => (typeof generator['notViewDetails'] == "undefined" ||  generator['notViewDetails'] == "false"),
             path: REACT_DIR,
             templates: [
                 {
@@ -297,6 +320,12 @@ const reactFiles = {
                     method: 'processJsx',
                     renameTo: generator => `entities/${generator.entityFolderName}/${generator.entityFileName}-detail.tsx`
                 },
+            ]
+        },
+        {
+            condition: generator => generator.allViewInOne,
+            path: REACT_DIR,
+            templates: [
                 {
                     file: 'entities/entityAllViewInOne.tsx',
                     method: 'processJsx',

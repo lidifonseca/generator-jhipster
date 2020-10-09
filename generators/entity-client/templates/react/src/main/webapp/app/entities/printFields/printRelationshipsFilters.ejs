@@ -1,4 +1,5 @@
 <%_ 
+    const superSelect = rel['listFilterLayoutSuperSelect'] ? rel.listFilterLayoutSuperSelect : null; 
     const listFilterLayoutLabel = rel.listFilterLayoutLabel ? rel.listFilterLayoutLabel : 'left' ; 
     const listFilterLayoutSize = rel.listFilterLayoutSize ? rel.listFilterLayoutSize : 3; 
     const relationshipType = rel.relationshipType;
@@ -13,89 +14,50 @@
     const otherEntityField = rel.otherEntityField;
     const otherEntityFieldCapitalized = rel.otherEntityFieldCapitalized;
     const relationshipRequired = rel.relationshipRequired;
-    const translationKey = `${i18nKeyPrefix}.${relationshipName}`; _%>
-        
+    const translationKey = `${i18nKeyPrefix}.${relationshipName}`;
+    const otherEntityApiLink = rel.otherEntityNamePlural.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+    const showFields = rel['formFilterShowFields'] ? rel.formFilterShowFields : (rel.otherEntityField ? rel.otherEntityField : 'id'); 
+    _%>
+
     { this.state.baseFilters !== '<%= relationshipFieldName %>' ? 
       <Col md="<%= listFilterLayoutSize %>">
         <Row className="mr-1 mt-1">
-          <%_ if (relationshipType === 'many-to-one' || (relationshipType === 'one-to-one' && ownerSide === true && otherEntityName === 'user')) { _%>
-        <div style={{width: '100%'}}>
-        <Label for="<%= entityFileName %>-<%= relationshipName %>">
-          <Translate contentKey="<%= translationKey %>"><%= relationshipNameHumanized %></Translate>
-        </Label>
-        <%_ if (dto === 'no') { _%>
-            <%_ if (!relationshipRequired) { _%>
-          <Select 
-            id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-            value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>((this.state.<%= relationshipName %>Id && this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
-            options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-            onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
-            name={"<%= relationshipFieldName %>"} 
-          />
-        <%_ } else { _%>
-          <Select 
-            id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-            value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>((this.state.<%= relationshipName %>Id && this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")) ? {value: p.id , label: p.<%= otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
-            options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-            onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
-            name={"<%= relationshipFieldName %>"} 
-          />
-        <%_ } _%>
-        <%_ } else { _%>
-          <%_ if (!relationshipRequired) { _%>
-            <Select 
-              id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>((this.state.<%= relationshipName %>Id && this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
-              options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
-              name={"<%= relationshipFieldName %>"} 
+          <div style={{width: '100%'}}>
+            <Label for="<%= entityFileName %>-<%= relationshipName %>">
+              <Translate contentKey="<%= translationKey %>"><%= relationshipNameHumanized %></Translate>
+            </Label>
+            <SelectAsync 
+              id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"} name={"<%= relationshipFieldName %>"} cacheOptions  
+              value={this.state.<%= relationshipName %>Id} onChange={(options) => this.setState({ <%= relationshipName %>Id: options })}
+              defaultOptions={this.state.<%= relationshipName %>StartFilter ? this.state.<%= relationshipName %>StartFilter : []}
+              loadingMessage={(input)=>(translate("selectAsync.loadingMessage"))}
+              noOptionsMessage={(input)=>this.state.<%= relationshipName %>StartFilter === undefined ? translate("selectAsync.loadingMessage") : translate("selectAsync.noOptionsMessage")}
+              onMenuOpen={async ()=>{ 
+                if(this.state.<%= relationshipName %>StartFilter === undefined){
+                  const result = await getListAxios('<%= otherEntityApiLink %>', {}, 0, 100, '<%= showFields.split(";").length > 0 ? showFields.split(";")[0] : 'id' _%>,asc');
+                  this.setState({<%= relationshipName %>StartFilter: result.data ? result.data.map(p=>({...p, value: p.id, label: showFieldsSelectAsync(p, '<%= showFields %>') })) : []  })
+                }
+              }} 
+              loadOptions={async (inputValue, callback) => {
+                const result = await getListAxios('<%= otherEntityApiLink %>', {'<%= showFields.split(";").slice(0,1) %>.contains': inputValue}, 0, 100, '<%= showFields.split(";").length > 0 ? showFields.split(";")[0] : 'id' _%>,asc');
+                callback(
+                  result.data ? result.data.map(p=>({...p, value: p.id, label: showFieldsSelectAsync(p, '<%= showFields %>')})) : []
+                );
+              }}
             />
-          <%_ } else { _%>
-            <Select 
-              id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>((this.state.<%= relationshipName %>Id && this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
-              options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
-              name={"<%= relationshipFieldName %>"} 
-            />
-          <%_ } _%>
-        <%_ } _%>
-        </div>
-          <%_ } else if (relationshipType === 'one-to-one' && ownerSide === true) { _%>
-        <div style={{width: '100%'}}>
-        <Label for="<%= entityFileName %>-<%= relationshipName %>">
-          <Translate contentKey="<%= translationKey %>"><%= relationshipNameHumanized %></Translate>
-        </Label>
-          <%_ if (dto === 'no') { _%>
-            <Select 
-              id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>((this.state.<%= relationshipName %>Id && this.state.<%= relationshipName %>Id.split(",").includes(p.id + ""))? {value: p.id , label: p.<%=otherEntityField%>} : null)) : null} 
-              options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
-              name={"<%= relationshipFieldName %>"} 
-            />
-          <%_ } else { _%>
-            <Select 
-              id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"}
-              value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>((this.state.<%= relationshipName %>Id && this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
-              options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-              onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
-              name={"<%= relationshipFieldName %>"} 
-            />
-          <%_ } _%>
-        </div>
-          <%_ } else if (relationshipType === 'many-to-many' && rel.ownerSide === true) { _%>
-        <div style={{width: '100%'}}>
-        <Label for="<%= entityFileName %>-<%= relationshipName %>"><Translate contentKey="<%= translationKey %>"><%= relationshipNameHumanized %></Translate></Label>
-        <Select 
-          id="<%= entityFileName %>-<%= relationshipName %>" isMulti  className={"css-select-control"}
-          value={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((p)=>((this.state.<%= relationshipName %>Id && this.state.<%= relationshipName %>Id.split(",").includes(p.id + "")) ? {value: p.id , label: p.<%=otherEntityField ? otherEntityField : 'id' %>} : null)) : null} 
-          options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-          onChange={(options: any) => this.setState({ <%= relationshipName  %>Id : (options ? options.map(option => option['value']).join(',') : "") }) }
-          name={"<%= relationshipFieldName %>"} 
-        />
-        </div>
-        <%_ } _%>
+            <%_ if (superSelect){ _%>
+              { this.renderModalSuperSelect(
+                '<%= relationshipFieldName %>',
+                '<%= otherEntityApiLink %>',
+                '<%= superSelect %>'.split(';'),
+                '<%= relationshipName  %>Id', 
+                true, 
+                '<%= showFields %>'.split(';'),
+                '<%= showFields.split(";").length > 0 ? showFields.split(";")[0] : 'id' _%>,asc',
+                {}
+                ) } 
+            <%_ } _%>
+          </div>
         </Row>
       </Col> 
     : null }

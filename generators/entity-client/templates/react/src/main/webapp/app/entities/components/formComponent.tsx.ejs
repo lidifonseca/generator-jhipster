@@ -1,0 +1,30 @@
+import React from 'react';
+
+
+export interface I<%= entityReactName %>Prop extends StateProps, DispatchProps {}
+
+const <%= entityInstance %>ComponentCustomize = (props: I<%= entityReactName %>Props) => (
+  <div className="">
+  </div>
+);
+
+
+export const mapDispatchToProps = { 
+  getEntity,
+  <%_ if (viewLayout.length > 0) {  _%>
+    <%_ for (idx in viewLayout) {  _%>
+      <%_ if(viewLayout[idx].type === 'relationship' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+         getEntity<%= viewLayout[idx].entity.otherEntityNameCapitalized %>,
+      <%_ } _%>
+    <%_ } _%>
+  <%_ } _%>  
+};
+
+const mapStateToProps = storeState => ({
+});
+
+const mapDispatchToProps = { getReport };
+type StateProps = ReturnType<typeof mapStateToProps>;
+type DispatchProps = typeof mapDispatchToProps;
+
+export default connect(mapStateToProps, mapDispatchToProps)(<%= entityInstance %>ComponentCustomize);

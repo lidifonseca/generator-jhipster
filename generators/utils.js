@@ -475,7 +475,6 @@ function getEnumInfo(field, clientRootFolder) {
     };
 }
 
-
 function analizeJavadoc(generator) {
     generator.allViewInOne = false;
     generator.faker = faker;
@@ -492,6 +491,9 @@ function analizeJavadoc(generator) {
     generator.listFilterLayout = [];
     generator.formLayout = [];
     generator.viewLayout = [];
+    generator.entitiesFormTabs = {};
+    generator.entitiesViewTabs = {};
+    generator.componentList = [];
 
     let generatorJavadoc = generator.javadoc; 
 
@@ -511,8 +513,10 @@ function analizeJavadoc(generator) {
                         generator.openModalRoutes.push(value);
                     }
                 }else if(parameter[0] === "baseFilters") {
+                    const pluralize = require('pluralize');
                     const values = parameter[1].trim().split("}")[0].split("{");
                     generator["baseFilters"] = values[0].trim();
+                    generator["baseFiltersPlural"] = pluralize(values[0].trim());
                     if(values.length > 1){
                         let filtersAttributes = {};
                         values[1].trim().split("}")[0].split("{")[0].split(",").map(function (v) {
@@ -527,6 +531,9 @@ function analizeJavadoc(generator) {
                     if(generator.formTabs.indexOf(value[0]) === -1) {
                         generator.formTabs.push(value[0]);
                     }
+                    fields.map(v=>{
+                        generator.entitiesFormTabs[v] = value[0]
+                    });
                     for (idx in generator.fields) { 
                         if(fields.indexOf(generator.fields[idx].fieldName) !== -1 ){
                             generator.fields[idx].formTab = value[0];
@@ -541,6 +548,11 @@ function analizeJavadoc(generator) {
                 else if(parameter[0] === "viewTab") {
                     let value = parameter[1].trim().split(">")[0].split("<");
                     let fields = value[1].split(",");
+                  
+                    fields.map(v=>{
+                        generator.entitiesViewTabs[v] = value[0]
+                    });
+                  
                     if(generator.viewTabs.indexOf(value[0]) === -1) {
                         generator.viewTabs.push(value[0]);
                     }
@@ -555,11 +567,12 @@ function analizeJavadoc(generator) {
                         }
                     }
                 }
-                else if((["listTopButtons","listButtons","viewButtons"]).indexOf(parameter[0]) !== -1) {
+                else if((["listSelectedButtons","listTopButtons","listButtons","viewButtons"]).indexOf(parameter[0]) !== -1) {
                     
                     for (const key in parameter) {
                         if (key > 0) {
                             const ele = parameter[key];
+                            generator[parameter[0]] = generator[parameter[0]] ? generator[parameter[0]] : [];
                             let button = {
                                 name: ele.trim().substring(0,ele.indexOf("{")),
                                 attributes: {}
@@ -567,12 +580,11 @@ function analizeJavadoc(generator) {
                             if(button.name){
                                 let attributes = ele.trim().substring(ele.indexOf("{")+1,ele.length-1).split(",");
                                 for (const i in attributes) {
-                                    button['attributes'][attributes[i].split(":")[0]] = attributes[i].split(":")[1];
+                                    button['attributes'][attributes[i].split(":")[0]] = attributes[i].split(":")[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(",");
                                     if(attributes[i].split(":")[0] === "inDropdown" && attributes[i].split(":")[1] === "true" ){
                                         generator[parameter[0]+'InDropdown'] = true;
                                     }
                                 }
-                                generator[parameter[0]] = generator[parameter[0]] ? generator[parameter[0]] : [];
                                 generator[parameter[0]].push(button);
                             }
                         }
@@ -737,11 +749,11 @@ function analizeJavadoc(generator) {
                                                 if(typeof generator.fields[idx][parameter[0]+element[0]] === "undefined"){
                                                     generator.fields[idx][parameter[0]+element[0]] = [];
                                                 } 
-                                                if(generator.fields[idx][parameter[0]+element[0]].indexOf(element[1].split("*-*").join(" ")) === -1){
-                                                    generator.fields[idx][parameter[0]+element[0]].push(element[1].split("*-*").join(" "));
+                                                if(generator.fields[idx][parameter[0]+element[0]].indexOf(element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(",")) === -1){
+                                                    generator.fields[idx][parameter[0]+element[0]].push(element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(","));
                                                 }
                                             } else {
-                                                generator.fields[idx][parameter[0]+element[0]] = element[1] ? element[1].split("*-*").join(" ") : false;
+                                                generator.fields[idx][parameter[0]+element[0]] = element[1] ? element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(",") : false;
                                             }
                                         }
                                     } else {
@@ -750,9 +762,9 @@ function analizeJavadoc(generator) {
                                 }
                             }
                             for (idx in generator.addSubRelation) { 
-                                if(generator.addSubRelation[idx] === value[0]){
+                                if(generator.addSubRelation[idx] === value[0].split(".")[0]){
                                     generator[parameter[0]].push({
-                                        name: value[0],
+                                        name: value[0].split(".").join('_'),
                                         type: 'sub-relationship',
                                         relationshipName: "id",
                                         relationship: value[0],
@@ -830,12 +842,23 @@ function analizeJavadoc(generator) {
                                 
                             }
                             for (idx in generator.relationships) { 
-                                if(generator.relationships[idx].relationshipName === value[0] ){
+                                if(generator.relationships[idx].relationshipName === value[0].split(".")[0] ){
+                                    var myRelationshipFieldName = value[0].split(".");
+                                    
+                                if(myRelationshipFieldName.length === 1){
                                     generator[parameter[0]].push({
                                         name: generator.relationships[idx].relationshipName,
                                         type: 'relationship',
                                         entity: generator.relationships[idx]
                                     });
+                                } else {
+                                    var myOtherEntityField = myRelationshipFieldName.pop();
+                                    generator[parameter[0]].push({
+                                        name: value[0],
+                                        type: 'relationship',
+                                        entity: {...generator.relationships[idx], relationshipName: myRelationshipFieldName.join('.'),  relationshipFieldName: myRelationshipFieldName.join("."), otherEntityField: myOtherEntityField }
+                                    });
+                                }
                                     if(value.length > 1){
                                         const fields = value[1].split(",");
                                         for (const i in fields) {
@@ -844,17 +867,53 @@ function analizeJavadoc(generator) {
                                                 if(typeof generator.relationships[idx][parameter[0]+element[0]] === "undefined"){
                                                     generator.relationships[idx][parameter[0]+element[0]] = [];
                                                 }
-                                                if(generator.relationships[idx][parameter[0]+element[0]].indexOf(element[1].split("*-*").join(" ")) === -1){
-                                                    generator.relationships[idx][parameter[0]+element[0]].push(element[1].split("*-*").join(" "));
+                                                if(generator.relationships[idx][parameter[0]+element[0]].indexOf(element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(",")) === -1){
+                                                    generator.relationships[idx][parameter[0]+element[0]].push(element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(","));
                                                 }
                                             } else {
-                                                generator.relationships[idx][parameter[0]+element[0]] = element[1] ? element[1].split("*-*").join(" ") : false;
+                                                generator.relationships[idx][parameter[0]+element[0]] = element[1] ? element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(",") : false;
                                             }
                                         }
                                     } else {
                                         generator.relationships[idx][parameter[0]] = true;
                                     }
                                 }
+                            }
+                            if((value[1] && value[1].split(",").includes('Component:true'))) {
+                                const fields = value[1].split(",");
+                                const othersFields = {};
+                                for (const i in fields) {
+                                    const element = fields[i].split(":");
+                                    if(["ShowCondition","ListCondition"].indexOf(element[0]) !== -1) {
+                                        if(typeof othersFields[parameter[0]+element[0]] === "undefined"){
+                                            othersFields[parameter[0]+element[0]] = [];
+                                        }
+                                        if(othersFields[parameter[0]+element[0]].indexOf(element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(",")) === -1){
+                                            othersFields[parameter[0]+element[0]].push(element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(","));
+                                        }
+                                    } else {
+                                        othersFields[parameter[0]+element[0]] = element[1] ? element[1].split("*-*").join(" ").split("*..*").join(":").split("*;*").join(",") : false;
+                                    }
+                                }
+
+                                generator[parameter[0]].push({
+                                    ...othersFields,
+                                    name: value[0],
+                                    type: 'component',
+                                    entity: {
+                                        'viewTab': generator.entitiesViewTabs[value[0]] ? generator.entitiesViewTabs[value[0]] : undefined,
+                                        'formTab': generator.entitiesFormTabs[value[0]] ? generator.entitiesFormTabs[value[0]] : undefined,
+                                    }
+                                });
+                                generator.componentList.push({
+                                    ...othersFields,
+                                    name: value[0],
+                                    type: 'component',
+                                    entity: {
+                                        'viewTab': generator.entitiesViewTabs[value[0]] ? generator.entitiesViewTabs[value[0]] : undefined,
+                                        'formTab': generator.entitiesFormTabs[value[0]] ? generator.entitiesFormTabs[value[0]] : undefined,
+                                    }
+                                });
                             }
                         }
                     }
@@ -909,32 +968,32 @@ function analizeJavadoc(generator) {
     }
     if(generator.formTabs.length > 0){
         generator.defaultFormTab = false;
-        for (idx in generator.fields) { 
-            if(generator.formTabs.indexOf(generator.fields[idx].formTab) === -1 ){
-                generator.defaultFormTab = true;
-            }
-        }
-        for (idx in generator.relationships) { 
-            if(generator.formTabs.indexOf(generator.relationships[idx].formTab) === -1 ){
-                generator.defaultFormTab = true;
-            }
-        }
+ //       if(generator.formTabs.indexOf(generator.fields[idx].formTab) === -1 ){
+ //           for (idx in generator.fields) { 
+ //               generator.defaultFormTab = true;
+ //           }
+ //       }
+ //       for (idx in generator.relationships) { 
+ //           if(generator.formTabs.indexOf(generator.relationships[idx].formTab) === -1 ){
+ //               generator.defaultFormTab = true;
+ //           }
+ //       }
     } else {
         generator.defaultFormTab = true;
     }
 
     if(generator.viewTabs.length > 0){
         generator.defaultViewTab = false;
-        for (idx in generator.fields) { 
-            if(generator.viewTabs.indexOf(generator.fields[idx].viewTab) === -1 ){
-                generator.defaultViewTab = true;
-            }
-        }
-        for (idx in generator.relationships) { 
-            if(generator.viewTabs.indexOf(generator.relationships[idx].viewTab) === -1 ){
-                generator.defaultViewTab = true;
-            }
-        }
+     //   for (idx in generator.fields) { 
+     //       if(generator.viewTabs.indexOf(generator.fields[idx].viewTab) === -1 ){
+     //           generator.defaultViewTab = true;
+     //       }
+     //   }
+     //   for (idx in generator.relationships) { 
+     //       if(generator.viewTabs.indexOf(generator.relationships[idx].viewTab) === -1 ){
+     //           generator.defaultViewTab = true;
+     //       }
+     //   }
     } else {
         generator.defaultViewTab = true;
     }

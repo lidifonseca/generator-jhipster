@@ -4,9 +4,9 @@
 <%_  const fieldName = field.fieldName; _%>
 <%_  const fieldNameHumanized = field.fieldNameHumanized; _%>
 
-<Col md="<%= viewLayoutSize %>">
+<Col className="view-detail-row <%= entityFileName %>-<%=fieldName%>-detail" md="<%= viewLayoutSize %>">
   <Row>
-    <Col md="<%= viewLayoutLabel == 'top' ? 12 : 3  %>">
+    <Col className="view-detail-label-<%= viewLayoutLabel %> <%= entityFileName %>-<%=fieldName%>-detail-label" md="<%= viewLayoutLabel == 'top' ? 12 : 3  %>">
       <dt>
         <span id="<%= fieldName %>">
           <Translate contentKey="<%= i18nKeyPrefix %>.<%= fieldName %>">
@@ -24,10 +24,14 @@
         <%_ } _%>
       </dt>
     </Col>
-    <Col md="<%= viewLayoutLabel == 'top' ? 12 : 9  %>">
+    <Col className="view-detail-value-<%= viewLayoutLabel %> <%= entityFileName %>-<%=fieldName%>-detail-value" md="<%= viewLayoutLabel == 'top' ? 12 : 9  %>">
       <dd>
       <%_ if (fieldType === 'Boolean') { _%>
-        {<%= entityInstance %>Entity.<%=fieldName%> ? 'true' : 'false'}
+        {<%= entityInstance %>Entity.<%=fieldName%> ? translate('<%= i18nKeyPrefix %>.<%=fieldName%>.true') : translate('<%= i18nKeyPrefix %>.<%=fieldName%>.false')}
+      <%_ } else if (field.fieldIsEnum) {
+        const values = field.fieldValues.replace(/\s/g, '').split(',');
+      _%>
+         { translate("<%= angularAppName %>.<%= fieldType %>." + (<%= entityInstance %>Entity.<%= field.fieldName %> ? <%= entityInstance %>Entity.<%= field.fieldName %> : '<%= values.slice(0,1).pop() %>' ) ) }
       <%_ } else if (fieldType === 'Instant' || fieldType === 'ZonedDateTime') { _%>
         <TextFormat value={<%= entityInstance %>Entity.<%=fieldName%>} type="date" format={APP_DATE_FORMAT} />
       <%_ } else if (fieldType === 'LocalDate') { _%>
@@ -55,7 +59,7 @@
               </a>
             </div>
           ) : null}
-        <%_ } else { _%>
+          <%_ } else { _%>  
           {<%= entityInstance %>Entity.<%= field.fieldName %>}
         <%_ } _%>
       <%_ } else { _%>

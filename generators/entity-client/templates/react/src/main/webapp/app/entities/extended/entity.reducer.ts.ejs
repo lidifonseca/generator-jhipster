@@ -1,0 +1,58 @@
+/* eslint complexity: ["error", 100] */
+import axios from 'axios';
+import { ICrudDeleteAction } from 'react-jhipster';
+import { BASE_API_VERSION_PATH } from 'app/config/constants';
+
+
+<%_
+    let entityActionName = entityInstance.toUpperCase();
+    let entityActionNamePlural = entityInstancePlural.toUpperCase();
+_%>
+
+import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util';
+
+import { I<%= entityReactName %>, defaultValue } from 'app/shared/model/<%= entityModelFileName %>.model';
+
+import { <%= entityReactName %>State } from '../<%= entityFileName %>.reducer';
+
+export const ACTION_TYPES_EXTENDED = {
+  <%= entityActionName %>_DUMMY: '<%= entityInstance %>/<%= entityActionName %>_DUMMY',
+};
+
+export const initialStateExtended = {
+  dummyReducerState: ''
+}
+
+export const SwitchExtended = (state: <%= entityReactName %>State, action): <%= entityReactName %>State => {
+  switch (action.type) {
+    case REQUEST(ACTION_TYPES_EXTENDED.<%= entityActionName %>_DUMMY):
+      return {
+        ...state,
+        loading: true,
+      };
+    case FAILURE(ACTION_TYPES_EXTENDED.<%= entityActionName %>_DUMMY):
+      return {
+        ...state,
+        loading: false,
+      };
+    case SUCCESS(ACTION_TYPES_EXTENDED.<%= entityActionName %>_DUMMY):
+      return {
+        ...state,
+        loading: false,
+        dummyReducerState: action.payload.data.dummy
+      };
+    default:
+        return null;
+    }
+ return null;
+}
+
+const apiUrl = BASE_API_VERSION_PATH + '<% if (applicationType === 'gateway' && locals.microserviceName) { %>services/<%= microserviceName.toLowerCase() %>/<% } %><%= entityApiUrl %>';
+export const dummyEntity: ICrudDeleteAction<I<%= entityReactName %>> = id => async dispatch => {
+  const requestUrl = `${apiUrl}/dummy-route`;
+  const result = await dispatch({
+    type: ACTION_TYPES_EXTENDED.<%= entityActionName %>_DUMMY,
+    payload: axios.delete(requestUrl),
+  });
+  return result;
+};

@@ -1,0 +1,1 @@
+echo a | nohup jhipster import-jdl jhipster-jdl.jh --skip-install --blueprints nodejs >> logs_generador.log && npm run lint:fix >> logs_generador.log && npm run prettier:format >> logs_generador.log

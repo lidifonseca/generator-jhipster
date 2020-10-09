@@ -1,0 +1,22 @@
+import React from 'react';
+import { connect } from 'react-redux';
+
+export interface I<%= entityReactName %>Props extends StateProps, DispatchProps {
+  baseState: any;
+}
+
+const <%= entityInstance %>ComponentCustomize = (props: I<%= entityReactName %>Props) => {
+  return (
+     <div className="">
+     </div>
+  );
+    };
+
+const mapStateToProps = storeState => ({
+});
+
+const mapDispatchToProps = { };
+type StateProps = ReturnType<typeof mapStateToProps>;
+type DispatchProps = typeof mapDispatchToProps;
+
+export default connect(mapStateToProps, mapDispatchToProps)(<%= entityInstance %>ComponentCustomize);

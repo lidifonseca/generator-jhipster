@@ -41,10 +41,15 @@
           </div>
         ) : null}
       <%_ } else { _%>
-        {<%= entityInstance %>.<%= fieldName %> ? (Buffer.from(<%= entityInstance %>.<%= fieldName %>)).toString() : null }
+        <div dangerouslySetInnerHTML={{ __html: (<%= entityInstance %>.<%= fieldName %> ? (Buffer.from(<%= entityInstance %>.<%= fieldName %>)).toString().replace(/(<([^>]+)>)/gi, "").substring(0,150) : null) }} />
       <%_ } _%>
     <%_ } else { _%>
-      {<%= entityInstance %>.<%= fieldName %>}
+
+      <%_ if (typeof field.listTableLayoutType !== "undefined" && field.listTableLayoutType === "Currency") { _%>
+        R$ {(<%= entityInstance %>.<%= fieldName %> * 1).toFixed(2).replace('.', ',')}
+      <%_ } else { _%>
+        {<%= entityInstance %>.<%= fieldName %>}
+      <%_ }  _%>
     <%_ } _%>
   </td>
 <%_ } else { _%>

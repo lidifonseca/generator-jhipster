@@ -12,11 +12,15 @@
   <%_ const relationshipFieldNamePlural = rel.relationshipFieldNamePlural; _%>
   <%_ const otherEntityField = rel.otherEntityField; _%>
   <%_ const relationshipRequired = rel.relationshipRequired; _%>
-  <%_ const translationKey = `${i18nKeyPrefix}.${relationshipName}`; _%>
+  <%_ const translationKey = `${i18nKeyPrefix}.${relationshipName}`; _%> 
+  <%_ const superSelect = rel['formLayoutSuperSelect'] ? rel.formLayoutSuperSelect : null; _%>
+  <%_ const showFields = rel['formLayoutShowFields'] ? rel.formLayoutShowFields : (rel.otherEntityField ? rel.otherEntityField : 'id') ; _%>
 
-  <%_ let formLayoutListCondition = typeof rel.formLayoutListCondition !== "undefined" ? rel.formLayoutListCondition.map(v=>"v."+v.split("=")[0]+" === "+v.split("=")[1]).join(" && ") : "true" _%>
+  <%_ const otherEntityApiLink = rel.otherEntityNamePlural.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`); _%>
+  <%_ let formLayoutListCondition = typeof rel.formLayoutListCondition !== "undefined" ? rel.formLayoutListCondition.map(v=>"'"+v.split("=")[0]+"': "+v.split("=")[1]).join(", ") : "" _%>
   <%_ formLayoutListCondition += (typeof rel.formLayoutListConditionExact !== "undefined" ? " && " + rel.formLayoutListConditionExact : "") _%>
-  <%_ let formLayoutShowCondition = typeof rel.formLayoutShowCondition !== "undefined" ? rel.formLayoutShowCondition.map(v=>"this.state."+v.split("=")[0]+"SelectValue === "+v.split("=")[1]).join(" && ") : "true" _%>
+  
+  <%_ let formLayoutShowCondition = typeof rel.formLayoutShowCondition !== "undefined" ? rel.formLayoutShowCondition.map(v=>v.substring(0,v.indexOf('.'))+"SelectValue"+v.substring(v.indexOf('.'))).map(v=>"this.state."+v.split("=")[0]+" === "+v.split("=")[1]).join(" && ") : "true" _%>
   <%_ formLayoutShowCondition += (typeof rel.formLayoutShowConditionExact !== "undefined" ? " && " + rel.formLayoutShowConditionExact : "") _%>
   { <%- formLayoutShowCondition !== "true" ? "("+formLayoutShowCondition+") && " : "" _%> baseFilters !== '<%= relationshipFieldName %>' ?
       <Col md="<%= formLayoutSize %>">
@@ -24,6 +28,7 @@
 
           <div className="entityEmbebedList">
             <<%= otherEntityNameCapitalized %>
+              entityEmbebedPai ={fullEntityEmbebed}
               history={this.props.history}
               location={{
                 pathname: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/`,
@@ -36,7 +41,7 @@
                 path: `/<%= entityFileName %>/:id<%= entityReactName %>/<%= rel.otherEntityPath %>/:id`,
                 url: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/`,
                 isExact: true,
-                params: { url: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/` },
+                params: { id<%= entityReactName %>: this.props.match.params['id'], url: `/<%= entityFileName %>/${this.props.match.params['id']}/<%= rel.otherEntityPath %>/` },
               }}
 
               {...this.props.mapStateToProps<%= rel.relationshipNameCapitalized %>}
@@ -57,67 +62,7 @@
               <%= relationshipName %>Entity={this.props.<%= relationshipName %>Selected}
             />
           </div>
-        
-        <%_ } else if (relationshipType === 'many-to-one' || (relationshipType === 'one-to-one' && ownerSide === true && otherEntityName === 'user')) { _%>
-          <AvGroup>
-            <Row>
-              <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
-                <Label className="mt-2" for="<%= entityFileName %>-<%= relationshipName %>">
-                  <Translate contentKey="<%= translationKey %>"><%= relationshipNameHumanized %></Translate>
-                </Label>
-              </Col>
-              <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-                <%_ if (dto === 'no') { _%>
-                  <%_ if (!relationshipRequired) { _%>
-  
-                    <Select 
-                      id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="1-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
-                      value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
-                      options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.filter(v => { try { return <%- formLayoutListCondition %>  } catch(error){ return false} }).map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                      onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
-                      name={"<%= relationshipFieldName %>"} 
-                    />
-                  <%_ } else { _%>
-  
-                    <Select 
-                      id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="1-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
-                      value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
-                      options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.filter(v => { try { return <%- formLayoutListCondition %>  } catch(error){ return false} }).map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                      onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
-                      name={"<%= relationshipFieldName %>"} 
-                    />
-                    <AvFeedback>
-                      <Translate contentKey="entity.validation.required">This field is required.</Translate>
-                    </AvFeedback>
-                  <%_ } _%>
-                <%_ } else { _%>
-                  <%_ if (!relationshipRequired) { _%>
-  
-                    <Select 
-                      id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="3-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
-                      value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
-                      options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.filter(v => { try { return <%- formLayoutListCondition %>  } catch(error){ return false} }).map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                      onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
-                      name={"<%= relationshipFieldName %>"} 
-                    />
-                  <%_ } else { _%>
-  
-                  <Select 
-                    id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="4-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
-                    value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
-                    options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.filter(v => { try { return <%- formLayoutListCondition %>  } catch(error){ return false} }).map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                    onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
-                    name={"<%= relationshipFieldName %>"} 
-                  />
-                    <AvFeedback>
-                      <Translate contentKey="entity.validation.required">This field is required.</Translate>
-                    </AvFeedback>
-                  <%_ } _%>
-                <%_ } _%>
-              </Col>
-            </Row>
-          </AvGroup>
-        <%_ } else if (relationshipType === 'one-to-one' && ownerSide === true) { _%>
+      <%_ } else { %>
           <AvGroup>
             <Row>
               <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
@@ -126,49 +71,43 @@
               </Label>
               </Col>
               <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-              <%_ if (dto === 'no') { _%>
-              
-             
-              <Select 
-                id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="5-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
-                value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === (p.id) ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
-                options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.filter(v => { try { return <%- formLayoutListCondition %>  } catch(error){ return false} }).map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
-                name={"<%= relationshipFieldName %>"} 
+              <SelectAsync
+                <%= ['many-to-many', 'one-to-many'].includes(relationshipType) ? "isMulti" : "" %> 
+                id="<%= entityFileName %>-<%= relationshipName %>" name={"<%= relationshipFieldName %>"} 
+                className={"css-select-control"} data-type-rel="<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
+                value={this.state.<%= relationshipFieldName %>SelectValue }
+                onChange={(options) => this.setState({ <%= relationshipFieldName %>SelectValue: options })}
+                defaultOptions={this.state.<%= relationshipName %>StartSelectOptions ? this.state.<%= relationshipName %>StartSelectOptions : []}
+                loadingMessage={(input)=>(translate("selectAsync.loadingMessage"))}
+                noOptionsMessage={(input)=>this.state.<%= relationshipName %>StartSelectOptions === undefined ? translate("selectAsync.loadingMessage") : translate("selectAsync.noOptionsMessage")}
+                onMenuOpen={async ()=>{ 
+                  if(this.state.<%= relationshipName %>StartSelectOptions === undefined){
+                    const result = await getListAxios('<%= otherEntityApiLink %>', {<%- formLayoutListCondition %>}, 0, 100, '<%= showFields.split(";").length > 0 ? showFields.split(";")[0] : 'id' _%>,asc');
+                    this.setState({<%= relationshipName %>StartSelectOptions: result.data ? result.data.map(p=>({...p, value: p.id, label: showFieldsSelectAsync(p, '<%= showFields %>') })) : []  })
+                  }
+                }} 
+                loadOptions={async (inputValue, callback) => {
+                  const result = await getListAxios('<%= otherEntityApiLink %>', {<%- formLayoutListCondition ? formLayoutListCondition+', ' : '' %>'<%= showFields.split(";").pop() %>.contains': inputValue}, 0, 100, '<%= showFields.split(";").length > 0 ? showFields.split(";")[0] : 'id' _%>,asc');
+                  callback(
+                    result.data ? result.data.map(p=>({...p, value: p.id, label: showFieldsSelectAsync(p, '<%= showFields %>')})) : []
+                  );
+                }}
               />
-              <%_ } else { _%>
-  
-                <Select 
-                id="<%= entityFileName %>-<%= relationshipName %>" className={"css-select-control"} data-type-rel="6-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
-                value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue === p.id  ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null }  
-                options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.filter(v => { try { return <%- formLayoutListCondition %>  } catch(error){ return false} }).map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options['value']}) }
-                name={"<%= relationshipFieldName %>"} 
-              />
+              </Col>
+              <%_ if (superSelect){ _%>
+                { this.renderModalSuperSelect(
+                  '<%= relationshipFieldName %>',
+                  '<%= otherEntityApiLink %>',
+                  '<%= superSelect %>'.split(';'),
+                  '<%= relationshipFieldName %>SelectValue',
+                   <%= ['many-to-many', 'one-to-many'].includes(relationshipType) ? 'true' : 'false' %>, 
+                   '<%= showFields %>'.split(';'),
+                   '<%= showFields.split(";").length > 0 ? showFields.split(";")[0] : 'id' _%>,asc',
+                   {<%- formLayoutListCondition %>}
+                ) } 
               <%_ } _%>
-            </Col> 
-          </Row> <br />
-          </AvGroup>
-        <%_ } else if (relationshipType === 'many-to-many' && rel.ownerSide === true) { _%>
-          <AvGroup>
-            <Row>
-              <Col md="<%= formLayoutLabel == 'top' ? 12 : 3  %>">
-              <Label className="mt-2" for="<%= entityFileName %>-<%= relationshipName %>">
-                <Translate contentKey="<%= translationKey %>"><%= relationshipNameHumanized %></Translate>
-              </Label>
-              </Col>
-              <Col md="<%= formLayoutLabel == 'top' ? 12 : 9  %>">
-  
-              <Select 
-                id="<%= entityFileName %>-<%= relationshipName %>" isMulti className={"css-select-control"} data-type-rel="7-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>"
-                value={this.state.<%= otherEntityName %>SelectValue ? <%= otherEntityNamePlural %>.map(p => { return this.state.<%= otherEntityName %>SelectValue.split(',').includes(p.id+"") ? {value: p.id , label: p.<%=otherEntityField%>} : null }) : null } 
-                options={<%= otherEntityNamePlural %> ? <%= otherEntityNamePlural %>.filter(v => { try { return <%- formLayoutListCondition %>  } catch(error){ return false} }).map((option)=>({value: option.id , label: option.<%=otherEntityField%>})) : null} 
-                onChange={options => this.setState({ <%= otherEntityName %>SelectValue: options.map((option)=>(option['value'])).join(",") }) }
-                name={"<%= relationshipFieldName %>"} 
-              />
-              </Col>
             </Row>
           </AvGroup> 
-        <%_ } _%> 
+        <%_ } %>
       </Col> : 
     <AvInput type="hidden" name="<%= relationshipFieldName %>" value={this.state.fieldsBase[baseFilters+"Id"]} /> }

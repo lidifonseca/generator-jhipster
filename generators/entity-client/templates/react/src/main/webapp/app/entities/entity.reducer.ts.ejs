@@ -24,7 +24,7 @@ Object.keys(differentRelationships).forEach(key => {
   }
   if (differentRelationships[key]) {
     const uniqueRel = differentRelationships[key][0];
-    uniqueRealtionFields.add({"namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName });
+    uniqueRealtionFields.add({"namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName, "relationshipFieldName": uniqueRel.relationshipFieldName });
     otherEntityActions.add({
       action: `get${upperFirstCamelCase(uniqueRel.otherEntityNamePlural)}`,
       instance: `${uniqueRel.otherEntityNamePlural}`,
@@ -42,7 +42,10 @@ Object.keys(differentRelationships).forEach(key => {
     let entityActionNamePlural = entityInstancePlural.toUpperCase();
 _%>
 import axios from 'axios';
+
+import moment from 'moment';
 import {
+  IPaginationBaseState,
   <%_ if (searchEngine === 'elasticsearch') { _%>
   ICrudSearchAction,
   <%_ } _%>
@@ -70,16 +73,18 @@ import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util'
 import { I<%= entityReactName %>, defaultValue } from 'app/shared/model/<%= entityModelFileName %>.model';
 
 
+<%_ if (typeof generator['extendReducer'] != "undefined" &&  generator['extendReducer'] != "false"){ %>
+  import { SwitchExtended, initialStateExtended } from './extended/<%= entityFileName %>.reducer';
+<%_ } _%>
 
-<%_ if (viewLayout.length > 0) {  _%>
-  <%_ for (idx in viewLayout) {  _%>
-    <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
-    <%_ const embebedEntity = viewLayout[idx].entity; _%>
-      import { I<%= embebedEntity.relationshipNameCapitalized %>, defaultValue as defaultValue<%= embebedEntity.relationshipNameCapitalized %> } from 'app/shared/model/<%= embebedEntity.otherEntityPath %>.model';
+<%_ if (formLayout.length > 0) {  _%>
+  <%_ for (idx in formLayout) {  _%>
+    <%_  if(formLayout[idx].type === 'relationship' && (formLayout[idx].entity['formLayoutEmbebed'] === "true" || formLayout[idx].entity['formLayoutEmbebed'] === "true")){ _%>
+    <%_ const embebedEntity = formLayout[idx].entity; _%>
+      import { I<%= embebedEntity.relationshipNameCapitalized %>, defaultValue as defaultValue<%= embebedEntity.relationshipNameCapitalized %> } from 'app/shared/model/<%= embebedEntity.otherEntityPath %>.model';    
     <%_ } _%>
   <%_ } _%>
 <%_ } _%>
-
 
 
 export declare type ICrudPutAction<T> = (data?: T, listFiltersPage?) => IPayload<T> | IPayloadResult<T>;
@@ -91,6 +96,7 @@ export const ACTION_TYPES = {
   FETCH_<%= entityActionName %>_LIST: '<%= entityInstance %>/FETCH_<%= entityActionName %>_LIST',
   FETCH_<%= entityActionName %>:  '<%= entityInstance %>/FETCH_<%= entityActionName %>',
 <%_ if (!readOnly) { _%>
+  FETCH_<%= entityActionName %>_OFFSET: '<%= entityInstance %>/FETCH_<%= entityActionName %>_OFFSET',
   CREATE_<%= entityActionName %>: '<%= entityInstance %>/CREATE_<%= entityActionName %>',
   UPDATE_<%= entityActionName %>: '<%= entityInstance %>/UPDATE_<%= entityActionName %>',
   DELETE_<%= entityActionName %>: '<%= entityInstance %>/DELETE_<%= entityActionName %>',
@@ -121,10 +127,10 @@ const initialState = {
   <%_ } _%>
   updateSuccess: false,
 
-  <%_ if (viewLayout.length > 0) {  _%>
-    <%_ for (idx in viewLayout) {  _%>
-      <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
-      <%_ const embebedEntity = viewLayout[idx].entity; _%>
+  <%_ if (formLayout.length > 0) {  _%>
+    <%_ for (idx in formLayout) {  _%>
+      <%_  if(formLayout[idx].type === 'relationship' && (formLayout[idx].entity['formLayoutEmbebed'] === "true" || formLayout[idx].entity['formLayoutEmbebed'] === "true")){ _%>
+      <%_ const embebedEntity = formLayout[idx].entity; _%>
         <%= embebedEntity.relationshipName %>ListEmbed: [] as ReadonlyArray<I<%= embebedEntity.relationshipNameCapitalized %>>,
         <%= embebedEntity.relationshipName %>ListAllEmbed: [] as ReadonlyArray<I<%= embebedEntity.relationshipNameCapitalized %>>,
         <%= embebedEntity.relationshipName %>Selected: defaultValue<%= embebedEntity.relationshipNameCapitalized %>,
@@ -132,46 +138,79 @@ const initialState = {
     <%_ } _%>
   <%_ } _%>
 
+  <%_ if (typeof generator['extendReducer'] != "undefined" &&  generator['extendReducer'] != "false"){ %>
+    ...initialStateExtended,
+  <%_ } _%>
+
 };
+
+const actionPendind = [];
+let actualState = initialState;
+
+export const convertEntityBuffers = (entity) => ({
+  ...entity,
+  <%_ for (idx in fields) {  _%>
+    <%_ if (['byte[]', 'ByteBuffer'].includes(fields[idx].fieldType)) { _%>
+      <%= fields[idx].fieldName %>: (entity.<%= fields[idx].fieldName %> ? Buffer.from(entity.<%= fields[idx].fieldName %>).toString() : entity.<%= fields[idx].fieldName %>),
+    <%_ } _%>
+  <%_ } _%>
+})
 
 export type <%= entityReactName %>State =  Readonly<typeof initialState>;
 
 export interface I<%= entityReactName %>BaseState {
+  listCheckedModalSuperSelectID?: Array<number>;
+  listCheckedModalSuperSelectFilters?: any;
+  listCheckedModalSuperEntities?: any;
+  modalSuperSelect?: string;
+  listCheckedID?: Array<number>;
+  isCheckedAll?: boolean;
+  urlBack?: string;
   baseFilters: any;
+  offset: number;
   <%_ if (listFilterLayout.length > 0) {  _%>
     <%_ for (idx in listFilterLayout) { _%>
       <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
-          <%= listFilterLayout[idx].entity.relationshipName %>Id: any;
+          <%= listFilterLayout[idx].entity.relationshipName %>Id?: any;
+          <%= listFilterLayout[idx].entity.relationshipName %>StartFilter?: any;
       <%_ } else { _%>
-        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
-          <%= listFilterLayout[idx].entity.fieldName %>Start: any;
-          <%= listFilterLayout[idx].entity.fieldName %>End: any;
-        <%_ } else { _%>
-          <%= listFilterLayout[idx].entity.fieldName %>: any;
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
+          <%= listFilterLayout[idx].entity.fieldName %>Start?: any;
+          <%= listFilterLayout[idx].entity.fieldName %>End?: any; 
+        <%_ } else { _%> 
+          <%= listFilterLayout[idx].entity.fieldName %>?: any;
         <%_ } _%>
       <%_ } _%>
     <%_ } _%>
   <%_ } else {  _%>
     <%_ for (idx in fields) { _%>
-      <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
-          <%= fields[idx].fieldName %>Start: any;
-          <%= fields[idx].fieldName %>End: any;
-        <%_ } else { _%>
-          <%= fields[idx].fieldName %>: any;
+      <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
+          <%= fields[idx].fieldName %>Start?: any;
+          <%= fields[idx].fieldName %>End?: any;
+        <%_ } else { _%> 
+          <%= fields[idx].fieldName %>?: any;
         <%_ } _%>
     <%_ } _%>
     <%_ relationships.forEach(rel => { _%>
-        <%= rel.relationshipName %>Id: any;
+        <%= rel.relationshipName %>Id?: any;
+        <%= rel.relationshipName %>StartFilter?: any;
     <%_ }) _%>
   <%_ } _%>
 }
 
 
+export interface IFieldsBase extends I<%= entityReactName %>BaseState, IPaginationBaseState {}
 export interface I<%= entityReactName %>UpdateState {
+  listCheckedModalSuperSelectID?: Array<number>;
+  listCheckedModalSuperSelectFilters?: any;
+  listCheckedModalSuperEntities?: any;
+  modalSuperSelect?: string;
+  urlBack?: string;
   functionEmbebed?: any[];
-  fieldsBase: I<%= entityReactName %>BaseState;
-  <%_ for (idx in fields) { _%>
+  fieldsBase: IFieldsBase;
+  <%_ for (idx in fields) { _%>   
       <%= fields[idx].fieldName %>SelectValue?: any;
+      <%= fields[idx].fieldName %>StartSelectOptions?: any;
   <%_ } _%>
   <%_ for (idx in fields) { _%>
     <%_ const formLayoutCepBr = typeof fields[idx].formLayoutCepBr !== 'undefined' && fields[idx].formLayoutCepBr.trim() ? fields[idx].formLayoutCepBr : ""; _%>
@@ -188,20 +227,56 @@ export interface I<%= entityReactName %>UpdateState {
     <%_ break; _%>
     <%_ } _%>
   <%_ } _%>
-  <% uniqueRealtionFields.forEach(rel => { %> <%= rel.name %>SelectValue: any; <% }) %>
+  <% relationships.forEach(rel => { %> 
+    <%= rel.relationshipFieldName %>SelectValue?: any; 
+    <%= rel.relationshipFieldName %>StartSelectOptions?: any; 
+  <% }) %>
   <%_ if (formTabs.length > 0) { _%>activeTab: number;<%_ } _%>
   isNew: boolean;
   <%_ manyToManyOwners.forEach(val => { _%>
   ids<%= val.relationshipName %>: any[];
   <%_ }) _%>
   <%_ relFieldNames.forEach(val => { _%>
-  <%= val.relationshipFieldName + val.otherEntityFieldCapitalized %>: any;
+    <%= val.relationshipFieldName + val.otherEntityFieldCapitalized %>?: any;
+    <% if(val.otherEntityFieldCapitalized !== "Id"){ %>
+      <%= val.relationshipFieldName %>Id?: any;
+    <%_ } _%>
   <%_ }) _%>
   }
 
 // Reducer
 
 export default (state: <%= entityReactName %>State = initialState, action): <%= entityReactName %>State => {
+  actualState = state
+  if(
+    action.type.includes("_PENDING") && 
+    !actionPendind.includes(action.type.replace("_PENDING","")) &&
+    Object.values(ACTION_TYPES).includes(action.type.replace("_PENDING",""))
+  ){
+    actionPendind.push(action.type.replace("_PENDING",""));
+  }
+  
+  if(
+    action.type.includes("_FULFILLED") && 
+    actionPendind.includes(action.type.replace("_FULFILLED","")) &&
+    Object.values(ACTION_TYPES).includes(action.type.replace("_FULFILLED",""))
+  ){
+    actionPendind.splice(actionPendind.indexOf(action.type.replace("_FULFILLED","")), 1);
+  }
+
+  if(
+    action.type.includes("_REJECTED") && 
+    actionPendind.includes(action.type.replace("_REJECTED","")) &&
+    Object.values(ACTION_TYPES).includes(action.type.replace("_REJECTED",""))
+  ){
+    actionPendind.splice(actionPendind.indexOf(action.type.replace("_REJECTED","")), 1)
+  }
+
+  <%_ if (typeof generator['extendReducer'] != "undefined" &&  generator['extendReducer'] != "false"){ %>
+    const switchExtended = SwitchExtended(state, action);
+    if(switchExtended !== null) return switchExtended;
+  <%_ } _%>
+
   switch (action.type) {
     <%_ if (searchEngine === 'elasticsearch') { _%>
     case REQUEST(ACTION_TYPES.SEARCH_<%= entityActionNamePlural %>):
@@ -253,6 +328,12 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
       const links = parseHeaderForLinks(action.payload.headers.link);
       <%_ } _%>
 
+      <%_ for (idx in fields) {  _%>
+        <%_ if (['byte[]', 'ByteBuffer'].includes(fields[idx].fieldType)) { _%>
+          action.payload.data = action.payload.data.map(v=>{ return { ...v, <%= fields[idx].fieldName %>: v.<%= fields[idx].fieldName %> ? Buffer.from(v.<%= fields[idx].fieldName %>).toString() : v.<%= fields[idx].fieldName %> }});
+        <%_ } _%>
+      <%_ } _%>
+
       return {
         ...state,
         loading: false,
@@ -270,19 +351,30 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
           <%_ } _%>
         <%_ } _%>
       };
+
+
+    case SUCCESS(ACTION_TYPES.FETCH_<%= entityActionName %>_OFFSET):
+      if(action.payload.data && action.payload.data.length > 0){
+        return {
+          ...state,
+          loading: false,
+          entity: convertEntityBuffers(action.payload.data[0]),
+        };
+      }
+      return {
+        ...state,
+        loading: false,
+      };
+
     <%_ if (pagination === 'infinite-scroll') { _%>
     }
     <%_ } _%>
     case SUCCESS(ACTION_TYPES.FETCH_<%= entityActionName %>):
-    <%_ for (idx in fields) {  _%>
-      <%_ if (['byte[]', 'ByteBuffer'].includes(fields[idx].fieldType) && fields[idx].fieldTypeBlobContent === 'text') { _%>
-        action.payload.data.<%= fields[idx].fieldName %> = action.payload.data.<%= fields[idx].fieldName %> ? Buffer.from(action.payload.data.<%= fields[idx].fieldName %>).toString() : action.payload.data.<%= fields[idx].fieldName %>;
-      <%_ } _%>
-    <%_ } _%>
+
       return {
         ...state,
         loading: false,
-        entity: action.payload.data
+        entity: convertEntityBuffers(action.payload.data)
       };
     <%_ if (!readOnly) { _%>
     case SUCCESS(ACTION_TYPES.CREATE_<%= entityActionName %>):
@@ -318,12 +410,12 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
     case ACTION_TYPES.RESET:
       return {
         ...initialState,
-        <%_ if (viewLayout.length > 0) {  _%>
-          <%_ for (idx in viewLayout) {  _%>
-            <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
-            <%_ const embebedEntity = viewLayout[idx].entity; _%>
-              <%= embebedEntity.relationshipName %>ListEmbed: state.<%= embebedEntity.relationshipName %>ListEmbed,
-              <%= embebedEntity.relationshipName %>ListAllEmbed: state.<%= embebedEntity.relationshipName %>ListAllEmbed,
+        <%_ if (formLayout.length > 0) {  _%>
+          <%_ for (idx in formLayout) {  _%>
+            <%_  if(formLayout[idx].type === 'relationship' && (formLayout[idx].entity['formLayoutEmbebed'] === "true" || formLayout[idx].entity['formLayoutEmbebed'] === "true")){ _%>
+            <%_ const embebedEntity = formLayout[idx].entity; _%>
+              <%= embebedEntity.relationshipName %>ListEmbed: [],
+              <%= embebedEntity.relationshipName %>ListAllEmbed: [],
               <%= embebedEntity.relationshipName %>Selected: state.<%= embebedEntity.relationshipName %>Selected,
             <%_ } _%>
           <%_ } _%>
@@ -331,11 +423,11 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
       };
 
 
-      <%_ if (viewLayout.length > 0) {  _%>
-        <%_ for (idx in viewLayout) {  _%>
-          <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
-          <%_ const embebedEntity = viewLayout[idx].entity; _%>
-
+      <%_ if (formLayout.length > 0) {  _%>
+        <%_ for (idx in formLayout) {  _%>
+          <%_  if(formLayout[idx].type === 'relationship' && (formLayout[idx].entity['formLayoutEmbebed'] === "true" || formLayout[idx].entity['formLayoutEmbebed'] === "true")){ _%>
+          <%_ const embebedEntity = formLayout[idx].entity; _%>
+          
 
         case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_GET_ENTITIES':
           return {
@@ -346,7 +438,7 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
           return {
             ...state,
             <%= embebedEntity.relationshipName %>ListAllEmbed: [
-              ...state.<%= embebedEntity.relationshipName %>ListAllEmbed,
+              ...(state.<%= embebedEntity.relationshipName %>ListAllEmbed ? state.<%= embebedEntity.relationshipName %>ListAllEmbed : []),
               action.payload
             ]
           };
@@ -367,7 +459,7 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
           return {
             ...state,
             <%= embebedEntity.relationshipName %>ListAllEmbed,
-            <%= embebedEntity.relationshipName %>Selected: {}
+            <%= embebedEntity.relationshipName %>Selected: {}        
           };
         }
         case '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_RESET':
@@ -390,7 +482,7 @@ export default (state: <%= entityReactName %>State = initialState, action): <%= 
         <%_ } _%>
       <%_ } _%>
 
-    case ACTION_TYPES.SHOW_MODAL:
+    case ACTION_TYPES.SHOW_MODAL: 
     {
       const openModal = state.openModal;
       openModal[action.payload.type] = action.payload.show;
@@ -434,7 +526,7 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
     <%_ if (listFilterLayout.length > 0) {  _%>
       <%_ for (idx in listFilterLayout) { _%>
         <%_ if(listFilterLayout[idx].type == 'field'){  _%>
-          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
+          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
             <%= listFilterLayout[idx].name %>Start?: any,
             <%= listFilterLayout[idx].name %>End?: any,
           <%_ } else {  _%>
@@ -446,7 +538,7 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
-        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
           <%= fields[idx].fieldName %>Start?: any,
           <%= fields[idx].fieldName %>End?: any,
         <%_ } else {  _%>
@@ -459,10 +551,37 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
     <%_ } _%>
   page?: number,
   size?: number,
-  sort?: string,
+  sort?: string
 ) => IPayload<T> | ((dispatch: any) => IPayload<T>);
 
+  export const getEntitiesFilter = (filters?, page?, size?, sort?) => {
+    const requestUrl = `${apiUrl}?page=${page >= 0 ? page : 0}&size=${size >= 0 ? size : 20}&sort=${sort ? sort : 'id,asc'}&`;
+    const requestFilters = filters.map(v=>v.column+'.'+v.operation+'='+v.value).join('&');
+    return {
+      type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
+      payload: axios.get<I<%= entityReactName %>>(
+        `${requestUrl}${requestFilters}`
+      ),
+    };
+  }  
+
   export const getAllEntities = ( filters?, sort?) => {
+    if(
+      actualState.totalItems > 0 && actualState.entities.length === actualState.totalItems || 
+      actionPendind.includes(ACTION_TYPES.FETCH_<%= entityActionName %>_LIST)
+    ){
+      return {
+        type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST + "_FROM_CACHE",
+        payload: new Promise(function(resolve, reject) {
+          resolve("done");
+        }),
+      };    
+    } 
+
+    const idsRequest =
+      filters && typeof filters['ids'] !== 'undefined' && filters['ids']
+        ? `id.in=${filters['ids'].join(",")}&`
+        : '';
     <%_ let getAllEntitiesRequests = ""; _%>
       <%_ if (listFilterLayout.length > 0) {  _%>
         <%_ for (idx in listFilterLayout) { _%>
@@ -472,11 +591,11 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
               let <%= field.fieldName %>StartRequest = "";
               let <%= field.fieldName %>EndRequest = "";
               if(filters && (typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && !(typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
-                <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${filters['<%= field.fieldName %>Start']}&`;
+                <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${moment(filters['<%= field.fieldName %>Start']).format('YYYY-MM-DD')}&`; 
               } else if(filters && !(typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && (typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
-                <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${filters['<%= field.fieldName %>End']}&`;
+                <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${moment(filters['<%= field.fieldName %>End']).format('YYYY-MM-DD')}&`; 
               } else if(filters && (typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && (typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
-                <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${filters['<%= field.fieldName %>Start']},${filters['<%= field.fieldName %>End']}&`;
+                <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${moment(filters['<%= field.fieldName %>Start']).format('YYYY-MM-DD')},${moment(filters['<%= field.fieldName %>End']).format('YYYY-MM-DD')}&`;
               }
               <%_ getAllEntitiesRequests += "${"+field.fieldName+"StartRequest}"; _%>
               <%_ getAllEntitiesRequests += "${"+field.fieldName+"EndRequest}"; _%>
@@ -497,11 +616,11 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
             let <%= field.fieldName %>StartRequest = "";
             let <%= field.fieldName %>EndRequest = "";
             if(filters && (typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && !(typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
-              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${filters['<%= field.fieldName %>Start']}&`;
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${moment(filters['<%= field.fieldName %>Start']).format('YYYY-MM-DD')}&`; 
             } else if(filters && !(typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && (typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
-              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${filters['<%= field.fieldName %>End']}&`;
+              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${moment(filters['<%= field.fieldName %>End']).format('YYYY-MM-DD')}&`; 
             } else if(filters && (typeof filters['<%= field.fieldName %>Start'] !== "undefined" && filters['<%= field.fieldName %>Start']) && (typeof filters['<%= field.fieldName %>End'] !== "undefined" && filters['<%= field.fieldName %>End']) ){
-              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${filters['<%= field.fieldName %>Start']},${filters['<%= field.fieldName %>End']}&`;
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${moment(filters['<%= field.fieldName %>Start']).format('YYYY-MM-DD')},${moment(filters['<%= field.fieldName %>End']).format('YYYY-MM-DD')}&`;
             }
             <%_ getAllEntitiesRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
             <%_ getAllEntitiesRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
@@ -515,27 +634,27 @@ export type ICrudGetAllAction<%= entityReactName %><T> = (
           <%_ getAllEntitiesRequests += "${"+rel.relationshipName+"Request}"; _%>
         <%_ }) _%>
       <%_ } _%>
-
+  
       <%_ if (pagination !== 'no') { _%>
-        const requestUrl = `${apiUrl}${`?page=${0}&size=${10000}&sort=${sort ? sort : 'id,asc'}&`}`;
+        const requestUrl = `${apiUrl}${`?page=${0}&size=${1000000}&sort=${sort ? sort : 'id,asc'}&`}`;
         return {
           type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
-          payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getAllEntitiesRequests %>&cacheBuster=${new Date().getTime()}`)
+          payload: axios.get<I<%= entityReactName %>>(`${requestUrl}${idsRequest}<%- getAllEntitiesRequests %>`)
         }
       <%_ } else { _%>
         const requestUrl = `${apiUrl}?`;
         return {
           type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
-          payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getAllEntitiesRequests %>&cacheBuster=${new Date().getTime()}`)
+          payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getAllEntitiesRequests %>`)
         }
       <%_ } _%>
   };
-
+  
 export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityReactName %>> = (
     <%_ if (listFilterLayout.length > 0) {  _%>
       <%_ for (idx in listFilterLayout) { _%>
         <%_ if(listFilterLayout[idx].type == 'field'){  _%>
-          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
+          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
             <%= listFilterLayout[idx].name %>Start,
             <%= listFilterLayout[idx].name %>End,
           <%_ } else {  _%>
@@ -547,11 +666,11 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
-        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
           <%= fields[idx].fieldName %>Start,
           <%= fields[idx].fieldName %>End,
         <%_ } else {  _%>
-            <%= fields[idx].fieldName %>,
+            <%= fields[idx].fieldName %>, 
         <%_ } _%>
       <%_ } _%>
       <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
@@ -568,16 +687,16 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
             let <%= field.fieldName %>StartRequest = "";
             let <%= field.fieldName %>EndRequest = "";
             if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`;
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')}&`; 
             } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`;
+              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`; 
             } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')},${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`;
             }
             <%_ getEntitiesRequests += "${"+field.fieldName+"StartRequest}"; _%>
             <%_ getEntitiesRequests += "${"+field.fieldName+"EndRequest}"; _%>
           <%_ } else if (field.fieldIsEnum === true){ _%>
-            const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.equals=${<%= field.fieldName %>}&` : '';
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? (Array.isArray(status) ? `<%= field.fieldName %>.in=${<%= field.fieldName %>.join(",")}&` :`<%= field.fieldName %>.equals=${<%= field.fieldName %>}&`) : '';
             <%_ getEntitiesRequests += "${"+field.fieldName+"Request}"; _%>
           <%_ } else { _%>
             const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.contains=${<%= field.fieldName %>}&` : '';
@@ -596,18 +715,19 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
           let <%= field.fieldName %>StartRequest = "";
           let <%= field.fieldName %>EndRequest = "";
           if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`;
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')}&`; 
           } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-            <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`;
+            <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`; 
           } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')},${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`;
           }
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
         <%_ } else if (fields[idx].fieldIsEnum === true){ _%>
-          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&` : '';
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? (Array.isArray(status) ? `<%= fields[idx].fieldName %>.in=${<%= fields[idx].fieldName %>.join(",")}&` : `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&`) : '';
+          <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"Request}"; _%>
         <%_ } else { _%>
-          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&` : '';
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? (Array.isArray(status) ? `<%= fields[idx].fieldName %>.in=${<%= fields[idx].fieldName %>.join(",")}&` : `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&`) : '';
           <%_ getEntitiesRequests += "${"+fields[idx].fieldName+"Request}"; _%>
         <%_ } _%>
       <%_ } _%>
@@ -617,21 +737,128 @@ export const getEntities: ICrudGetAllAction<%= entityReactName %><I<%= entityRea
       <%_ }) _%>
     <%_ } _%>
 
-
+    
     <%_ if (pagination !== 'no') { _%>
       const requestUrl = `${apiUrl}${sort ? `?page=${page >= 0 ? page : 0}&size=${size}&sort=${sort}&` : '?'}`;
       return {
         type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
-        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesRequests %>&cacheBuster=${new Date().getTime()}`)
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesRequests %>`)
       }
     <%_ } else { _%>
       const requestUrl = `${apiUrl}?`;
       return {
         type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
-        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesRequests %>&cacheBuster=${new Date().getTime()}`)
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesRequests %>`)
       }
     <%_ } _%>
 }
+
+
+
+export const getEntityOffset: any = (
+    <%_ if (listFilterLayout.length > 0) {  _%>
+      <%_ for (idx in listFilterLayout) { _%>
+        <%_ if(listFilterLayout[idx].type == 'field'){  _%>
+          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
+            <%= listFilterLayout[idx].name %>Start,
+            <%= listFilterLayout[idx].name %>End,
+          <%_ } else {  _%>
+              <%= listFilterLayout[idx].name %>,
+          <%_ } _%>
+        <%_ } else {  _%>
+          <%= listFilterLayout[idx].name %>Id,
+        <%_ } _%>
+      <%_ } _%>
+    <%_ } else {  _%>
+      <%_ for (idx in fields) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
+          <%= fields[idx].fieldName %>Start,
+          <%= fields[idx].fieldName %>End,
+        <%_ } else {  _%>
+            <%= fields[idx].fieldName %>, 
+        <%_ } _%>
+      <%_ } _%>
+      <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
+    <%_ } _%>
+  offset, sort
+  ) =>
+  {
+    <%_ let getEntitiesOffsetRequests = ""; _%>
+    <%_ if (listFilterLayout.length > 0) {  _%>
+      <%_ for (idx in listFilterLayout) { _%>
+        <%_ if(listFilterLayout[idx].type == 'field'){  _%>
+          <%_ const field = listFilterLayout[idx].entity _%>
+          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(field.fieldType) ) { _%>
+            let <%= field.fieldName %>StartRequest = "";
+            let <%= field.fieldName %>EndRequest = "";
+            if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')}&`; 
+            } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`; 
+            } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')},${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`;
+            }
+            <%_ getEntitiesOffsetRequests += "${"+field.fieldName+"StartRequest}"; _%>
+            <%_ getEntitiesOffsetRequests += "${"+field.fieldName+"EndRequest}"; _%>
+          <%_ } else if (field.fieldIsEnum === true){ _%>
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? (Array.isArray(status) ? `<%= field.fieldName %>.in=${<%= field.fieldName %>.join(",")}&` :`<%= field.fieldName %>.equals=${<%= field.fieldName %>}&`) : '';
+            <%_ getEntitiesOffsetRequests += "${"+field.fieldName+"Request}"; _%>
+          <%_ } else { _%>
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.contains=${<%= field.fieldName %>}&` : '';
+            <%_ getEntitiesOffsetRequests += "${"+field.fieldName+"Request}"; _%>
+          <%_ } _%>
+        <%_ } else {  _%>
+          <%_ const rel = listFilterLayout[idx].entity _%>
+          const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&<%= rel.relationshipName %>Id.in=${<%= rel.relationshipName %>Id}&` : '';
+          <%_ getEntitiesOffsetRequests += "${"+rel.relationshipName+"Request}"; _%>
+        <%_ } _%>
+      <%_ } _%>
+    <%_ } else {  _%>
+      <%_ for (idx in fields) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType) ) { _%>
+          <%_ const field = fields[idx] _%>
+          let <%= field.fieldName %>StartRequest = "";
+          let <%= field.fieldName %>EndRequest = "";
+          if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')}&`; 
+          } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`; 
+          } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')},${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`;
+          }
+          <%_ getEntitiesOffsetRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
+          <%_ getEntitiesOffsetRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
+        <%_ } else if (fields[idx].fieldIsEnum === true){ _%>
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? (Array.isArray(status) ? `<%= fields[idx].fieldName %>.in=${<%= fields[idx].fieldName %>.join(",")}&` : `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&`) : '';
+          <%_ getEntitiesOffsetRequests += "${"+fields[idx].fieldName+"Request}"; _%>
+        <%_ } else { _%>
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? (Array.isArray(status) ? `<%= fields[idx].fieldName %>.in=${<%= fields[idx].fieldName %>.join(",")}&` : `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&`) : '';
+          <%_ getEntitiesOffsetRequests += "${"+fields[idx].fieldName+"Request}"; _%>
+        <%_ } _%>
+      <%_ } _%>
+      <%_ relationships.forEach(rel => { _%>
+        const <%= rel.relationshipName %>Request = <%= rel.relationshipName %>Id ? `<%= rel.relationshipName %>.in=${<%= rel.relationshipName %>Id}&<%= rel.relationshipName %>Id.in=${<%= rel.relationshipName %>Id}&` : '';
+        <%_ getEntitiesOffsetRequests += "${"+rel.relationshipName+"Request}"; _%>
+      <%_ }) _%>
+    <%_ } _%>
+
+    
+    <%_ if (pagination !== 'no') { _%>
+      const requestUrl = `${apiUrl}${sort ? `?page=${offset}&size=${1}&sort=${sort}&` : '?'}`;
+      return {
+        type: ACTION_TYPES.FETCH_<%= entityActionName %>_OFFSET,
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesOffsetRequests %>`)
+      }
+    <%_ } else { _%>
+      const requestUrl = `${apiUrl}?`;
+      return {
+        type: ACTION_TYPES.FETCH_<%= entityActionName %>_OFFSET,
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesOffsetRequests %>`)
+      }
+    <%_ } _%>
+}
+
+
 export const getEntity: ICrudGetAction<I<%= entityReactName %>> = id => {
   const requestUrl = `${apiUrl}/${id}`;
   return {
@@ -645,7 +872,7 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
     <%_ if (listFilterLayout.length > 0) {  _%>
       <%_ for (idx in listFilterLayout) { _%>
         <%_ if(listFilterLayout[idx].type == 'field'){  _%>
-          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
+          <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
             <%= listFilterLayout[idx].name %>Start,
             <%= listFilterLayout[idx].name %>End,
           <%_ } else {  _%>
@@ -657,11 +884,11 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
-        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
           <%= fields[idx].fieldName %>Start,
           <%= fields[idx].fieldName %>End,
         <%_ } else {  _%>
-            <%= fields[idx].fieldName %>,
+            <%= fields[idx].fieldName %>, 
         <%_ } _%>
       <%_ } _%>
       <%_ relationships.forEach(rel => { _%><%= rel.relationshipName %>Id, <%_ }) _%>
@@ -679,19 +906,19 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
             let <%= field.fieldName %>StartRequest = "";
             let <%= field.fieldName %>EndRequest = "";
             if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`;
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')}&`; 
             } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`;
+              <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`; 
             } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
+              <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')},${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`;
             }
             <%_ getEntitiesExportRequests += "${"+field.fieldName+"StartRequest}"; _%>
             <%_ getEntitiesExportRequests += "${"+field.fieldName+"EndRequest}"; _%>
           <%_ } else if (field.fieldIsEnum === true){ _%>
-            const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.equals=${<%= field.fieldName %>}&` : '';
-            <%_ getEntitiesRequests += "${"+field.fieldName+"Request}"; _%>
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? (Array.isArray(status) ? `<%= field.fieldName %>.in=${<%= field.fieldName %>.join(",")}&` :`<%= field.fieldName %>.equals=${<%= field.fieldName %>}&`) : '';
+            <%_ getEntitiesExportRequests += "${"+field.fieldName+"Request}"; _%>
           <%_ } else { _%>
-            const <%= field.fieldName %>Request = <%= field.fieldName %> ? `<%= field.fieldName %>.contains=${<%= field.fieldName %>}&` : '';
+            const <%= field.fieldName %>Request = <%= field.fieldName %> ? (Array.isArray(status) ? `<%= field.fieldName %>.in=${<%= field.fieldName %>.join(",")}&`  :`<%= field.fieldName %>.contains=${<%= field.fieldName %>}&`) : '';
             <%_ getEntitiesExportRequests += "${"+field.fieldName+"Request}"; _%>
           <%_ } _%>
         <%_ } else {  _%>
@@ -707,19 +934,19 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
           let <%= field.fieldName %>StartRequest = "";
           let <%= field.fieldName %>EndRequest = "";
           if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && !(typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${<%= field.fieldName %>Start}&`;
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.greaterThan=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')}&`; 
           } else if(!(typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-            <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${<%= field.fieldName %>End}&`;
+            <%= field.fieldName %>EndRequest = `<%= field.fieldName %>.lessThan=${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`; 
           } else if((typeof <%= field.fieldName %>Start !== "undefined" && <%= field.fieldName %>Start) && (typeof <%= field.fieldName %>End !== "undefined" && <%= field.fieldName %>End) ){
-            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${<%= field.fieldName %>Start},${<%= field.fieldName %>End}&`;
+            <%= field.fieldName %>StartRequest = `<%= field.fieldName %>.between=${moment(<%= field.fieldName %>Start).format('YYYY-MM-DD')},${moment(<%= field.fieldName %>End).format('YYYY-MM-DD')}&`;
           }
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"StartRequest}"; _%>
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"EndRequest}"; _%>
         <%_ } else if (fields[idx].fieldIsEnum === true){ _%>
-          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&` : '';
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? (Array.isArray(status) ? `<%= fields[idx].fieldName %>.in=${<%= fields[idx].fieldName %>.join(",")}&` : `<%= fields[idx].fieldName %>.equals=${<%= fields[idx].fieldName %>}&`) : '';
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"Request}"; _%>
         <%_ } else { _%>
-          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&` : '';
+          const <%= fields[idx].fieldName %>Request = <%= fields[idx].fieldName %> ? (Array.isArray(status) ? `<%= fields[idx].fieldName %>.in=${<%= fields[idx].fieldName %>.join(",")}&` : `<%= fields[idx].fieldName %>.contains=${<%= fields[idx].fieldName %>}&`) : '';
           <%_ getEntitiesExportRequests += "${"+fields[idx].fieldName+"Request}"; _%>
         <%_ } _%>
       <%_ } _%>
@@ -729,27 +956,34 @@ export const getEntitiesExport: ICrudGetAllAction<%= entityReactName %><I<%= ent
       <%_ }) _%>
     <%_ } _%>
 
-
+        
     <%_ if (pagination !== 'no') { _%>
       const requestUrl = `${apiUrl}${sort ? `?page=${page >= 0 ? page : 0}&size=${size}&sort=${sort}&` : '?'}`;
       return {
         type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
-        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesExportRequests %>&cacheBuster=${new Date().getTime()}`)
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesExportRequests %>`)
       }
     <%_ } else { _%>
       const requestUrl = `${apiUrl}?`;
       return {
         type: ACTION_TYPES.FETCH_<%= entityActionName %>_LIST,
-        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesExportRequests %>&cacheBuster=${new Date().getTime()}`)
+        payload: axios.get<I<%= entityReactName %>>(`${requestUrl}<%- getEntitiesExportRequests %>`)
       }
     <%_ } _%>
 }
 
 <%_ if (!readOnly) { _%>
 export const createEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, listFiltersPage)  => async dispatch => {
+  const nEntity = { ...entity
+    <%_ for (idx in fields) { _%>
+      <%_ if (['LocalDate'].includes(fields[idx].fieldType)) { _%> 
+        ,<%= fields[idx].fieldName %>: entity.<%= fields[idx].fieldName %> ? moment(entity.<%= fields[idx].fieldName %>).format('YYYY-MM-DD') : null
+      <%_ } _%> 
+   <%_ } _%> 
+ }
   const result = await dispatch({
     type: ACTION_TYPES.CREATE_<%= entityActionName %>,
-    payload: axios.post(apiUrl, cleanEntity(entity))
+    payload: axios.post(apiUrl, cleanEntity(nEntity))
   });
   <%_ if (pagination !== 'infinite-scroll') { _%>
     if(listFiltersPage !== false && listFiltersPage['reloadList'] !== false){
@@ -761,9 +995,16 @@ export const createEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, li
 };
 
 export const updateEntity: ICrudPutAction<I<%= entityReactName %>> = (entity, listFiltersPage) => async dispatch => {
+  const nEntity = { ...entity
+      <%_ for (idx in fields) { _%>
+        <%_ if (['LocalDate'].includes(fields[idx].fieldType)) { _%> 
+          ,<%= fields[idx].fieldName %>: entity.<%= fields[idx].fieldName %> ? moment(entity.<%= fields[idx].fieldName %>).format('YYYY-MM-DD') : null
+        <%_ } _%> 
+     <%_ } _%> 
+  }
   const result = await dispatch({
     type: ACTION_TYPES.UPDATE_<%= entityActionName %>,
-    payload: axios.put(apiUrl, cleanEntity(entity))
+    payload: axios.put(apiUrl, cleanEntity(nEntity))
   });
   <%_ if (pagination !== 'infinite-scroll') { _%>
     if(listFiltersPage !== false && listFiltersPage['reloadList'] !== false){
@@ -795,12 +1036,16 @@ export const setBlob = (name, data, contentType?, fileName?) => ({
   payload: {
     name,
     data,
-    contentType,
+    contentType, 
     fileName
   }
 });
 <%_ } _%>
 <%_ } _%>
+
+
+
+
 
 
 
@@ -815,27 +1060,36 @@ export const hideModal = (view) => ({
 });
 
 
+export const getUrlBack = (location): string => {
+  const url = new URL(`http://localhost${location.search}`); // using a dummy url for parsing
+  let urlBack = url.searchParams.get('urlBack') || '';
+  urlBack = urlBack.trim();
+  urlBack = (urlBack.startsWith("/") ? urlBack.slice(1) : urlBack);
+  urlBack = (urlBack.endsWith("/") ? urlBack.slice(0, -1) : urlBack);
+  return urlBack ? "/"+urlBack+"/" : "";
+};
 
 export const get<%= entityReactName %>State = (location): I<%= entityReactName %>BaseState => {
   const url = new URL(`http://localhost${location.search}`); // using a dummy url for parsing
   const baseFilters = url.searchParams.get('baseFilters') || '';
+  const offset: any = url.searchParams.get('offset') || 0;
 
   <%_ if (listFilterLayout.length > 0) {  _%>
     <%_ for (idx in listFilterLayout) { _%>
       <%_ if (listFilterLayout[idx].type !== 'relationship' ) {  _%>
-        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
           const <%= listFilterLayout[idx].entity.fieldName %>Start = url.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>Start') || '';
           const <%= listFilterLayout[idx].entity.fieldName %>End = url.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>End') || '';
         <%_ } else { _%>
           const <%= listFilterLayout[idx].entity.fieldName %> = url.searchParams.get('<%= listFilterLayout[idx].entity.fieldName %>') || '';
         <%_ } _%>
       <%_ } else { _%>
-          const <%= listFilterLayout[idx].entity.relationshipName %>Id = url.searchParams.get('<%= listFilterLayout[idx].entity.relationshipName %>Id') || '';
+          const <%= listFilterLayout[idx].entity.relationshipName %>Id = url.searchParams.get('<%= listFilterLayout[idx].entity.relationshipName %>') || '';
       <%_ } _%>
     <%_ } _%>
   <%_ } else {  _%>
     <%_ for (idx in fields) { _%>
-      <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
+      <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
         const <%= fields[idx].fieldName %>Start = url.searchParams.get('<%= fields[idx].fieldName %>_start') || '';
         const <%= fields[idx].fieldName %>End = url.searchParams.get('<%= fields[idx].fieldName %>_end') || '';
       <%_ } else { _%>
@@ -843,35 +1097,36 @@ export const get<%= entityReactName %>State = (location): I<%= entityReactName %
       <%_ } _%>
     <%_ } _%>
     <%_ relationships.forEach(rel => { _%>
-      const <%= rel.relationshipName %>Id = url.searchParams.get('<%= rel.relationshipName %>Id') || '';
+      const <%= rel.relationshipName %>Id = url.searchParams.get('<%= rel.relationshipName %>') || '';
     <%_ }) _%>
   <%_ } _%>
   return {
     baseFilters,
+    offset,
     <%_ if (listFilterLayout.length > 0) {  _%>
       <%_ for (idx in listFilterLayout) { _%>
-        <%_ if (listFilterLayout[idx].type !== 'relationship' ) {  _%>
-            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%>
-              <%= listFilterLayout[idx].entity.fieldName %>Start,
-              <%= listFilterLayout[idx].entity.fieldName %>End,
-            <%_ } else { _%>
+        <%_ if (listFilterLayout[idx].type !== 'relationship' ) {  _%>        
+            <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(listFilterLayout[idx].entity.fieldType)) { _%> 
+              <%= listFilterLayout[idx].entity.fieldName %>Start, 
+              <%= listFilterLayout[idx].entity.fieldName %>End, 
+            <%_ } else { _%> 
               <%= listFilterLayout[idx].entity.fieldName %>,
             <%_ } _%>
           <%_ } else { _%>
-            <%= listFilterLayout[idx].entity.relationshipName %>Id,
+            <%= listFilterLayout[idx].entity.relationshipName %>Id: (<%= listFilterLayout[idx].entity.relationshipName %>Id ? <%= listFilterLayout[idx].entity.relationshipName %>Id.split(",").map(v=>({value: v.split("<->")[0], label: v.split("<->")[1]})) : []),
         <%_ } _%>
       <%_ } _%>
     <%_ } else {  _%>
       <%_ for (idx in fields) { _%>
-        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%>
-          <%= fields[idx].fieldName %>Start,
-          <%= fields[idx].fieldName %>End,
-        <%_ } else { _%>
-            <%= fields[idx].fieldName %>,
+        <%_ if (['LocalDate', 'Instant', 'ZonedDateTime'].includes(fields[idx].fieldType)) { _%> 
+          <%= fields[idx].fieldName %>Start, 
+          <%= fields[idx].fieldName %>End, 
+        <%_ } else { _%> 
+            <%= fields[idx].fieldName %>, 
         <%_ } _%>
       <%_ } _%>
       <%_ relationships.forEach(rel => { _%>
-        <%= rel.relationshipName %>Id,
+        <%= rel.relationshipName %>Id: (<%= rel.relationshipName %>Id ? <%= rel.relationshipName %>Id.split(",").map(v=>({value: v.split("<->")[0], label: v.split("<->")[1]})) : []),
       <%_ }) _%>
     <%_ } _%>
   };
@@ -886,7 +1141,8 @@ export const getEntityFiltersURL = (state, offset = null) => {
   <%_ if (listFilterLayout.length > 0) {  _%>
     <%_ for (idx in listFilterLayout) { _%>
       <%_ if (listFilterLayout[idx].type === 'relationship' ) {  _%>
-        '<%= listFilterLayout[idx].name %>=' + state.<%= listFilterLayout[idx].entity.relationshipName %>Id + '&' +
+        '<%= listFilterLayout[idx].name %>=' + 
+        (state.<%= listFilterLayout[idx].entity.relationshipName %>Id ? state.<%= listFilterLayout[idx].entity.relationshipName %>Id.map(v=>v.value+"<->"+v.label).join(",") : []) + '&' +
       <%_ } else { _%>
         '<%= listFilterLayout[idx].name %>=' + state.<%= listFilterLayout[idx].name %> + '&' +
       <%_ } _%>
@@ -896,17 +1152,18 @@ export const getEntityFiltersURL = (state, offset = null) => {
       '<%= fields[idx].fieldName %>=' + state.<%= fields[idx].fieldName %> + '&' +
     <%_ } _%>
     <%_ relationships.forEach(rel => { _%>
-      '<%= rel.relationshipName %>Id=' + state.<%= rel.relationshipName %>Id + '&' +
+      '<%= rel.relationshipName %>=' + 
+      (state.<%= rel.relationshipName %>Id ? state.<%= rel.relationshipName %>Id.map(v=>v.value+"<->"+v.label).join(",") : []) + '&' +
     <%_ }) _%>
   <%_ } _%>
   ''
 };
 
 
-<%_ if (viewLayout.length > 0) {  _%>
-  <%_ for (idx in viewLayout) {  _%>
-    <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
-    <%_ const embebedEntity = viewLayout[idx].entity; _%>
+<%_ if (formLayout.length > 0) {  _%>
+  <%_ for (idx in formLayout) {  _%>
+    <%_  if(formLayout[idx].type === 'relationship' && (formLayout[idx].entity['formLayoutEmbebed'] === "true" || formLayout[idx].entity['formLayoutEmbebed'] === "true")){ _%>
+    <%_ const embebedEntity = formLayout[idx].entity; _%>
       export const <%= embebedEntity.relationshipName %>Reset: any = (values) => ({
         payload: values,
         type: '<%= entityInstance %>/<%= embebedEntity.relationshipNameCapitalized.toUpperCase() %>_RESET',

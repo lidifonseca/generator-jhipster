@@ -3,8 +3,6 @@ import { Button, Col, Row, Table, Label, UncontrolledCollapse, CardBody } from '
 import {I<%= entityReactName %>Props, I<%= entityReactName %>State} from '../<%= entityFileName %>';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import {
-  Translate,
-  translate,
   ICrudGetAllAction,
   TextFormat,
   getSortState,
@@ -12,12 +10,14 @@ import {
   JhiPagination,
   JhiItemCount,
 } from 'react-jhipster';
+import { Translate, translate } from 'app/config/translate-component';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 
 import { IRootState } from 'app/shared/reducers';
 import {
   updateEntity,
+  getUrlBack,
   get<%= entityReactName %>State, I<%= entityReactName %>BaseState, getEntityFiltersURL,
   <%_ if (searchEngine === 'elasticsearch') { _%>
   getSearchEntities,

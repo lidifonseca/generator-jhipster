@@ -20,6 +20,16 @@
  {
      "<%= angularAppName %>": {
          "<%= entityTranslationKey %>" : {
+            "listSelectedButtons": {
+                "clearSelect":"Limpiar Selección",
+                "selectAll":"Selecionar os {{totalItems}} <%= entityClassPluralHumanizedEs %>",
+                "allItensAreSelected":"Os {{totalItems}} <%= entityClassPluralHumanizedEs %> nesta página estão selecionados.",
+                "allItensAreSelectedThisPage":"Todos os {{itemsPerPage}} <%= entityClassPluralHumanizedEs %> nesta página estão selecionadas.",
+                "allItensAreSelectedAllPages":"Todas os {{totalItems}} <%= entityClassPluralHumanizedEs %> estão selecionados.",
+                <% if (typeof listSelectedButtons !== "undefined") { for (idx in listSelectedButtons) { %>
+                    "<%= listSelectedButtons[idx].name %>": "<%= listSelectedButtons[idx].attributes && listSelectedButtons[idx].attributes.text ? listSelectedButtons[idx].attributes.text : listSelectedButtons[idx].name  
+                %>",<% } } %>
+            },
              "listTopButtons": {
                  <% if (typeof listTopButtons !== "undefined") { for (idx in listTopButtons) { %>
                      "<%= listTopButtons[idx].name %>": "<%= listTopButtons[idx].attributes && listTopButtons[idx].attributes.text ? listTopButtons[idx].attributes.text : listTopButtons[idx].name  
@@ -57,8 +67,9 @@
              "updated": "Un <%= typeof entityClassHumanizedEs !== 'undefined' ? entityClassHumanizedEs : entityClassHumanized %> foi atualizado com o identificador {{ param }}",
              "deleted": "Un <%= typeof entityClassHumanizedEs !== 'undefined' ? entityClassHumanizedEs : entityClassHumanized %> foi excluído com o identificador {{ param }}",<% } %>
              "delete": {
-                 "question": "¿Seguro que quiere eliminar <%= typeof entityClassHumanizedEs !== 'undefined' ? entityClassHumanizedEs : entityClassHumanized %> {{ id }}?"
+                 "question": "¿Seguro que quiere eliminar?"
              },
+             "field_id": "ID",
              "btnNewItem": "<%= typeof btnNewItemPt !== 'undefined' ? btnNewItemPt : ("Criar novo "  + (typeof entityClassHumanizedEs !== 'undefined' ? entityClassHumanizedEs : entityClassHumanized) ) %>",
              "btnFilter": "<%= typeof btnFilterPt !== 'undefined' ? btnFilterPt : "Filtrar" %>",
              "btnOpenFilter": "<%= typeof btnOpenFilterPt !== 'undefined' ? btnOpenFilterPt : "Filtrar" %>",
@@ -75,18 +86,26 @@
              "createdBy" : "Criado por",
              "lastModifiedBy" : "Modificado por",
              <% for (idx in fields) { %>
-                 <%_ if (fields[idx].fieldType === 'Boolean') { _%>
+                <%_ if (['byte[]', 'ByteBuffer'].includes(fields[idx].fieldType)) { _%>
+                    "upload_<%= fields[idx].fieldName %>": "Subir <%= fields[idx].fieldNameHumanizedEs ? fields[idx].fieldNameHumanizedEs  : fields[idx].fieldNameHumanized %>",
+                <%_ } else if (fields[idx].fieldType === 'Boolean') { _%>
                      "<%= fields[idx].fieldName %>_filter_all": "Indiferente",
                      "<%= fields[idx].fieldName %>_filter_with": "Ativado",
                      "<%= fields[idx].fieldName %>_filter_without": "Desactivado",
                  <% } %>
              <% } %>
              "detail": {
-                 "title": "<%= typeof entityClassHumanizedEs !== 'undefined' ? entityClassHumanizedEs : entityClassHumanized %>"
-             }<% for (idx in fields) {
+                 "title": "<%= typeof entityClassHumanizedEs !== 'undefined' ? entityClassHumanizedEs : entityClassHumanizedEs %>"
+             }<% for (idx in fields) { %>
+                <% if (idx in fields) { 
+                    %>,"<%= fields[idx].fieldName %>_start": "<%= fields[idx].fieldNameHumanizedEs %> (Inicio)"
+                        ,"<%= fields[idx].fieldName %>_end": "<%= fields[idx].fieldNameHumanizedEs %> (Fin)"<%
+                    } %>
+                <% } %><% for (idx in fields) {
              if (typeof fields[idx].clean_javadoc !== 'undefined') ++helpBlocks; %>,
              "<%= fields[idx].fieldName %>": "<%= fields[idx].fieldNameHumanizedEs ? fields[idx].fieldNameHumanizedEs  : fields[idx].fieldNameHumanized %>"<% } %><% for (idx in relationships) { %>,
              "<%= relationships[idx].relationshipName %>_empty": "Sin <%= relationships[idx].relationshipNameHumanized %>",
+             "<%= relationships[idx].relationshipName %>-modal-super-select-title": "Seleccione...",
              "<%= relationships[idx].relationshipName %>": "<%= relationships[idx].relationshipNameHumanized %>"<% } if (helpBlocks > 0) { %>,
              "help": {<% for (idx in fields) {
                  if (fields[idx].clean_javadoc) {

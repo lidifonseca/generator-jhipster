@@ -1,5 +1,47 @@
 
 
+<%_
+let hasRelationshipQuery = false;
+let hasOneToOneNotOwner = false;
+let otherEntityActions = new Set();
+let manyToManyOwners = new Set();
+let relFieldNames = new Set();
+let uniqueRealtionFields = new Set();
+
+
+Object.keys(differentRelationships).forEach(key => {
+
+  const hasAnyRelationshipQuery = differentRelationships[key].some(rel =>
+      (rel.relationshipType === 'one-to-one' && rel.ownerSide === true && rel.otherEntityName !== 'user')
+          || rel.relationshipType !== 'one-to-many'
+  );
+  if (hasAnyRelationshipQuery) {
+    hasRelationshipQuery = true;
+    differentRelationships[key].forEach(rel => {
+      if(rel.relationshipType ==="one-to-one" && rel.ownerSide  === false && typeof baseFilters !== 'undefined' && baseFilters === rel.relationshipName  ){
+        hasOneToOneNotOwner = true;
+      }
+      if (rel.relationshipType === 'many-to-many') {
+        manyToManyOwners.add(rel);
+      } else {
+        relFieldNames.add(rel);
+      }
+    });
+  }
+  if (differentRelationships[key]) {
+    const uniqueRel = differentRelationships[key][0];
+    uniqueRealtionFields.add({"namePlural": uniqueRel.otherEntityNamePlural, "name": uniqueRel.otherEntityName, "relationshipFieldName": uniqueRel.relationshipFieldName });
+    otherEntityActions.add({
+      action: `get${upperFirstCamelCase(uniqueRel.otherEntityNamePlural)}`,
+      instance: `${uniqueRel.otherEntityNamePlural}`,
+      entity: uniqueRel.otherEntityAngularName,
+      formLayoutListCondition: uniqueRel.formLayoutListCondition,
+      reducer: uniqueRel.otherEntityAngularName === 'User' ? 'userManagement' : uniqueRel.otherEntityName
+    });
+  }
+}); 
+_%>
+
 /* eslint complexity: ["error", 300] */
 <%_
 const i18nToLoad = [entityInstance];
@@ -25,6 +67,8 @@ import {Panel, PanelHeader, PanelBody} from 'app/shared/layout/panel/panel.tsx';
 import { AvForm } from 'availity-reactstrap-validation';
 import { <%= entityReactName %>Update, mapStateToProps, mapDispatchToProps } from '../<%= entityFileName %>-update';
 import { IRootState } from 'app/shared/reducers';
+
+
 export interface IUpdateExtendedState {
   dumystate?: any;
 }
@@ -39,7 +83,7 @@ export interface IUpdateExtendedState {
       }
 
       render() {
-      const { <%= entityInstance %>Entity, loading, updating } = this.props;
+        const { <%= entityInstance %>Entity,<%uniqueRealtionFields.forEach(rel => { %> <%= rel.namePlural %>,<% }) %> loading, updating } = this.props;
       const { isNew } = this.state;
 
       <%_ for (var i = 0; i < blobFields.length; i++) { _%>

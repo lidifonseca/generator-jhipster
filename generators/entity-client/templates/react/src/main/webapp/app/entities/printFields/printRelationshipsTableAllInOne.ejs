@@ -1,0 +1,71 @@
+
+  <%_ const otherEntityNamePlural = rel.otherEntityNamePlural; _%>
+  <%_ const relationshipType = rel.relationshipType; _%>
+  <%_ const ownerSide = rel.ownerSide; _%>
+  <%_ const relationshipFieldName = rel.relationshipFieldName; _%>
+  <%_ const relationshipFieldNamePlural = rel.relationshipFieldNamePlural; _%>
+  <%_ const otherEntityName = rel.otherEntityName; _%>
+  <%_ const otherEntityStateName = rel.otherEntityStateName; _%>
+  <%_ const otherEntityField = rel.otherEntityField; _%>
+  <%_ const otherEntityFieldCapitalized = rel.otherEntityFieldCapitalized; _%>
+  <%_ if (relationshipType === 'many-to-one'
+  || (relationshipType === 'one-to-one')
+  || (relationshipType === 'many-to-many')) { _%>
+    { state.baseFilters !== '<%= relationshipFieldName %>' ? 
+    <td id="<%=relationshipFieldName%>-cell">
+            <b className="visible-xs"> <%=rel.relationshipNameHumanized %> </b>
+          <%_ if (otherEntityName === 'user') { _%>
+            <%_ if (relationshipType === 'many-to-many') { _%>
+                {
+                  (<%= entityInstance %>.<%= relationshipFieldNamePlural %>) ?
+                      (<%= entityInstance %>.<%= relationshipFieldNamePlural %>.map((val, j) =>
+                          <span key={j}>{val.<%= otherEntityField %>}{(j === <%= entityInstance %>.<%= relationshipFieldNamePlural %>.length - 1) ? '' : ', '}</span>
+                      )
+                  ) : null
+                }
+            <%_ } else { _%>
+                  <%_ if (dto === 'no') { _%>
+                  {<%= entityInstance + "." + relationshipFieldName  %> ? <%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField %> : ''}
+                      <%_ } else { _%>
+                  {<%= entityInstance + "." + relationshipFieldName %> ? <%= entityInstance + "." + relationshipFieldName  %>.<%= otherEntityField %> : ''}
+                    <%_ } _%>
+            <%_ } _%>
+          <%_ } else { _%>
+              <%_ if (relationshipType === 'many-to-many') { _%>
+                  {
+                    (<%= entityInstance %>.<%= relationshipFieldNamePlural %>) ?
+                        (<%= entityInstance %>.<%= relationshipFieldNamePlural %>.map((val, j) =>
+                            <span key={j}><Link to={`<%= otherEntityStateName %>/${val.id}`} data-type-rel="1-<%= relationshipType %>-<%= ownerSide ? "owner-side" : "other-side" %>" >{val.<%= otherEntityField ? otherEntityField : 'id'  %>}</Link>{(j === <%= entityInstance %>.<%= relationshipFieldNamePlural %>.length - 1) ? '' : ', '}</span>
+                        )
+                    ) : null
+                  }
+            <%_ } else { _%>
+                  <%_ if (dto === 'no') { _%>
+                   { <%= entityInstance %> &&  
+                     <%_ let varAux = entityInstance _%><%- relationshipFieldName.split(".").map( v => { varAux += "." + v; return varAux; } ).join(" && ") %> && 
+                     <%= entityInstance %>.<%= relationshipFieldName %>['<%= otherEntityField ? otherEntityField : 'id' %>'] 
+                      ? 
+                      <Link  to={`<%= relationshipFieldName.split(".").pop() %>/${<%= entityInstance %>.<%= relationshipFieldName %>.id}`} data-type-rel="2-many-to-one-other-side">
+                       { <%= entityInstance %>.<%= relationshipFieldName %>['<%= otherEntityField ? otherEntityField : 'id' %>']} 
+                      </Link>
+                      : <%= otherEntityNamePlural %>.filter(v=>v.<%= entityInstance %>.map(b=>b.id).includes(<%= entityInstance %>.id)).map((v, k) => 
+                      <Link key={k} to={`<%= relationshipFieldName.split(".").pop() %>/${v.id}`} data-type-rel="2-many-to-one-other-side">
+                        {v.<%= otherEntityField ? otherEntityField : 'id' %>}
+                      </Link>
+                  )}
+                  <%_ } else { _%>
+                    {  <%= entityInstance %> &&  <%= entityInstance %>.<%= relationshipFieldName %> && <%= entityInstance %>.<%= relationshipFieldName %>['<%= otherEntityField ? otherEntityField : 'id' %>'] 
+                        ? <Link to={`<%= relationshipFieldName.split(".").pop() %>/${<%= entityInstance %>.<%= relationshipFieldName %>.id}`} data-type-rel="2-many-to-one-other-side-dto"> 
+                            { <%= entityInstance %>.<%= relationshipFieldName %>['<%= otherEntityField ? otherEntityField : 'id' %>'] }
+                          </Link>
+                        : <%= otherEntityNamePlural  %>.filter(v=>v.<%= entityInstance %>.map(b=>b.id).includes(<%= entityInstance %>.id)).map((v, k) => 
+                        <Link key={k} to={`<%= relationshipFieldName.split(".").pop() %>/${v.id}`} data-type-rel="2-many-to-one-other-side-dto">
+                          {v.<%= otherEntityField   ?  otherEntityField : 'id' %>}
+                        </Link>
+                    ) }
+                  <%_ } _%>
+              <%_ } _%>
+            <%_ } _%>
+        </td>
+      : null }
+  <%_ } _%>

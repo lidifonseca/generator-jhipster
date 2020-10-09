@@ -9,8 +9,9 @@ import { Button, <% if (haveFieldWithJavadoc) { %>UncontrolledTooltip, <% } %>Ro
 <%_ } else { _%> 
   import {Panel, PanelHeader, PanelBody, PanelFooter} from 'app/shared/layout/panel/panel.tsx';
 <%_ } _%> 
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import {
-  Translate,
+  getSortState,
   ICrudGetAction,
   <%_ if (fieldsContainBlob) { _%>
     <%_ if (fieldsContainBlobOrImage) { _%>
@@ -19,21 +20,27 @@ import {
   <%_ } _%>
   TextFormat
 } from 'react-jhipster';
+
+import { Translate, translate } from 'app/config/translate-component';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { IRootState } from 'app/shared/reducers';
-import { getEntity, I<%= entityReactName %>BaseState, get<%= entityReactName %>State, getEntityFiltersURL } from './<%= entityFileName %>.reducer';
+import { getEntity, I<%= entityReactName %>BaseState, 
+  getUrlBack, get<%= entityReactName %>State, getEntityFiltersURL } from './<%= entityFileName %>.reducer';
 import { I<%= entityReactName %> } from 'app/shared/model/<%= entityModelFileName %>.model';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 
 
+<%_ for (idx in componentList) {  _%>
+    import <%= componentList[idx].name %> from './components/<%= componentList[idx].name %>';
+<%_ } _%>
 
 <%_ if (viewLayout.length > 0) {  _%>
   <%_ for (idx in viewLayout) {  _%>
-    <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+    <%_  if(viewLayout[idx].type === 'relationship' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
     <%_ const embebedEntity = viewLayout[idx].entity; _%>
       import { <%= embebedEntity.relationshipNameCapitalized %>Detail } from '../<%= embebedEntity.otherEntityPath %>/<%= embebedEntity.otherEntityPath %>-detail';
-      import { getEntity as getEntity<%= embebedEntity.otherEntityNameCapitalized %> } from '../<%= embebedEntity.otherEntityPath %>/<%= embebedEntity.otherEntityPath %>.reducer';
+      import { getEntity as getEntity<%= embebedEntity.otherEntityNameCapitalized %>, convertEntityBuffers as convertEntityBuffers<%= embebedEntity.otherEntityNameCapitalized %> } from '../<%= embebedEntity.otherEntityPath %>/<%= embebedEntity.otherEntityPath %>.reducer';
     <%_ } _%>
   <%_ } _%>
 <%_ } _%>
@@ -77,9 +84,11 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
       ...this.state,
       <%_ if (viewTabs.length > 0) { _%>activeTab: 0,<%_ } _%>
       fieldsBase: {
+        ...getSortState(this.props.location, ITEMS_PER_PAGE),
         ...get<%= entityReactName %>State(this.props.location),
+        urlBack: getUrlBack(this.props.location),
         <%_ if (typeof baseFilters !== 'undefined' && baseFilters) { _%>
-          <%= baseFilters _%>Id: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'],
+          <%= baseFilters _%>Id: { value: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'], label: this.props.match.params['id<%= _.upperFirst(baseFilters) _%>'] },
           baseFilters: '<%= baseFilters _%>',
         <%_ } _%>  
       },
@@ -114,8 +123,23 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
     const state = this.state;
     return (
       <>
-      <div id="page-heading">
-        <span className="page-header ml-3"><%= entityClassPluralHumanized %></span>
+      <div id="page-heading">    <h2>
+        <Translate contentKey="<%= i18nKeyPrefix %>.detail.title"><%= entityClass %></Translate>
+        <%_ if (toStringFields.length > 0) { _%>
+          <small>
+            <%_ for (idx in toStringFields) { _%>
+              <%_ if(toStringFields[idx].type == 'field'){ _%>
+                &nbsp; {<%= entityInstance %>Entity['<%= toStringFields[idx].entity.fieldName %>']}
+                <%_  } else { _%>
+                &nbsp; {<%= entityInstance %>Entity['<%= toStringFields[idx].entity.relationshipName %>'] ? <%= entityInstance %>Entity['<%= toStringFields[idx].entity.relationshipName %>']['<%= toStringFields[idx].entity.otherEntityField %>'] : ""} 
+                <%_ } _%>
+            <%_ } _%>
+          </small>
+        <%_ } else { _%>
+          <b>{<%= entityInstance %>Entity.id}</b>
+        <%_ } _%>
+
+      </h2>
         <%_ for (idx in viewButtons) { _%>
           <%_ const attrib = viewButtons[idx].attributes; _%>
             <Button className="float-right jh-create-entity" tag={<%=attrib['tag'] %>} to={<%=attrib['to'] %>} color="<%=attrib['color'] %>" size="<%=attrib['size'] %>">
@@ -124,23 +148,75 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
             </Button>
         <%_ } _%>
       </div>
+
+      <div className="pull-right"> 
+        <Button tag={Link} to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
+          _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
+        } %>"/<%= entityFileName %>?"+this.getFiltersURL()} replace color="info">
+          <FontAwesomeIcon icon="arrow-left" /> <span className="d-none d-md-inline" ><Translate contentKey="<%= i18nKeyPrefix %>.btnBack">Back</Translate></span>
+        </Button>&nbsp;
+        <%_ if (!readOnly) { _%>
+        <Button tag={Link} to={`<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
+          _%> /<%= baseFilters %>/${this.state.fieldsBase.<%= baseFilters %>Id }<%_ 
+        } %>/<%= entityFileName %>/${<%=entityInstance %>Entity.id}/edit?+${this.getFiltersURL()}`} replace color="primary">
+          <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnEdit">Edit</Translate></span>
+        </Button>
+      </div>
+
       <ol className="breadcrumb">
         <li className="breadcrumb-item"><Link to="/">Inicio</Link></li>
         <%_ if((typeof baseFilters !== 'undefined' && baseFilters)) { _%>
           <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>"}><%= _.startCase((baseFilters+"s")) %></Link></li>
-          <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters _%>Id}>{
+          { this.state.fieldsBase.<%= baseFilters _%>Id && this.state.fieldsBase.<%= baseFilters _%>Id.value ? <>
+          <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters _%>Id.value}>{
             <%if (typeof baseFiltersAttributes !== 'undefined' && typeof baseFiltersAttributes['showField']!== 'undefined') { %>
-              <%= entityInstance %>Entity.<%= baseFilters %> ? <%= entityInstance %>Entity.<%= baseFilters %>.<%= baseFiltersAttributes['showField'] %> : this.state.fieldsBase.<%= baseFilters _%>Id
+              this.state.fieldsBase.<%= baseFilters _%>Id.label ? this.state.fieldsBase.<%= baseFilters _%>Id.label : this.state.fieldsBase.<%= baseFilters _%>Id.value
             <% } else {%>
               this.state.fieldsBase.<%= baseFilters _%>Id
             <% }%>
           }</Link></li> 
-          <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters _%>Id + "/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
-        <%_ } else { _%>
+          <li className="breadcrumb-item"><Link to={"/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters _%>Id.value + "/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
+        </> : <></> }
+          <%_ } else { _%>
           <li className="breadcrumb-item active"><Link to={"/<%= entityFileName %>"}><%= entityClassPluralHumanized %></Link></li>
         <%_ } _%>
         <li className="breadcrumb-item active"><%= entityClassPluralHumanized %> details</li>
       </ol>
+      <%_ if (viewTabs.length > 0) { _%>
+      <Nav tabs>
+        <%_ for (idx in viewTabs) { _%>
+          <NavItem>
+            <NavLink
+              className={classnames({ active: this.state.activeTab === <%= idx %> })}
+              onClick={() => { this.toggleTab(<%= idx %>); }}
+            >
+              <span className="d-sm-none">
+                <Translate contentKey="<%= i18nKeyPrefix %>.viewTabs.<%= viewTabs[idx] %>">
+                  <%= viewTabs[idx] %>
+                </Translate> 
+              </span>
+              <span className="d-sm-block d-none">
+                <Translate contentKey="<%= i18nKeyPrefix %>.viewTabs.<%= viewTabs[idx] %>">
+                  <%= viewTabs[idx] %>
+                </Translate> 
+              </span>
+            </NavLink>
+          </NavItem>
+        <%_ } _%>
+        <%_ if(defaultViewTab) { _%>
+            <NavItem>
+              <NavLink
+                className={classnames({ active: this.state.activeTab === <%= viewTabs.length %> })}
+                onClick={() => { this.toggleTab(<%= viewTabs.length %>); }}
+              >
+                <span className="d-sm-none">Default</span>
+                <span className="d-sm-block d-none">Default</span>
+              </NavLink>
+            </NavItem>
+        <%_ } _%>
+      </Nav> 
+
+      <%_ } _%>
       </>
     )
   }
@@ -153,23 +229,22 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
         <Row className="justify-content-center">
             <Col md="11">
               <h2>
-                <Translate contentKey="<%= i18nKeyPrefix %>.detail.title"><%= entityClass %></Translate> 
+                <Translate contentKey="<%= i18nKeyPrefix %>.detail.title"><%= entityClass %></Translate>
                 <%_ if (toStringFields.length > 0) { _%>
                   <small>
                     <%_ for (idx in toStringFields) { _%>
                       <%_ if(toStringFields[idx].type == 'field'){ _%>
                         &nbsp; {<%= entityInstance %>Entity['<%= toStringFields[idx].entity.fieldName %>']}
                         <%_  } else { _%>
-                        &nbsp; {<%= entityInstance %>Entity['<%= toStringFields[idx].entity.relationshipName %>']} 
+                        &nbsp; {<%= entityInstance %>Entity['<%= toStringFields[idx].entity.relationshipName %>'] ? <%= entityInstance %>Entity['<%= toStringFields[idx].entity.relationshipName %>']['<%= toStringFields[idx].entity.otherEntityField %>'] : ""} 
                         <%_ } _%>
                     <%_ } _%>
                   </small>
                 <%_ } else { _%>
-                  [<b>{<%= entityInstance %>Entity.id}</b>]
+                  <b>{<%= entityInstance %>Entity.id}</b>
                 <%_ } _%>
 
               </h2>
-
                 <Row className="jh-entity-details">
                   <%_ if (viewTabs.length === 0) { _%>
                     <%_ if (viewLayout.length > 0) {  _%>
@@ -193,84 +268,71 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                       <%_ } _%>
                   <%_ } _%>
                   <%_ } else { _%>
-                      <Nav tabs>
-                      <%_ for (idx in viewTabs) { _%>
-                        <NavItem>
-                          <NavLink
-                            className={classnames({ active: this.state.activeTab === <%= idx %> })}
-                            onClick={() => { this.toggleTab(<%= idx %>); }}
-                          >
-                            <span className="d-sm-none">
-                              <Translate contentKey="<%= i18nKeyPrefix %>.viewTabs.<%= viewTabs[idx] %>">
-                                <%= viewTabs[idx] %>
-                              </Translate> 
-                            </span>
-                            <span className="d-sm-block d-none">
-                              <Translate contentKey="<%= i18nKeyPrefix %>.viewTabs.<%= viewTabs[idx] %>">
-                                <%= viewTabs[idx] %>
-                              </Translate> 
-                            </span>
-                          </NavLink>
-                        </NavItem>
-                      <%_ } _%>
-                      <%_ if(defaultViewTab) { _%>
-                          <NavItem>
-                            <NavLink
-                              className={classnames({ active: this.state.activeTab === <%= viewTabs.length %> })}
-                              onClick={() => { this.toggleTab(<%= viewTabs.length %>); }}
-                            >
-                              <span className="d-sm-none">Default</span>
-                              <span className="d-sm-block d-none">Default</span>
-                            </NavLink>
-                          </NavItem>
-                      <%_ } _%>
-                    </Nav> 
                     <TabContent activeTab={this.state.activeTab}>
                       <%_ for (iTabs in viewTabs) { _%>
                         <TabPane tabId={<%= iTabs %>}>
+                          <Row>
                           <%_ if (viewLayout.length > 0) {  _%>
                             <%_ for (idx in viewLayout) {  _%>
                               <%_  if(viewTabs[iTabs] === viewLayout[idx].entity['viewTab']) {  _%>
                                 <%_  if(viewLayout[idx].type == 'field'){ _%>
                                 <%- include('printFields/printFieldsDetails', {field: viewLayout[idx].entity}); -%>
-                                <%_  } else { _%>
+                                <%_  } else if(viewLayout[idx].type == 'relationship') { _%>
                                   <%_  if(typeof baseFilters === 'undefined' || baseFilters != viewLayout[idx].name) { _%>
                                     <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
-                                  <%_  } _%>
+                                  <%_ } _%>
+                                <%_  } else if(viewLayout[idx].type == 'component') { _%>
+                                  <Col md="<%= viewLayout[idx].viewLayoutSize ? viewLayout[idx].viewLayoutSize : "12" %>">
+                                    <<%- viewLayout[idx].name %> baseState={this.state} />
+                                  </Col>
                                 <%_  } _%>
                               <%_  }  _%>
                             <%_  } _%>
                       <%_ } else { _%>
-                            <%_ for (idx in fields) {  %>
-                                  <%_  if(viewTabs[iTabs] === fields[idx]['viewTab']) {  %>
-                                  <%- include('printFields/printFieldsDetails', {field: fields[idx]}); -%>
-                                  <%_  }  %>
-                                <%_  } _%>
-                                <%_ for (idx in relationships) { %>
-                                  <%_  if(typeof baseFilters === 'undefined' || baseFilters != relationships[idx].relationshipFieldName) { _%>
-                                    <%_  if(viewTabs[iTabs] === relationships[idx]['viewTab']) {  %>
-                                      <%- include('printFields/printRelationshipsDetails', {rel: relationships[idx]}); -%>
-                                    <%_  } %>
-                                  <%_  } %>
-                              <%_  } _%>
+                        <%_ for (idx in fields) {  %>
+                          <%_  if(viewTabs[iTabs] === fields[idx]['viewTab']) {  %>
+                            <%- include('printFields/printFieldsDetails', {field: fields[idx]}); -%>
+                          <%_  }  %>
+                        <%_  } _%>
+                        <%_ for (idx in relationships) { %>
+                          <%_  if(typeof baseFilters === 'undefined' || baseFilters != relationships[idx].relationshipFieldName) { _%>
+                            <%_  if(viewTabs[iTabs] === relationships[idx]['viewTab']) {  %>
+                              <%- include('printFields/printRelationshipsDetails', {rel: relationships[idx]}); -%>
+                            <%_  } %>
+                          <%_  } %>
+                        <%_  } _%>
+                        <%_ for (idx in componentList) { _%>
+                            <%_  if(!componentList[idx]['viewTab'] || componentList[idx]['viewTab'] === "default") {  _%>
+                            <Col md="<%= componentList[idx].entity.viewLayoutSize ? componentList[idx].entity.viewLayoutSize : "12" %>">
+                              <<%- componentList[idx].name %> baseState={this.state} />
+                            </Col>
+                          <%_  } _%>
+                        <%_  } _%>
                       <%_ } _%>
+
+                      </Row>
                         </TabPane>
                       <%_ } _%>
                         <%_ if(defaultViewTab) { _%>
                           <TabPane tabId={<%= viewTabs.length %>}>
+                          <Row>
                             <%_ if (viewLayout.length > 0) {  _%>
                               <%_ for (idx in viewLayout) {  _%>
                                 <%_  if(!viewLayout[idx].entity['viewTab'] || viewLayout[idx].entity['viewTab'] === "default") {  _%>
                                   <%_  if(viewLayout[idx].type == 'field'){ _%>
-                                  <%- include('printFields/printFieldsDetails', {field: viewLayout[idx].entity}); -%>
-                                  <%_  } else { _%>
-                                  <%_  if(typeof baseFilters === 'undefined' || baseFilters != viewLayout[idx].name) { _%>
-                                    <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
-                                  <%_  } _%>
+                                    <%- include('printFields/printFieldsDetails', {field: viewLayout[idx].entity}); -%>
+                                  <%_  } else if(viewLayout[idx].type == 'relationship') { _%>
+                                    <%_  if(typeof baseFilters === 'undefined' || baseFilters != viewLayout[idx].name) { _%>
+                                      <%- include('printFields/printRelationshipsDetails', {rel: viewLayout[idx].entity}); -%>
+                                    <%_ } _%>
+                                  <%_  } else if(viewLayout[idx].type == 'component') { _%>
+                                    <Col md="<%= componentList[idx].entity.viewLayoutSize ? componentList[idx].entity.viewLayoutSize : "12" %>">
+                                      <<%- componentList[idx].name %> baseState={this.state} />
+                                    </Col>
                                   <%_  } _%>
                                 <%_  }  _%>
                               <%_  } _%>
-                      <%_ } else { _%>
+                            <%_ } else { _%>
                               <%_ for (idx in fields) {  _%>
                                 <%_  if(!fields[idx]['viewTab'] || fields[idx]['viewTab'] === "default") {  _%>
                                 <%- include('printFields/printFieldsDetails', {field: fields[idx]}); -%>
@@ -283,27 +345,22 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
                                   <%_  } _%>
                                 <%_  } _%>
                               <%_  } _%>
+                              <%_ for (idx in componentList) { _%>
+                                <%_  if(!componentList[idx]['viewTab'] || componentList[idx]['viewTab'] === "default") {  _%>
+                                  <Col md="<%= componentList[idx].entity.viewLayoutSize ? componentList[idx].entity.viewLayoutSize : "12" %>">
+                                    <<%- componentList[idx].name %> baseState={this.state} />
+                                  </Col>
+                                <%_  } _%>
+                              <%_  } _%>
                       <%_ } _%>
-                          </TabPane>
+
+                    </Row>
+                    </TabPane>
                       <%_ } _%>
                       
                     </TabContent>
                   <%_ } _%>
                   </Row>
-
-                  <div className="footer-details-buttons"> 
-                    <Button tag={Link} to={<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-                      _%> "/<%= baseFilters %>/" + this.state.fieldsBase.<%= baseFilters %>Id + <%_ 
-                    } %>"/<%= entityFileName %>?"+this.getFiltersURL()} replace color="info">
-                      <FontAwesomeIcon icon="arrow-left" /> <span className="d-none d-md-inline" ><Translate contentKey="<%= i18nKeyPrefix %>.btnBack">Back</Translate></span>
-                    </Button>&nbsp;
-                    <%_ if (!readOnly) { _%>
-                    <Button tag={Link} to={`<%_ if (typeof baseFilters !== 'undefined' && baseFilters) { 
-                      _%> /<%= baseFilters %>/${this.state.fieldsBase.<%= baseFilters %>Id }<%_ 
-                    } %>/<%= entityFileName %>/${<%=entityInstance %>Entity.id}/edit?+${this.getFiltersURL()}`} replace color="primary">
-                      <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline"><Translate contentKey="<%= i18nKeyPrefix %>.btnEdit">Edit</Translate></span>
-                    </Button>
-                  </div>
               <%_ } _%>
             </Col>
         </Row>
@@ -316,10 +373,11 @@ export class <%= entityReactName %>Detail extends React.Component<I<%= entityRea
     const state = this.state;
     return (
       <div>
-      <Panel <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
+      <Panel  className="<%= entityFileName %> <%= entityFileName %>-detail" <%_ if(baseFiltersModal) { %> isOpen <%_ } %>>
         <PanelHeader>
           { this.renderHeader() }
         </PanelHeader>
+        
         <PanelBody>
           { this.renderBody() }
         </PanelBody>
@@ -333,7 +391,7 @@ export const mapStateToProps = ({ <%= entityInstance %>, ...storeState }: IRootS
   <%= entityInstance %>Entity: <%= entityInstance %>.entity,
   <%_ if (viewLayout.length > 0) {  _%>
     <%_ for (idx in viewLayout) {  _%>
-      <%_  if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+      <%_  if(viewLayout[idx].type === 'relationship' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
         <%= viewLayout[idx].entity.otherEntityName %>Entity: storeState.<%= viewLayout[idx].entity.otherEntityName %>.entity,
       <%_ } _%>
     <%_ } _%>
@@ -344,7 +402,7 @@ export const mapDispatchToProps = {
   getEntity,
   <%_ if (viewLayout.length > 0) {  _%>
     <%_ for (idx in viewLayout) {  _%>
-      <%_ if(viewLayout[idx].type != 'field' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
+      <%_ if(viewLayout[idx].type === 'relationship' && viewLayout[idx].entity['viewLayoutEmbebed'] === "true"){ _%>
          getEntity<%= viewLayout[idx].entity.otherEntityNameCapitalized %>,
       <%_ } _%>
     <%_ } _%>
