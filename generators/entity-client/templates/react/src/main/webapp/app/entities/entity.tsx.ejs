@@ -1063,7 +1063,7 @@ export class <%= entityReactName %> extends React.Component<I<%= entityReactName
 }
 
 
-export const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) => { return {
+export const mapStateToProps = ({ ...storeState  }: IRootState) => { return {
   <%_ if (Object.keys(importEntities).length > 0){_%>
     <%_ for(const importEntity in importEntities) { _%>
       <%_ if (importEntities[importEntity] == 'Entity'){ _%>
@@ -1079,16 +1079,16 @@ export const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRoot
   <%_ otherEntityActions.forEach(val => { _%>
     <%= val.instance %>: storeState.<%= val.reducer %>.<%= val.entity === 'User' ? val.instance : 'entities' %>,
   <%_ }) _%>
-  <%= entityInstance %>List: <%= entityInstance %>.entities,
+  <%= entityInstance %>List: storeState.<%= entityInstance %>.entities,
   <%_ if (pagination !== 'no') { _%>
-  totalItems: <%= entityInstance %>.totalItems,
+  totalItems: storeState.<%= entityInstance %>.totalItems,
   <%_ } _%>
-  loading: <%= entityInstance %>.loading,
+  loading: storeState.<%= entityInstance %>.loading,
   <%_ if (pagination === 'infinite-scroll') { _%>
   accountInfo: storeState.accountInfo.links,
-  links: <%= entityInstance %>.links,
-  entity: <%= entityInstance %>.entity,
-  updateSuccess: <%= entityInstance %>.updateSuccess,
+  links: storeState.<%= entityInstance %>.links,
+  entity: storeState.<%= entityInstance %>.entity,
+  updateSuccess: storeState.<%= entityInstance %>.updateSuccess,
   <%_ } _%>
 }};
 
