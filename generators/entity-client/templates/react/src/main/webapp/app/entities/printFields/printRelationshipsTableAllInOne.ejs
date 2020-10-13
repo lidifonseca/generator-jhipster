@@ -49,14 +49,14 @@
                        { <%= entityInstance %>.<%= relationshipFieldName %>['<%= otherEntityField ? otherEntityField : 'id' %>']} 
                       </Link>
                       : <></>
-                  )}
+                  }
                   <%_ } else { _%>
                     {  <%= entityInstance %> &&  <%= entityInstance %>.<%= relationshipFieldName %> && <%= entityInstance %>.<%= relationshipFieldName %>['<%= otherEntityField ? otherEntityField : 'id' %>'] 
                         ? <Link to={`<%= relationshipFieldName.split(".").pop() %>/${<%= entityInstance %>.<%= relationshipFieldName %>.id}`} data-type-rel="2-many-to-one-other-side-dto"> 
                             { <%= entityInstance %>.<%= relationshipFieldName %>['<%= otherEntityField ? otherEntityField : 'id' %>'] }
                           </Link>
                         : <></>
-                    ) }
+                     }
                   <%_ } _%>
               <%_ } _%>
             <%_ } _%>
