@@ -2035,7 +2035,7 @@ _%>
   }
 }
 
-export const mapStateToProps = ({ <%= entityInstance %>, ...storeState  }: IRootState) => ({
+export const mapStateToProps = ({  ...storeState  }: IRootState) => ({
   <%_ if (Object.keys(importEntities).length > 0){_%>
     <%_ for(const importEntity in importEntities) { _%>
       <%_ if (importEntities[importEntity] == 'Entity'){ _%>
