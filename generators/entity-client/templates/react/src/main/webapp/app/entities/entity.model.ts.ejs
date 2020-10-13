@@ -31,9 +31,9 @@ import { IUser } from 'app/shared/model/user.model';
     import { <%- importedType %> } from '<%- importedPath %>';
 <%_ } _%>
 <%_ }); _%>
-<%_ enumImports.forEach( (importedPath, importedType) => { _%>
+<%_ enumImports.forEach( (importedPath, importedType) => { _%><%_ if("I"+entityReactName !== importedType){ _%>
 import { <%- importedType %> } from '<%- importedPath %>';
-<%_ }); _%>
+<%_ } }); _%>
 
 export interface I<%= entityReactName %> {
     <%_ variablesWithTypes.forEach(variablesWithType => { _%>
