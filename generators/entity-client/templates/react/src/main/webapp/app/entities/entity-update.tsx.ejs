@@ -874,24 +874,7 @@ registerLocale('pt', pt);
       }
 
 
-      
-  getFullEntityFromState(v) {
-    <% relationships.forEach(rel => { %><% if(rel.relationshipType === 'many-to-many') { %> 
-      const <%= rel.relationshipFieldName %>Entity = this.props.<%= rel.otherEntityNamePlural %>.filter(x=> x.<%= rel.otherEntityRelationshipNamePlural %> &&  x.<%= rel.otherEntityRelationshipNamePlural %>.map(x1=>x1.id).includes(this.state.<%= rel.relationshipFieldName %>SelectValue)); // <%= rel.relationshipType %> <% 
-    } else if(rel.relationshipType === 'many-to-one') { %> 
-      const <%= rel.relationshipFieldName %>Entity = this.props.<%= rel.otherEntityNamePlural %>.filter(x=> x.<%= rel.otherEntityRelationshipName %> &&  x.<%= rel.otherEntityRelationshipName %>.map(x1=>x1.id).includes(this.state.<%= rel.relationshipFieldName %>SelectValue)); // <%= rel.relationshipType %> <% 
-    } else { %> 
-      const <%= rel.relationshipFieldName %>Entity = this.props.<%= rel.otherEntityNamePlural %>.filter(x => x.<%= rel.otherEntityRelationshipName %> && x.<%= rel.otherEntityRelationshipName %>.id === this.state.<%= rel.relationshipFieldName %>SelectValue).pop(); // <%= rel.relationshipType %> <% 
-  } %><% }) %>
-    return { 
-      <%_ for (idx in fields) { _%>   
-        <%= fields[idx].fieldName %>: this.state.<%= fields[idx].fieldName %>SelectValue,
-      <%_ } _%>
-      <% relationships.forEach(rel => { 
-        %> <%= rel.relationshipFieldName %>: <%= rel.relationshipFieldName %>Entity, 
-      <% }) %>
-    };
-  }; 
+     
   getFullEntitySelectValue(v) {
     <% relationships.forEach(rel => { %>
       <% if(rel.relationshipType === 'many-to-many') { %> 
@@ -1129,7 +1112,7 @@ registerLocale('pt', pt);
       <%_ } _%>
       const baseFilters = this.state.fieldsBase && this.state.fieldsBase['baseFilters'] ? this.state.fieldsBase['baseFilters'] : null;
       
-      const fullEntityEmbebed = this.getFullEntityFromState(<%= entityInstance %>Entity);
+      const fullEntityEmbebed = <%= entityInstance %>Entity;
 
       <%_ if (formLayout.length > 0) {  _%>
         <%_ for (idx in formLayout) {  _%>
